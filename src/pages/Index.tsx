@@ -8,6 +8,8 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { toast } from "@/hooks/use-toast";
+import { useTheme } from "@/contexts/ThemeContext";
+import { ThemedComponent } from "@/components/ThemedComponent";
 
 interface Message {
   id: string;
@@ -32,6 +34,7 @@ interface Folder {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { currentTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -204,7 +207,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-white">
+      <ThemedComponent variant="background" className="flex min-h-screen w-full">
         <AppSidebar
           onNewChat={handleNewChat}
           conversations={conversations}
@@ -219,16 +222,28 @@ const Index = () => {
 
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="flex items-center justify-between p-4 border-b bg-white">
+          <header 
+            className="flex items-center justify-between p-4 border-b"
+            style={{ 
+              backgroundColor: currentTheme.colors.background,
+              borderColor: currentTheme.colors.border 
+            }}
+          >
             <div className="flex items-center gap-3">
               <SidebarTrigger />
-              <h1 className="text-xl font-semibold text-gray-900">KidsGPT</h1>
+              <h1 
+                className="text-xl font-semibold"
+                style={{ color: currentTheme.colors.text.primary }}
+              >
+                KidsGPT
+              </h1>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/settings")}
-              className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="h-8 w-8"
+              style={{ color: currentTheme.colors.text.secondary }}
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -237,12 +252,18 @@ const Index = () => {
           {/* Messages */}
           <ScrollArea className="flex-1">
             {currentMessages.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center p-8">
+              <ThemedComponent variant="background" className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center max-w-md">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  <h2 
+                    className="text-3xl font-bold mb-4"
+                    style={{ color: currentTheme.colors.text.primary }}
+                  >
                     How can I help you today?
                   </h2>
-                  <p className="text-gray-600 mb-8">
+                  <p 
+                    className="mb-8"
+                    style={{ color: currentTheme.colors.text.secondary }}
+                  >
                     I'm here to assist you with questions, creative tasks, analysis, and more.
                   </p>
                   <div className="grid grid-cols-1 gap-3">
@@ -256,26 +277,42 @@ const Index = () => {
                         key={index}
                         variant="outline"
                         onClick={() => handleSendMessage(suggestion)}
-                        className="text-left justify-start h-auto p-4 text-gray-700 hover:bg-gray-50"
+                        className="text-left justify-start h-auto p-4"
+                        style={{ 
+                          color: currentTheme.colors.text.primary,
+                          borderColor: currentTheme.colors.border,
+                          backgroundColor: currentTheme.colors.surface
+                        }}
                       >
                         {suggestion}
                       </Button>
                     ))}
                   </div>
                 </div>
-              </div>
+              </ThemedComponent>
             ) : (
               <div className="pb-4">
                 {currentMessages.map((message) => (
                   <ChatMessage key={message.id} message={message} />
                 ))}
                 {isTyping && (
-                  <div className="flex gap-4 p-6 bg-gray-50">
-                    <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center">
+                  <div 
+                    className="flex gap-4 p-6"
+                    style={{ backgroundColor: currentTheme.colors.surface }}
+                  >
+                    <div 
+                      className="h-8 w-8 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: currentTheme.colors.primary }}
+                    >
                       <div className="text-white text-xs font-bold">AI</div>
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900 mb-2">KidsGPT</div>
+                      <div 
+                        className="text-sm font-medium mb-2"
+                        style={{ color: currentTheme.colors.text.primary }}
+                      >
+                        KidsGPT
+                      </div>
                       <div className="flex gap-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -292,7 +329,7 @@ const Index = () => {
           {/* Input */}
           <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
         </div>
-      </div>
+      </ThemedComponent>
     </SidebarProvider>
   );
 };

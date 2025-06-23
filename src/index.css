@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -51,6 +52,17 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Theme variables */
+    --theme-primary: #22c55e;
+    --theme-secondary: #f3f4f6;
+    --theme-background: #ffffff;
+    --theme-surface: #f9fafb;
+    --theme-text-primary: #111827;
+    --theme-text-secondary: #6b7280;
+    --theme-text-accent: #22c55e;
+    --theme-border: #e5e7eb;
+    --theme-accent: #22c55e;
   }
 
   .dark {
@@ -99,5 +111,16 @@
 
   body {
     @apply bg-background text-foreground;
+    background-color: var(--theme-background);
+    color: var(--theme-text-primary);
   }
 }
+
+/* Theme utility classes */
+.theme-bg-primary { background-color: var(--theme-primary); }
+.theme-bg-secondary { background-color: var(--theme-secondary); }
+.theme-bg-surface { background-color: var(--theme-surface); }
+.theme-text-primary { color: var(--theme-text-primary); }
+.theme-text-secondary { color: var(--theme-text-secondary); }
+.theme-text-accent { color: var(--theme-text-accent); }
+.theme-border { border-color: var(--theme-border); }

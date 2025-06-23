@@ -4,17 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/contexts/ThemeContext";
+import { ThemedComponent } from "@/components/ThemedComponent";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
+  const { currentTheme, themes, setTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [soundEffects, setSoundEffects] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <ThemedComponent variant="surface" className="min-h-screen p-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -27,51 +30,72 @@ const Settings = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600">Customize your KidsGPT experience</p>
+            <h1 className="text-2xl font-bold" style={{ color: currentTheme.colors.text.primary }}>
+              Settings
+            </h1>
+            <p style={{ color: currentTheme.colors.text.secondary }}>
+              Customize your KidsGPT experience
+            </p>
           </div>
         </div>
 
         {/* Settings Cards */}
         <div className="space-y-6">
-          {/* Appearance */}
-          <Card>
+          {/* Theme Selection */}
+          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>
-                Customize how KidsGPT looks and feels
+              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Theme</CardTitle>
+              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
+                Choose your preferred color scheme and appearance
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-gray-500">
-                    Switch to a darker theme for easier viewing
+                  <Label htmlFor="theme-select" style={{ color: currentTheme.colors.text.primary }}>
+                    Color Theme
+                  </Label>
+                  <p className="text-sm" style={{ color: currentTheme.colors.text.secondary }}>
+                    Select from predefined color schemes
                   </p>
                 </div>
-                <Switch
-                  id="dark-mode"
-                  checked={darkMode}
-                  onCheckedChange={setDarkMode}
-                />
+                <Select value={currentTheme.id} onValueChange={setTheme}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {themes.map((theme) => (
+                      <SelectItem key={theme.id} value={theme.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded-full border"
+                            style={{ backgroundColor: theme.colors.primary }}
+                          />
+                          {theme.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
 
           {/* Notifications */}
-          <Card>
+          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>
+              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Notifications</CardTitle>
+              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
                 Control how you receive updates and alerts
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications">Enable Notifications</Label>
-                  <p className="text-sm text-gray-500">
+                  <Label htmlFor="notifications" style={{ color: currentTheme.colors.text.primary }}>
+                    Enable Notifications
+                  </Label>
+                  <p className="text-sm" style={{ color: currentTheme.colors.text.secondary }}>
                     Get notified about important updates
                   </p>
                 </div>
@@ -85,18 +109,20 @@ const Settings = () => {
           </Card>
 
           {/* Audio */}
-          <Card>
+          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
-              <CardTitle>Audio & Sound</CardTitle>
-              <CardDescription>
+              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Audio & Sound</CardTitle>
+              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
                 Configure audio settings and sound effects
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="sound-effects">Sound Effects</Label>
-                  <p className="text-sm text-gray-500">
+                  <Label htmlFor="sound-effects" style={{ color: currentTheme.colors.text.primary }}>
+                    Sound Effects
+                  </Label>
+                  <p className="text-sm" style={{ color: currentTheme.colors.text.secondary }}>
                     Play sounds for interactions and notifications
                   </p>
                 </div>
@@ -110,15 +136,15 @@ const Settings = () => {
           </Card>
 
           {/* About */}
-          <Card>
+          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
-              <CardTitle>About KidsGPT</CardTitle>
-              <CardDescription>
+              <CardTitle style={{ color: currentTheme.colors.text.primary }}>About KidsGPT</CardTitle>
+              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
                 Information about this application
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm" style={{ color: currentTheme.colors.text.secondary }}>
                 <p><strong>Version:</strong> 1.0.0</p>
                 <p><strong>Built with:</strong> React, TypeScript, Tailwind CSS</p>
                 <p><strong>Created by:</strong> Lovable</p>
@@ -127,7 +153,7 @@ const Settings = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </ThemedComponent>
   );
 };
 
