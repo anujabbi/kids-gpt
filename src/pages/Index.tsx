@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
@@ -22,6 +24,7 @@ interface Conversation {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
@@ -168,6 +171,14 @@ const Index = () => {
               <SidebarTrigger />
               <h1 className="text-xl font-semibold text-gray-900">KidsGPT</h1>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/settings")}
+              className="h-8 w-8 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </header>
 
           {/* Messages */}
