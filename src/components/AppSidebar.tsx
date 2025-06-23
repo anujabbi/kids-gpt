@@ -1,3 +1,4 @@
+
 import { Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,7 +47,7 @@ export function AppSidebar({
         {!isCollapsed && (
           <>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">KidsGPT</h2>
+              <h2 className="text-lg font-semibold text-black">KidsGPT</h2>
             </div>
             <Button
               onClick={onNewChat}
