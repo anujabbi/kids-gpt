@@ -21,12 +21,20 @@ interface Conversation {
   title: string;
   timestamp: Date;
   messages: Message[];
+  folderId?: string;
+}
+
+interface Folder {
+  id: string;
+  name: string;
+  timestamp: Date;
 }
 
 const Index = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -62,21 +70,62 @@ const Index = () => {
     return baseResponse + elaboration;
   };
 
-  const createNewConversation = (): Conversation => {
+  const createNewConversation = (folderId?: string): Conversation => {
     const id = Date.now().toString();
     return {
       id,
       title: "New conversation",
       timestamp: new Date(),
       messages: [],
+      folderId,
     };
   };
 
-  const handleNewChat = () => {
-    const newConv = createNewConversation();
+  const handleNewChat = (folderId?: string) => {
+    const newConv = createNewConversation(folderId);
     setConversations(prev => [newConv, ...prev]);
     setActiveConversation(newConv.id);
     setSidebarOpen(false);
+  };
+
+  const handleCreateFolder = (name: string) => {
+    const newFolder: Folder = {
+      id: Date.now().toString(),
+      name,
+      timestamp: new Date(),
+    };
+    setFolders(prev => [newFolder, ...prev]);
+    toast({
+      title: "Folder created",
+      description: `Folder "${name}" has been created.`,
+    });
+  };
+
+  const handleDeleteFolder = (folderId: string) => {
+    // Move conversations from folder to root
+    setConversations(prev => prev.map(conv => 
+      conv.folderId === folderId 
+        ? { ...conv, folderId: undefined }
+        : conv
+    ));
+    
+    setFolders(prev => prev.filter(folder => folder.id !== folderId));
+    toast({
+      title: "Folder deleted",
+      description: "The folder has been removed and conversations moved to root.",
+    });
+  };
+
+  const handleRenameFolder = (folderId: string, newName: string) => {
+    setFolders(prev => prev.map(folder => 
+      folder.id === folderId 
+        ? { ...folder, name: newName }
+        : folder
+    ));
+    toast({
+      title: "Folder renamed",
+      description: `Folder has been renamed to "${newName}".`,
+    });
   };
 
   const handleSendMessage = async (content: string) => {
@@ -159,9 +208,13 @@ const Index = () => {
         <AppSidebar
           onNewChat={handleNewChat}
           conversations={conversations}
+          folders={folders}
           activeConversation={activeConversation}
           onSelectConversation={handleSelectConversation}
           onDeleteConversation={handleDeleteConversation}
+          onCreateFolder={handleCreateFolder}
+          onDeleteFolder={handleDeleteFolder}
+          onRenameFolder={handleRenameFolder}
         />
 
         <div className="flex-1 flex flex-col">
