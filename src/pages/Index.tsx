@@ -1,9 +1,8 @@
-
 import { useState, useRef, useEffect } from "react";
-import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatSidebar } from "@/components/ChatSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { toast } from "@/hooks/use-toast";
@@ -152,92 +151,85 @@ const Index = () => {
   const currentMessages = getCurrentConversation()?.messages || [];
 
   return (
-    <div className="h-screen flex bg-white">
-      <ChatSidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        onNewChat={handleNewChat}
-        conversations={conversations}
-        activeConversation={activeConversation}
-        onSelectConversation={handleSelectConversation}
-        onDeleteConversation={handleDeleteConversation}
-      />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-white">
+        <AppSidebar
+          onNewChat={handleNewChat}
+          conversations={conversations}
+          activeConversation={activeConversation}
+          onSelectConversation={handleSelectConversation}
+          onDeleteConversation={handleDeleteConversation}
+        />
 
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between p-4 border-b bg-white">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-semibold text-gray-900">ChatGPT</h1>
-          </div>
-        </header>
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="flex items-center justify-between p-4 border-b bg-white">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger />
+              <h1 className="text-xl font-semibold text-gray-900">ChatGPT</h1>
+            </div>
+          </header>
 
-        {/* Messages */}
-        <ScrollArea className="flex-1">
-          {currentMessages.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center p-8">
-              <div className="text-center max-w-md">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  How can I help you today?
-                </h2>
-                <p className="text-gray-600 mb-8">
-                  I'm here to assist you with questions, creative tasks, analysis, and more.
-                </p>
-                <div className="grid grid-cols-1 gap-3">
-                  {[
-                    "Explain quantum computing",
-                    "Write a creative story",
-                    "Help me plan a trip",
-                    "Debug my code"
-                  ].map((suggestion, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      onClick={() => handleSendMessage(suggestion)}
-                      className="text-left justify-start h-auto p-4 text-gray-700 hover:bg-gray-50"
-                    >
-                      {suggestion}
-                    </Button>
-                  ))}
+          {/* Messages */}
+          <ScrollArea className="flex-1">
+            {currentMessages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center max-w-md">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    How can I help you today?
+                  </h2>
+                  <p className="text-gray-600 mb-8">
+                    I'm here to assist you with questions, creative tasks, analysis, and more.
+                  </p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      "Explain quantum computing",
+                      "Write a creative story",
+                      "Help me plan a trip",
+                      "Debug my code"
+                    ].map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        onClick={() => handleSendMessage(suggestion)}
+                        className="text-left justify-start h-auto p-4 text-gray-700 hover:bg-gray-50"
+                      >
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="pb-4">
-              {currentMessages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
-              ))}
-              {isTyping && (
-                <div className="flex gap-4 p-6 bg-gray-50">
-                  <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center">
-                    <div className="text-white text-xs font-bold">AI</div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900 mb-2">ChatGPT</div>
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            ) : (
+              <div className="pb-4">
+                {currentMessages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                {isTyping && (
+                  <div className="flex gap-4 p-6 bg-gray-50">
+                    <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center">
+                      <div className="text-white text-xs font-bold">AI</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900 mb-2">ChatGPT</div>
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </ScrollArea>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </ScrollArea>
 
-        {/* Input */}
-        <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+          {/* Input */}
+          <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
