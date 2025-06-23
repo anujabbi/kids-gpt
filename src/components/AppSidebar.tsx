@@ -1,7 +1,8 @@
 
-import { Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +40,7 @@ export function AppSidebar({
   onDeleteConversation,
 }: AppSidebarProps) {
   const { state } = useSidebar();
+  const navigate = useNavigate();
   const isCollapsed = state === "collapsed";
 
   return (
@@ -46,7 +48,17 @@ export function AppSidebar({
       <SidebarHeader className="p-4 border-b border-gray-700">
         {!isCollapsed && (
           <>
-            <h2 className="text-lg font-semibold mb-4">KidsGPT</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">KidsGPT</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/settings")}
+                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
             <Button
               onClick={onNewChat}
               className="w-full bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
@@ -57,13 +69,23 @@ export function AppSidebar({
           </>
         )}
         {isCollapsed && (
-          <Button
-            onClick={onNewChat}
-            size="icon"
-            className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="space-y-2">
+            <Button
+              onClick={onNewChat}
+              size="icon"
+              className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/settings")}
+              className="text-gray-400 hover:text-white hover:bg-gray-700"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </SidebarHeader>
 
