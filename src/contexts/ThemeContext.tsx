@@ -138,7 +138,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           root.style.setProperty(`--theme-${key}`, value);
         } else if (typeof value === 'object') {
           Object.entries(value).forEach(([subKey, subValue]) => {
-            root.style.setProperty(`--theme-${key}-${subKey}`, subValue);
+            if (typeof subValue === 'string') {
+              root.style.setProperty(`--theme-${key}-${subKey}`, subValue);
+            }
           });
         }
       });
