@@ -54,7 +54,7 @@ const Index = () => {
     ];
     
     const baseResponse = responses[Math.floor(Math.random() * responses.length)];
-    const elaboration = `\n\nThis is a simulated response to demonstrate the ChatGPT interface. In a real implementation, this would connect to an AI service like OpenAI's API to generate meaningful responses based on your input: "${userMessage}"`;
+    const elaboration = `\n\nThis is a simulated response to demonstrate the KidsGPT interface. In a real implementation, this would connect to an AI service like OpenAI's API to generate meaningful responses based on your input: "${userMessage}"`;
     
     return baseResponse + elaboration;
   };
@@ -166,7 +166,7 @@ const Index = () => {
           <header className="flex items-center justify-between p-4 border-b bg-white">
             <div className="flex items-center gap-3">
               <SidebarTrigger />
-              <h1 className="text-xl font-semibold text-gray-900">ChatGPT</h1>
+              <h1 className="text-xl font-semibold text-gray-900">KidsGPT</h1>
             </div>
           </header>
 
@@ -211,7 +211,7 @@ const Index = () => {
                       <div className="text-white text-xs font-bold">AI</div>
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900 mb-2">ChatGPT</div>
+                      <div className="text-sm font-medium text-gray-900 mb-2">KidsGPT</div>
                       <div className="flex gap-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>

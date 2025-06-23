@@ -46,7 +46,7 @@ export function AppSidebar({
       <SidebarHeader className="p-4 border-b border-gray-700">
         {!isCollapsed && (
           <>
-            <h2 className="text-lg font-semibold mb-4">ChatGPT</h2>
+            <h2 className="text-lg font-semibold mb-4">KidsGPT</h2>
             <Button
               onClick={onNewChat}
               className="w-full bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
@@ -118,7 +118,7 @@ export function AppSidebar({
       <SidebarFooter className="p-4 border-t border-gray-700">
         {!isCollapsed && (
           <div className="text-xs text-gray-400">
-            ChatGPT Clone by Lovable
+            KidsGPT Clone by Lovable
           </div>
         )}
       </SidebarFooter>
