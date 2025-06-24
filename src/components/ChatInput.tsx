@@ -5,38 +5,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Paperclip, X } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
-import { validateFiles, formatFileSize, cleanupFileUrl } from "@/utils/fileUtils";
+import { validateFiles, formatFileSize, cleanupFileUrl, convertFileToAttachment } from "@/utils/fileUtils";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { FileUploadProgress } from "./FileUploadProgress";
+import { FileAttachment } from "@/types/chat";
 
 interface ChatInputProps {
-  onSendMessage: (message: string, files?: File[]) => void;
+  onSendMessage: (message: string, files?: FileAttachment[]) => void;
   disabled?: boolean;
 }
 
 export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const { currentTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFiles, uploadProgress, isUploading } = useFileUpload();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!message.trim() && selectedFiles.length === 0) return;
+    if (!message.trim() && selectedFiles.length === 0 && attachments.length === 0) return;
     
-    // Validate files if any are selected
+    let finalAttachments = [...attachments];
+    
+    // Upload any pending files
     if (selectedFiles.length > 0) {
-      const validation = validateFiles(selectedFiles);
-      if (!validation.isValid) {
-        toast({
-          title: "File Upload Error",
-          description: validation.error,
-          variant: "destructive",
-        });
+      try {
+        const uploadedFiles = await uploadFiles(selectedFiles);
+        finalAttachments = [...finalAttachments, ...uploadedFiles];
+      } catch (error) {
+        // Error handling is done in useFileUpload hook
         return;
       }
     }
 
-    onSendMessage(message, selectedFiles.length > 0 ? selectedFiles : undefined);
+    onSendMessage(message, finalAttachments.length > 0 ? finalAttachments : undefined);
     setMessage("");
     
     // Clean up file URLs and reset selection
@@ -44,7 +49,14 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
       const url = URL.createObjectURL(file);
       cleanupFileUrl(url);
     });
+    attachments.forEach(attachment => {
+      if (attachment.previewUrl) {
+        cleanupFileUrl(attachment.previewUrl);
+      }
+    });
+    
     setSelectedFiles([]);
+    setAttachments([]);
     
     // Reset file input
     if (fileInputRef.current) {
@@ -52,7 +64,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -67,7 +79,10 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
       return;
     }
 
+    // Convert files to attachments for preview
+    const newAttachments = files.map(convertFileToAttachment);
     setSelectedFiles(prev => [...prev, ...files]);
+    setAttachments(prev => [...prev, ...newAttachments]);
     
     toast({
       title: "Files Selected",
@@ -76,16 +91,26 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   };
 
   const removeFile = (index: number) => {
-    const fileToRemove = selectedFiles[index];
-    const url = URL.createObjectURL(fileToRemove);
-    cleanupFileUrl(url);
+    const fileToRemove = selectedFiles[index] || null;
+    const attachmentToRemove = attachments[index] || null;
     
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    if (fileToRemove) {
+      const url = URL.createObjectURL(fileToRemove);
+      cleanupFileUrl(url);
+      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    }
     
-    toast({
-      title: "File Removed",
-      description: `"${fileToRemove.name}" has been removed.`,
-    });
+    if (attachmentToRemove) {
+      if (attachmentToRemove.previewUrl) {
+        cleanupFileUrl(attachmentToRemove.previewUrl);
+      }
+      setAttachments(prev => prev.filter((_, i) => i !== index));
+      
+      toast({
+        title: "File Removed",
+        description: `"${attachmentToRemove.name}" has been removed.`,
+      });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -95,6 +120,8 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
     }
   };
 
+  const totalFiles = Math.max(selectedFiles.length, attachments.length);
+
   return (
     <div 
       className="border-t p-4"
@@ -103,19 +130,26 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
         borderColor: currentTheme.colors.border 
       }}
     >
+      {/* Upload progress indicator */}
+      {isUploading && uploadProgress.length > 0 && (
+        <div className="mb-3">
+          <FileUploadProgress progress={uploadProgress} />
+        </div>
+      )}
+
       {/* File attachments preview */}
-      {selectedFiles.length > 0 && (
+      {totalFiles > 0 && (
         <div className="mb-3 space-y-2">
           <div 
             className="text-sm font-medium"
             style={{ color: currentTheme.colors.text.primary }}
           >
-            Attached Files ({selectedFiles.length})
+            Attached Files ({totalFiles})
           </div>
           <div className="flex flex-wrap gap-2">
-            {selectedFiles.map((file, index) => (
+            {attachments.map((attachment, index) => (
               <div
-                key={index}
+                key={attachment.id}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm"
                 style={{ 
                   backgroundColor: currentTheme.colors.surface,
@@ -123,18 +157,19 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
                   color: currentTheme.colors.text.primary
                 }}
               >
-                <span className="truncate max-w-32">{file.name}</span>
+                <span className="truncate max-w-32">{attachment.name}</span>
                 <span 
                   className="text-xs"
                   style={{ color: currentTheme.colors.text.secondary }}
                 >
-                  ({formatFileSize(file.size)})
+                  ({formatFileSize(attachment.size)})
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(index)}
                   className="h-4 w-4 p-0 hover:bg-red-100"
+                  disabled={isUploading}
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -157,7 +192,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
               borderColor: currentTheme.colors.border,
               color: currentTheme.colors.text.primary
             }}
-            disabled={disabled}
+            disabled={disabled || isUploading}
           />
           
           {/* File attachment button */}
@@ -168,7 +203,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             onClick={() => fileInputRef.current?.click()}
             className="absolute right-2 top-2 h-8 w-8 p-0"
             style={{ color: currentTheme.colors.text.secondary }}
-            disabled={disabled}
+            disabled={disabled || isUploading}
           >
             <Paperclip className="h-4 w-4" />
           </Button>
@@ -185,7 +220,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
         
         <Button 
           type="submit" 
-          disabled={(!message.trim() && selectedFiles.length === 0) || disabled}
+          disabled={(!message.trim() && totalFiles === 0) || disabled || isUploading}
           className="h-11"
           style={{ 
             backgroundColor: currentTheme.colors.primary,
