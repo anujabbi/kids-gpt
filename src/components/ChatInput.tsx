@@ -12,19 +12,21 @@ interface ChatInputProps {
 
 export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [filePreviewUrls, setFilePreviewUrls] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILES = 5;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
       onSendMessage(message.trim());
       setMessage("");
-      // Clear selected file for now (Stage 2 - selection and preview, not processing)
-      clearSelectedFile();
+      // Clear selected files for now (Stage 2 - selection and preview, not processing)
+      clearSelectedFiles();
     }
   };
 
@@ -35,63 +37,105 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
     }
   };
 
-  const validateAndSetFile = (file: File) => {
-    // Validate file type (images only for Stage 2)
-    if (!file.type.startsWith('image/')) {
+  const validateAndAddFiles = (newFiles: FileList | File[]) => {
+    const filesToAdd: File[] = [];
+    const previewUrlsToAdd: string[] = [];
+
+    // Convert FileList to Array if needed
+    const filesArray = Array.from(newFiles);
+
+    // Check if adding these files would exceed the limit
+    if (selectedFiles.length + filesArray.length > MAX_FILES) {
       toast({
-        title: "Invalid file type",
-        description: "Please select an image file (PNG, JPG, GIF, etc.)",
+        title: "Too many files",
+        description: `You can only select up to ${MAX_FILES} files. Please remove some files first.`,
         variant: "destructive",
       });
       return false;
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (file.size > maxSize) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 5MB",
-        variant: "destructive",
-      });
-      return false;
+    for (const file of filesArray) {
+      // Validate file type (images only for Stage 2)
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: `"${file.name}" is not an image file. Please select image files only (PNG, JPG, GIF, etc.)`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: `"${file.name}" is larger than 5MB. Please select smaller images.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // Check for duplicates
+      if (selectedFiles.some(existingFile => existingFile.name === file.name && existingFile.size === file.size)) {
+        toast({
+          title: "Duplicate file",
+          description: `"${file.name}" is already selected.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      filesToAdd.push(file);
+      previewUrlsToAdd.push(URL.createObjectURL(file));
     }
 
-    setSelectedFile(file);
-    
-    // Create preview URL for image
-    const previewUrl = URL.createObjectURL(file);
-    setFilePreviewUrl(previewUrl);
-    
-    return true;
+    if (filesToAdd.length > 0) {
+      setSelectedFiles(prev => [...prev, ...filesToAdd]);
+      setFilePreviewUrls(prev => [...prev, ...previewUrlsToAdd]);
+      return true;
+    }
+
+    return false;
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    validateAndSetFile(file);
+    validateAndAddFiles(files);
     
-    // Clear the input so the same file can be selected again if needed
+    // Clear the input so the same files can be selected again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const handlePaperclipClick = () => {
+    if (selectedFiles.length >= MAX_FILES) {
+      toast({
+        title: "Maximum files reached",
+        description: `You can only select up to ${MAX_FILES} files. Please remove some files first.`,
+        variant: "destructive",
+      });
+      return;
+    }
     fileInputRef.current?.click();
   };
 
-  const clearSelectedFile = () => {
-    setSelectedFile(null);
-    if (filePreviewUrl) {
-      URL.revokeObjectURL(filePreviewUrl);
-      setFilePreviewUrl(null);
-    }
+  const clearSelectedFiles = () => {
+    setSelectedFiles([]);
+    // Clean up preview URLs
+    filePreviewUrls.forEach(url => URL.revokeObjectURL(url));
+    setFilePreviewUrls([]);
   };
 
-  const handleRemoveFile = () => {
-    clearSelectedFile();
+  const removeFile = (indexToRemove: number) => {
+    // Clean up the preview URL for the removed file
+    URL.revokeObjectURL(filePreviewUrls[indexToRemove]);
+    
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    setFilePreviewUrls(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   // Drag and drop handlers
@@ -123,19 +167,16 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
 
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      const file = files[0]; // Only take the first file for now
-      validateAndSetFile(file);
+      validateAndAddFiles(files);
     }
   };
 
-  // Clean up preview URL on unmount
+  // Clean up preview URLs on unmount
   useEffect(() => {
     return () => {
-      if (filePreviewUrl) {
-        URL.revokeObjectURL(filePreviewUrl);
-      }
+      filePreviewUrls.forEach(url => URL.revokeObjectURL(url));
     };
-  }, [filePreviewUrl]);
+  }, [filePreviewUrls]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -147,41 +188,61 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   return (
     <div className="border-t bg-white p-4">
       <div className="mx-auto max-w-4xl">
-        {/* Selected file preview */}
-        {selectedFile && (
+        {/* Selected files preview */}
+        {selectedFiles.length > 0 && (
           <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-            <div className="flex items-start gap-3">
-              {/* Image thumbnail */}
-              {filePreviewUrl && (
-                <div className="flex-shrink-0">
-                  <img
-                    src={filePreviewUrl}
-                    alt={selectedFile.name}
-                    className="w-16 h-16 object-cover rounded-md border"
-                  />
-                </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                Selected Files ({selectedFiles.length}/{MAX_FILES})
+              </span>
+              {selectedFiles.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelectedFiles}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear All
+                </Button>
               )}
-              
-              {/* File info */}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
-                  {selectedFile.name}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {selectedFiles.map((file, index) => (
+                <div key={`${file.name}-${index}`} className="flex items-start gap-3 p-2 bg-white rounded border">
+                  {/* Image thumbnail */}
+                  {filePreviewUrls[index] && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={filePreviewUrls[index]}
+                        alt={file.name}
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* File info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {file.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {Math.round(file.size / 1024)}KB • {file.type.split('/')[1].toUpperCase()}
+                    </div>
+                  </div>
+                  
+                  {/* Remove button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFile(index)}
+                    className="flex-shrink-0 h-6 w-6 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-200"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {Math.round(selectedFile.size / 1024)}KB • {selectedFile.type.split('/')[1].toUpperCase()}
-                </div>
-              </div>
-              
-              {/* Remove button */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleRemoveFile}
-                className="flex-shrink-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-200"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              ))}
             </div>
           </div>
         )}
@@ -202,7 +263,9 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               <div className="absolute inset-0 bg-blue-50 bg-opacity-90 rounded-xl flex items-center justify-center z-10 border-2 border-dashed border-blue-400">
                 <div className="text-center">
                   <Upload className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <p className="text-sm text-blue-600 font-medium">Drop your image here</p>
+                  <p className="text-sm text-blue-600 font-medium">
+                    Drop your images here ({MAX_FILES - selectedFiles.length} remaining)
+                  </p>
                 </div>
               </div>
             )}
@@ -213,10 +276,11 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               size="sm"
               onClick={handlePaperclipClick}
               className={`m-2 transition-colors ${
-                selectedFile 
+                selectedFiles.length > 0
                   ? 'text-blue-600 hover:text-blue-700' 
                   : 'text-gray-400 hover:text-gray-600'
-              }`}
+              } ${selectedFiles.length >= MAX_FILES ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={selectedFiles.length >= MAX_FILES}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
@@ -227,9 +291,9 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={
-                selectedFile 
-                  ? "Add a message with your image..." 
-                  : "Message ChatGPT or drag & drop an image..."
+                selectedFiles.length > 0
+                  ? `Add a message with your ${selectedFiles.length} image${selectedFiles.length > 1 ? 's' : ''}...` 
+                  : `Message ChatGPT or drag & drop images (up to ${MAX_FILES})...`
               }
               className="flex-1 border-0 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 max-h-32 min-h-[40px]"
               disabled={disabled}
@@ -246,11 +310,12 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
             </Button>
           </div>
 
-          {/* Hidden file input */}
+          {/* Hidden file input - allow multiple selection */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             onChange={handleFileSelect}
             className="hidden"
           />
