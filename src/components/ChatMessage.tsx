@@ -259,7 +259,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   variant="outline" 
                   className={`text-white text-xs ${getScoreColor(message.homeworkMisuseScore)}`}
                 >
-                  Homework Score: {message.homeworkMisuseScore}
+                  Homework Misuse Score: {message.homeworkMisuseScore}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
