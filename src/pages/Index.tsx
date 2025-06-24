@@ -62,6 +62,23 @@ const Index = () => {
     }
 
     try {
+      // Add system message to encourage markdown formatting
+      const systemMessage = {
+        role: "system" as const,
+        content: `You are a helpful AI assistant. Please format your responses using markdown when appropriate:
+- Use **bold** for emphasis
+- Use *italics* for subtle emphasis  
+- Use \`inline code\` for code snippets, variables, or technical terms
+- Use code blocks with language specification for multi-line code:
+\`\`\`javascript
+// example code here
+\`\`\`
+- Use # ## ### for headers to structure your response
+- Use bullet points or numbered lists when listing items
+- Use > for quotes or important notes
+- Keep your responses well-structured and easy to read`
+      };
+
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -70,10 +87,13 @@ const Index = () => {
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          messages: messages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          })),
+          messages: [
+            systemMessage,
+            ...messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }))
+          ],
           max_tokens: 1000,
           temperature: 0.7,
         }),
