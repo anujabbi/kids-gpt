@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -350,14 +349,14 @@ const Index = () => {
                     className="mb-8"
                     style={{ color: currentTheme.colors.text.secondary }}
                   >
-                    I'm here to assist you with questions, creative tasks, analysis, and more.
+                    I'm here to help you learn, create, and have fun! What would you like to explore?
                   </p>
                   <div className="grid grid-cols-1 gap-3">
                     {[
-                      "Explain quantum computing",
-                      "Write a creative story",
-                      "Help me plan a trip",
-                      "Debug my code"
+                      "🦕 Tell me cool facts about dinosaurs",
+                      "🎨 Help me write a fun story about magic",
+                      "🧮 Make math fun with a cool game",
+                      "🔬 Show me awesome science experiments"
                     ].map((suggestion, index) => (
                       <Button
                         key={index}
