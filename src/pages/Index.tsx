@@ -54,6 +54,46 @@ const Index = () => {
         content: getSystemPrompt(userAge || undefined)
       };
 
+      // Convert messages to OpenAI format, handling attachments
+      const openAIMessages = messages.map(msg => {
+        if (msg.attachments && msg.attachments.length > 0) {
+          // For messages with attachments, create a content array
+          const content: any[] = [
+            {
+              type: "text",
+              text: msg.content
+            }
+          ];
+
+          // Add attachments to content
+          msg.attachments.forEach(attachment => {
+            if (attachment.type.startsWith('image/')) {
+              // For images, add image content for vision API
+              content.push({
+                type: "image_url",
+                image_url: {
+                  url: attachment.url
+                }
+              });
+            } else {
+              // For non-image files, add text description
+              content[0].text += `\n\n[Attached file: ${attachment.name} (${attachment.type}, ${(attachment.size / 1024).toFixed(1)}KB)]`;
+            }
+          });
+
+          return {
+            role: msg.role,
+            content: content
+          };
+        } else {
+          // For messages without attachments, use simple text content
+          return {
+            role: msg.role,
+            content: msg.content
+          };
+        }
+      });
+
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -64,10 +104,7 @@ const Index = () => {
           model: "gpt-4o-mini",
           messages: [
             systemMessage,
-            ...messages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            }))
+            ...openAIMessages
           ],
           max_tokens: 1000,
           temperature: 0.7,
