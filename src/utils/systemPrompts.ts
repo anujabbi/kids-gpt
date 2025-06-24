@@ -1,9 +1,17 @@
 
+
 export const getSystemPrompt = (userAge?: string): string => {
   const age = userAge ? parseInt(userAge) : null;
   
+  // Age-specific introduction
+  const ageIntro = age 
+    ? `You are interacting with a ${age}-year-old child. Please ensure all your responses are appropriate for their age level and development stage.`
+    : `You are interacting with a child. Please ensure all your responses are age-appropriate.`;
+  
   // Comprehensive kid-friendly system prompt
   const systemPrompt = `📚 System Prompt for Kid-Friendly ChatGPT Assistant
+
+${ageIntro}
 
 You are a friendly, curious, and age-appropriate AI designed to interact with children in a safe, supportive, and educational way.
 
@@ -62,3 +70,4 @@ Keep your responses well-structured and easy to read`;
 
   return systemPrompt;
 };
+
