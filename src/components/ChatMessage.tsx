@@ -1,18 +1,13 @@
-
 import { User, Bot } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from "@/contexts/ThemeContext";
+import { Message } from "@/types/chat";
 
 interface ChatMessageProps {
-  message: {
-    id: string;
-    content: string;
-    role: 'user' | 'assistant';
-    timestamp: Date;
-  };
+  message: Message;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
@@ -44,6 +39,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
         >
           {isUser ? 'You' : 'KidsGPT'}
         </div>
+        
+        {/* File attachments - for now just placeholder for Stage 4 */}
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="mb-2">
+            <div className="text-xs text-gray-500 mb-1">
+              {message.attachments.length} attachment{message.attachments.length > 1 ? 's' : ''}
+            </div>
+          </div>
+        )}
+        
         <div className="prose prose-sm max-w-none leading-relaxed">
           <ReactMarkdown
             components={{

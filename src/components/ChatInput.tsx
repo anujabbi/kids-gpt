@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, files?: File[]) => void;
   disabled?: boolean;
 }
 
@@ -23,9 +22,8 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+      onSendMessage(message.trim(), selectedFiles.length > 0 ? selectedFiles : undefined);
       setMessage("");
-      // Clear selected files for now (Stage 2 - selection and preview, not processing)
       clearSelectedFiles();
     }
   };

@@ -11,12 +11,15 @@ import { toast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ThemedComponent } from "@/components/ThemedComponent";
 import { getSystemPrompt } from "@/utils/systemPrompts";
+import { Message, Conversation, Folder } from "@/types/chat";
+import { convertFileToAttachment } from "@/utils/fileUtils";
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  attachments?: File[];
 }
 
 interface Conversation {
@@ -163,7 +166,7 @@ const Index = () => {
     });
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, files?: File[]) => {
     let currentConv = getCurrentConversation();
     
     // Create new conversation if none exists
@@ -173,11 +176,15 @@ const Index = () => {
       setActiveConversation(currentConv.id);
     }
 
+    // Convert files to attachments if provided
+    const attachments = files ? files.map(convertFileToAttachment) : undefined;
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
       role: 'user',
       timestamp: new Date(),
+      attachments,
     };
 
     // Add user message
