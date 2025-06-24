@@ -54,23 +54,42 @@ const Index = () => {
     return conversations.find(c => c.id === activeConversation);
   };
 
-  const generateResponse = async (userMessage: string): Promise<string> => {
-    // Simulate AI response with some delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+  const generateResponse = async (messages: Message[]): Promise<string> => {
+    const apiKey = localStorage.getItem("openai_api_key");
     
-    const responses = [
-      "I understand your question. Let me help you with that.",
-      "That's an interesting point. Here's what I think about it...",
-      "I'd be happy to assist you with this. Based on what you've asked...",
-      "Great question! Here's a comprehensive answer for you.",
-      "Let me break this down for you in a clear and helpful way.",
-      "I can definitely help with that. Here's my response...",
-    ];
-    
-    const baseResponse = responses[Math.floor(Math.random() * responses.length)];
-    const elaboration = `\n\nThis is a simulated response to demonstrate the KidsGPT interface. In a real implementation, this would connect to an AI service like OpenAI's API to generate meaningful responses based on your input: "${userMessage}"`;
-    
-    return baseResponse + elaboration;
+    if (!apiKey) {
+      throw new Error("OpenAI API key not found. Please add your API key in Settings.");
+    }
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
+    } catch (error) {
+      console.error("OpenAI API Error:", error);
+      throw error;
+    }
   };
 
   const createNewConversation = (folderId?: string): Conversation => {
@@ -162,7 +181,10 @@ const Index = () => {
     setIsTyping(true);
 
     try {
-      const response = await generateResponse(content);
+      const updatedConv = getCurrentConversation();
+      const allMessages = updatedConv ? [...updatedConv.messages] : [userMessage];
+      
+      const response = await generateResponse(allMessages);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -177,9 +199,10 @@ const Index = () => {
           : conv
       ));
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to get response. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to get response. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
