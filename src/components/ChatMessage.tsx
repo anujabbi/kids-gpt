@@ -1,4 +1,3 @@
-
 import { User, Bot, FileImage, FileVideo, FileAudio, FileText, File } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ReactMarkdown from 'react-markdown';
@@ -7,6 +6,8 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from "@/contexts/ThemeContext";
 import { Message, FileAttachment } from "@/types/chat";
 import { formatFileSize } from "@/utils/fileUtils";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatMessageProps {
   message: Message;
@@ -80,6 +81,22 @@ const FileAttachmentDisplay = ({ attachment }: { attachment: FileAttachment }) =
 export function ChatMessage({ message }: ChatMessageProps) {
   const { currentTheme } = useTheme();
   const isUser = message.role === 'user';
+
+  const getScoreColor = (score: number) => {
+    if (score <= 20) return 'bg-green-500';
+    if (score <= 40) return 'bg-green-400';
+    if (score <= 60) return 'bg-yellow-500';
+    if (score <= 80) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const getScoreLabel = (score: number) => {
+    if (score <= 20) return 'Educational';
+    if (score <= 40) return 'Mostly Learning';
+    if (score <= 60) return 'Mixed';
+    if (score <= 80) return 'Likely Homework';
+    return 'Homework Copying';
+  };
 
   return (
     <div 
@@ -232,6 +249,34 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {message.content}
           </ReactMarkdown>
         </div>
+
+        {/* Homework Misuse Score - only show for assistant messages */}
+        {!isUser && typeof message.homeworkMisuseScore === 'number' && (
+          <div className="mt-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge 
+                  variant="outline" 
+                  className={`text-white text-xs ${getScoreColor(message.homeworkMisuseScore)}`}
+                >
+                  Homework Score: {message.homeworkMisuseScore}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="text-xs">
+                  <div className="font-medium">{getScoreLabel(message.homeworkMisuseScore)}</div>
+                  <div className="text-gray-600 mt-1">
+                    {message.homeworkMisuseScore <= 20 && "This response encourages learning and critical thinking."}
+                    {message.homeworkMisuseScore > 20 && message.homeworkMisuseScore <= 40 && "This response is mostly educational with some direct information."}
+                    {message.homeworkMisuseScore > 40 && message.homeworkMisuseScore <= 60 && "This response has mixed educational and direct answer content."}
+                    {message.homeworkMisuseScore > 60 && message.homeworkMisuseScore <= 80 && "This response may be providing homework help with minimal learning."}
+                    {message.homeworkMisuseScore > 80 && "This response appears to be providing direct homework answers."}
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { ThemedComponent } from "@/components/ThemedComponent";
 import { getSystemPrompt } from "@/utils/systemPrompts";
 import { Message, Conversation, Folder, FileAttachment } from "@/types/chat";
 import { convertFileToAttachment } from "@/utils/fileUtils";
+import { analyzeHomeworkMisuse } from "@/services/homeworkDetectionService";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const Index = () => {
     return conversations.find(c => c.id === activeConversation);
   };
 
-  const generateResponse = async (messages: Message[]): Promise<string> => {
+  const generateResponse = async (messages: Message[]): Promise<{ response: string; homeworkScore: number }> => {
     const apiKey = localStorage.getItem("openai_api_key");
     
     if (!apiKey) {
@@ -143,7 +144,16 @@ const Index = () => {
       }
 
       const data = await response.json();
-      return data.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
+      const aiResponse = data.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
+      
+      // Get the last user message for homework analysis
+      const lastUserMessage = messages[messages.length - 1];
+      const userQuestion = lastUserMessage?.content || "";
+      
+      // Analyze homework misuse (runs in parallel to avoid blocking)
+      const homeworkScore = await analyzeHomeworkMisuse(userQuestion, aiResponse);
+      
+      return { response: aiResponse, homeworkScore };
     } catch (error) {
       console.error("OpenAI API Error:", error);
       throw error;
@@ -246,13 +256,14 @@ const Index = () => {
       // Get all messages including the current user message
       const allMessages = [...currentConv.messages, userMessage];
       
-      const response = await generateResponse(allMessages);
+      const { response, homeworkScore } = await generateResponse(allMessages);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: response,
         role: 'assistant',
         timestamp: new Date(),
+        homeworkMisuseScore: homeworkScore,
       };
 
       setConversations(prev => prev.map(conv => 

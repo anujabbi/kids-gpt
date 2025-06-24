@@ -14,6 +14,7 @@ export interface Message {
   role: 'user' | 'assistant';
   timestamp: Date;
   attachments?: FileAttachment[];
+  homeworkMisuseScore?: number;
 }
 
 export interface Conversation {
