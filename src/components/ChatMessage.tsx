@@ -1,4 +1,4 @@
-import { User, Bot, FileImage, FileVideo, FileAudio, FileText, File } from "lucide-react";
+import { User, Rocket, FileImage, FileVideo, FileAudio, FileText, File } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -112,7 +112,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             backgroundColor: isUser ? currentTheme.colors.primary : currentTheme.colors.secondary || currentTheme.colors.primary 
           }}
         >
-          {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+          {isUser ? <User className="h-4 w-4" /> : <Rocket className="h-4 w-4" />}
         </AvatarFallback>
       </Avatar>
       
