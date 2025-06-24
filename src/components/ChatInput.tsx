@@ -17,7 +17,6 @@ interface ChatInputProps {
 
 export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   const [message, setMessage] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const { currentTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,36 +25,21 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!message.trim() && selectedFiles.length === 0 && attachments.length === 0) return;
-    
-    let finalAttachments = [...attachments];
-    
-    // Upload any pending files
-    if (selectedFiles.length > 0) {
-      try {
-        const uploadedFiles = await uploadFiles(selectedFiles);
-        finalAttachments = [...finalAttachments, ...uploadedFiles];
-      } catch (error) {
-        // Error handling is done in useFileUpload hook
-        return;
-      }
-    }
+    if (!message.trim() && attachments.length === 0) return;
 
-    onSendMessage(message, finalAttachments.length > 0 ? finalAttachments : undefined);
+    onSendMessage(message, attachments.length > 0 ? attachments : undefined);
     setMessage("");
     
     // Clean up file URLs and reset selection
-    selectedFiles.forEach(file => {
-      const url = URL.createObjectURL(file);
-      cleanupFileUrl(url);
-    });
     attachments.forEach(attachment => {
-      if (attachment.previewUrl) {
+      if (attachment.url && attachment.url.startsWith('blob:')) {
+        cleanupFileUrl(attachment.url);
+      }
+      if (attachment.previewUrl && attachment.previewUrl.startsWith('blob:')) {
         cleanupFileUrl(attachment.previewUrl);
       }
     });
     
-    setSelectedFiles([]);
     setAttachments([]);
     
     // Reset file input
@@ -81,7 +65,6 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
 
     // Convert files to attachments for preview
     const newAttachments = files.map(convertFileToAttachment);
-    setSelectedFiles(prev => [...prev, ...files]);
     setAttachments(prev => [...prev, ...newAttachments]);
     
     toast({
@@ -91,19 +74,16 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   };
 
   const removeFile = (index: number) => {
-    const fileToRemove = selectedFiles[index] || null;
-    const attachmentToRemove = attachments[index] || null;
-    
-    if (fileToRemove) {
-      const url = URL.createObjectURL(fileToRemove);
-      cleanupFileUrl(url);
-      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    }
+    const attachmentToRemove = attachments[index];
     
     if (attachmentToRemove) {
-      if (attachmentToRemove.previewUrl) {
+      if (attachmentToRemove.url && attachmentToRemove.url.startsWith('blob:')) {
+        cleanupFileUrl(attachmentToRemove.url);
+      }
+      if (attachmentToRemove.previewUrl && attachmentToRemove.previewUrl.startsWith('blob:')) {
         cleanupFileUrl(attachmentToRemove.previewUrl);
       }
+      
       setAttachments(prev => prev.filter((_, i) => i !== index));
       
       toast({
@@ -119,8 +99,6 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
       handleSubmit(e as any);
     }
   };
-
-  const totalFiles = Math.max(selectedFiles.length, attachments.length);
 
   return (
     <div 
@@ -138,13 +116,13 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
       )}
 
       {/* File attachments preview */}
-      {totalFiles > 0 && (
+      {attachments.length > 0 && (
         <div className="mb-3 space-y-2">
           <div 
             className="text-sm font-medium"
             style={{ color: currentTheme.colors.text.primary }}
           >
-            Attached Files ({totalFiles})
+            Attached Files ({attachments.length})
           </div>
           <div className="flex flex-wrap gap-2">
             {attachments.map((attachment, index) => (
@@ -220,7 +198,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
         
         <Button 
           type="submit" 
-          disabled={(!message.trim() && totalFiles === 0) || disabled || isUploading}
+          disabled={(!message.trim() && attachments.length === 0) || disabled || isUploading}
           className="h-11"
           style={{ 
             backgroundColor: currentTheme.colors.primary,
