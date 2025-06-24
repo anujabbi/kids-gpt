@@ -10,6 +10,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { toast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ThemedComponent } from "@/components/ThemedComponent";
+import { getSystemPrompt } from "@/utils/systemPrompts";
 
 interface Message {
   id: string;
@@ -62,21 +63,13 @@ const Index = () => {
     }
 
     try {
-      // Add system message to encourage markdown formatting
+      // Get user age from localStorage
+      const userAge = localStorage.getItem("user_age");
+      
+      // Get age-appropriate system message
       const systemMessage = {
         role: "system" as const,
-        content: `You are a helpful AI assistant. Please format your responses using markdown when appropriate:
-- Use **bold** for emphasis
-- Use *italics* for subtle emphasis  
-- Use \`inline code\` for code snippets, variables, or technical terms
-- Use code blocks with language specification for multi-line code:
-\`\`\`javascript
-// example code here
-\`\`\`
-- Use # ## ### for headers to structure your response
-- Use bullet points or numbered lists when listing items
-- Use > for quotes or important notes
-- Keep your responses well-structured and easy to read`
+        content: getSystemPrompt(userAge || undefined)
       };
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
