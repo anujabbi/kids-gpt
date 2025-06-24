@@ -89,10 +89,10 @@ describe('ChatInput', () => {
     render(<ChatInput onSendMessage={mockOnSendMessage} />)
     
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
-    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]')
+    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]') as HTMLInputElement
     
     if (fileInput) {
-      await user.upload(fileInput as Element, file)
+      await user.upload(fileInput, file)
     }
     
     await waitFor(() => {
@@ -105,10 +105,10 @@ describe('ChatInput', () => {
     render(<ChatInput onSendMessage={mockOnSendMessage} />)
     
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
-    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]')
+    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]') as HTMLInputElement
     
     if (fileInput) {
-      await user.upload(fileInput as Element, file)
+      await user.upload(fileInput, file)
     }
     
     await waitFor(() => {

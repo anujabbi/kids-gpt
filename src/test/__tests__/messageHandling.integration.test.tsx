@@ -44,10 +44,10 @@ describe('Message Handling Integration', () => {
     
     // Add file attachment
     const file = new File(['test image'], 'test.jpg', { type: 'image/jpeg' })
-    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]')
+    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]') as HTMLInputElement
     
     if (fileInput) {
-      await user.upload(fileInput as Element, file)
+      await user.upload(fileInput, file)
     }
     
     await waitFor(() => {
@@ -91,10 +91,10 @@ describe('Message Handling Integration', () => {
     
     // Try to upload an unsupported file type
     const unsupportedFile = new File(['exe content'], 'virus.exe', { type: 'application/exe' })
-    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]')
+    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]') as HTMLInputElement
     
     if (fileInput) {
-      await user.upload(fileInput as Element, unsupportedFile)
+      await user.upload(fileInput, unsupportedFile)
     }
     
     // Should show error and not add the file
@@ -112,10 +112,10 @@ describe('Message Handling Integration', () => {
     
     // Add file attachment
     const file = new File(['test'], 'test.txt', { type: 'text/plain' })
-    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]')
+    const fileInput = screen.getByRole('textbox').parentElement?.querySelector('input[type="file"]') as HTMLInputElement
     
     if (fileInput) {
-      await user.upload(fileInput as Element, file)
+      await user.upload(fileInput, file)
     }
     
     await waitFor(() => {
