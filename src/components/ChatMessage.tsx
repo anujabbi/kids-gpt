@@ -1,3 +1,4 @@
+
 import { User, Bot, FileImage, FileVideo, FileAudio, FileText, File } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ReactMarkdown from 'react-markdown';
@@ -37,12 +38,16 @@ const FileAttachmentDisplay = ({ attachment }: { attachment: FileAttachment }) =
           src={attachment.previewUrl} 
           alt={attachment.name}
           className="w-12 h-12 object-cover rounded"
+          onLoad={() => console.log('Image loaded successfully:', attachment.name)}
           onError={(e) => {
-            console.error('Image failed to load:', attachment.previewUrl);
-            // Fallback to file icon if image fails to load
+            console.error('Image failed to load:', attachment.previewUrl, attachment.name);
+            // Hide the broken image and show the file icon instead
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';
-            target.nextElementSibling?.setAttribute('style', 'display: flex');
+            const iconDiv = target.nextElementSibling as HTMLElement;
+            if (iconDiv) {
+              iconDiv.style.display = 'flex';
+            }
           }}
         />
       ) : null}

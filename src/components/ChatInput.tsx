@@ -27,19 +27,9 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
     
     if (!message.trim() && attachments.length === 0) return;
 
+    // Send the message with attachments (don't clean up URLs yet - let the message component handle cleanup)
     onSendMessage(message, attachments.length > 0 ? attachments : undefined);
     setMessage("");
-    
-    // Clean up file URLs and reset selection
-    attachments.forEach(attachment => {
-      if (attachment.url && attachment.url.startsWith('blob:')) {
-        cleanupFileUrl(attachment.url);
-      }
-      if (attachment.previewUrl && attachment.previewUrl.startsWith('blob:')) {
-        cleanupFileUrl(attachment.previewUrl);
-      }
-    });
-    
     setAttachments([]);
     
     // Reset file input
@@ -77,10 +67,9 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
     const attachmentToRemove = attachments[index];
     
     if (attachmentToRemove) {
-      if (attachmentToRemove.url && attachmentToRemove.url.startsWith('blob:')) {
-        cleanupFileUrl(attachmentToRemove.url);
-      }
-      if (attachmentToRemove.previewUrl && attachmentToRemove.previewUrl.startsWith('blob:')) {
+      // Clean up URLs when removing files
+      cleanupFileUrl(attachmentToRemove.url);
+      if (attachmentToRemove.previewUrl) {
         cleanupFileUrl(attachmentToRemove.previewUrl);
       }
       

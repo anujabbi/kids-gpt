@@ -98,7 +98,11 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 export const cleanupFileUrl = (url: string) => {
-  if (url.startsWith('blob:')) {
-    URL.revokeObjectURL(url);
+  if (url && url.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.warn('Failed to revoke blob URL:', error);
+    }
   }
 };
