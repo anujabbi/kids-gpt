@@ -181,8 +181,8 @@ const Index = () => {
     setIsTyping(true);
 
     try {
-      const updatedConv = getCurrentConversation();
-      const allMessages = updatedConv ? [...updatedConv.messages] : [userMessage];
+      // Get all messages including the current user message
+      const allMessages = [...currentConv.messages, userMessage];
       
       const response = await generateResponse(allMessages);
       
