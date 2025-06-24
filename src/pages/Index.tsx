@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ThemedComponent } from "@/components/ThemedComponent";
 import { getSystemPrompt } from "@/utils/systemPrompts";
-import { Message, Conversation, Folder } from "@/types/chat";
+import { Message, Conversation, Folder, FileAttachment } from "@/types/chat";
 import { convertFileToAttachment } from "@/utils/fileUtils";
 
 const Index = () => {
