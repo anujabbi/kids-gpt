@@ -77,15 +77,15 @@ export const validateFiles = (files: File[]): FileValidationResult => {
 
 export const convertFileToAttachment = (file: File): FileAttachment => {
   const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  const previewUrl = URL.createObjectURL(file);
+  const blobUrl = URL.createObjectURL(file);
   
   return {
     id,
     name: file.name,
     type: file.type,
     size: file.size,
-    url: previewUrl, // For now, use the preview URL as the main URL
-    previewUrl,
+    url: blobUrl,
+    previewUrl: file.type.startsWith('image/') ? blobUrl : undefined,
   };
 };
 

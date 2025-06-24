@@ -37,15 +37,22 @@ const FileAttachmentDisplay = ({ attachment }: { attachment: FileAttachment }) =
           src={attachment.previewUrl} 
           alt={attachment.name}
           className="w-12 h-12 object-cover rounded"
+          onError={(e) => {
+            console.error('Image failed to load:', attachment.previewUrl);
+            // Fallback to file icon if image fails to load
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            target.nextElementSibling?.setAttribute('style', 'display: flex');
+          }}
         />
-      ) : (
-        <div 
-          className="w-12 h-12 flex items-center justify-center rounded"
-          style={{ backgroundColor: currentTheme.colors.primary }}
-        >
-          <FileIcon className="w-6 h-6 text-white" />
-        </div>
-      )}
+      ) : null}
+      
+      <div 
+        className={`w-12 h-12 flex items-center justify-center rounded ${isImage && attachment.previewUrl ? 'hidden' : ''}`}
+        style={{ backgroundColor: currentTheme.colors.primary }}
+      >
+        <FileIcon className="w-6 h-6 text-white" />
+      </div>
       
       <div className="flex-1 min-w-0">
         <div 
