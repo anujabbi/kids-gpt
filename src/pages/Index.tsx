@@ -14,28 +14,6 @@ import { getSystemPrompt } from "@/utils/systemPrompts";
 import { Message, Conversation, Folder } from "@/types/chat";
 import { convertFileToAttachment } from "@/utils/fileUtils";
 
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-  attachments?: File[];
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  timestamp: Date;
-  messages: Message[];
-  folderId?: string;
-}
-
-interface Folder {
-  id: string;
-  name: string;
-  timestamp: Date;
-}
-
 const Index = () => {
   const navigate = useNavigate();
   const { currentTheme } = useTheme();
