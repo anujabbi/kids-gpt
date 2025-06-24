@@ -18,12 +18,18 @@ const Settings = () => {
   const [soundEffects, setSoundEffects] = useState(true);
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [age, setAge] = useState("");
 
-  // Load API key from localStorage on component mount
+  // Load settings from localStorage on component mount
   useEffect(() => {
     const savedApiKey = localStorage.getItem("openai_api_key");
     if (savedApiKey) {
       setApiKey(savedApiKey);
+    }
+    
+    const savedAge = localStorage.getItem("user_age");
+    if (savedAge) {
+      setAge(savedAge);
     }
   }, []);
 
@@ -31,6 +37,14 @@ const Settings = () => {
   const handleApiKeyChange = (value: string) => {
     setApiKey(value);
     localStorage.setItem("openai_api_key", value);
+  };
+
+  // Save age to localStorage whenever it changes
+  const handleAgeChange = (value: string) => {
+    // Only allow numeric input
+    const numericValue = value.replace(/[^0-9]/g, '');
+    setAge(numericValue);
+    localStorage.setItem("user_age", numericValue);
   };
 
   return (
@@ -58,6 +72,39 @@ const Settings = () => {
 
         {/* Settings Cards */}
         <div className="space-y-6">
+          {/* User Profile */}
+          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
+            <CardHeader>
+              <CardTitle style={{ color: currentTheme.colors.text.primary }}>User Profile</CardTitle>
+              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
+                Tell us about yourself to get better responses
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="age" style={{ color: currentTheme.colors.text.primary }}>
+                  Age
+                </Label>
+                <Input
+                  id="age"
+                  type="text"
+                  value={age}
+                  onChange={(e) => handleAgeChange(e.target.value)}
+                  placeholder="Enter your age"
+                  maxLength={3}
+                  style={{ 
+                    backgroundColor: currentTheme.colors.background,
+                    borderColor: currentTheme.colors.border,
+                    color: currentTheme.colors.text.primary
+                  }}
+                />
+                <p className="text-xs" style={{ color: currentTheme.colors.text.secondary }}>
+                  This helps us tailor responses to be age-appropriate
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* API Key */}
           <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
