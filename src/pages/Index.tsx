@@ -54,8 +54,28 @@ const Index = () => {
         content: getSystemPrompt(userAge || undefined)
       };
 
+      // Convert blob URLs to base64 for images
+      const convertBlobToBase64 = async (blobUrl: string): Promise<string> => {
+        try {
+          const response = await fetch(blobUrl);
+          const blob = await response.blob();
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result as string;
+              resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch (error) {
+          console.error('Error converting blob to base64:', error);
+          throw new Error('Failed to process image attachment');
+        }
+      };
+
       // Convert messages to OpenAI format, handling attachments
-      const openAIMessages = messages.map(msg => {
+      const openAIMessages = await Promise.all(messages.map(async msg => {
         if (msg.attachments && msg.attachments.length > 0) {
           // For messages with attachments, create a content array
           const content: any[] = [
@@ -65,21 +85,28 @@ const Index = () => {
             }
           ];
 
-          // Add attachments to content
-          msg.attachments.forEach(attachment => {
+          // Process attachments
+          for (const attachment of msg.attachments) {
             if (attachment.type.startsWith('image/')) {
-              // For images, add image content for vision API
-              content.push({
-                type: "image_url",
-                image_url: {
-                  url: attachment.url
-                }
-              });
+              try {
+                // Convert blob URL to base64 for images
+                const base64Data = await convertBlobToBase64(attachment.url);
+                content.push({
+                  type: "image_url",
+                  image_url: {
+                    url: base64Data
+                  }
+                });
+              } catch (error) {
+                console.error('Failed to process image:', error);
+                // Fallback to text description if image processing fails
+                content[0].text += `\n\n[Image attachment: ${attachment.name} - Could not process for vision analysis]`;
+              }
             } else {
               // For non-image files, add text description
               content[0].text += `\n\n[Attached file: ${attachment.name} (${attachment.type}, ${(attachment.size / 1024).toFixed(1)}KB)]`;
             }
-          });
+          }
 
           return {
             role: msg.role,
@@ -92,7 +119,7 @@ const Index = () => {
             content: msg.content
           };
         }
-      });
+      }));
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
