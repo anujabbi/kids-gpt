@@ -1,5 +1,6 @@
 
-import { render, RenderOptions, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, RenderOptions } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/dom'
 import { ReactElement } from 'react'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -21,5 +22,7 @@ const customRender = (
 
 // Export everything from @testing-library/react
 export * from '@testing-library/react'
+// Export additional utilities from @testing-library/dom
+export { screen, fireEvent, waitFor }
 // Override the render function with our custom one
 export { customRender as render }
