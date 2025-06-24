@@ -1,324 +1,200 @@
-import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, Upload } from "lucide-react";
+
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Send, Paperclip, X } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
+import { validateFiles, formatFileSize, cleanupFileUrl } from "@/utils/fileUtils";
 
 interface ChatInputProps {
   onSendMessage: (message: string, files?: File[]) => void;
   disabled?: boolean;
 }
 
-export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
+export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [filePreviewUrls, setFilePreviewUrls] = useState<string[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { currentTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const MAX_FILES = 5;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim(), selectedFiles.length > 0 ? selectedFiles : undefined);
-      setMessage("");
-      clearSelectedFiles();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
-
-  const validateAndAddFiles = (newFiles: FileList | File[]) => {
-    const filesToAdd: File[] = [];
-    const previewUrlsToAdd: string[] = [];
-
-    // Convert FileList to Array if needed
-    const filesArray = Array.from(newFiles);
-
-    // Check if adding these files would exceed the limit
-    if (selectedFiles.length + filesArray.length > MAX_FILES) {
-      toast({
-        title: "Too many files",
-        description: `You can only select up to ${MAX_FILES} files. Please remove some files first.`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    for (const file of filesArray) {
-      // Validate file type (images only for Stage 2)
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid file type",
-          description: `"${file.name}" is not an image file. Please select image files only (PNG, JPG, GIF, etc.)`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
-      // Validate file size (5MB max)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-      if (file.size > maxSize) {
-        toast({
-          title: "File too large",
-          description: `"${file.name}" is larger than 5MB. Please select smaller images.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
-      // Check for duplicates
-      if (selectedFiles.some(existingFile => existingFile.name === file.name && existingFile.size === file.size)) {
-        toast({
-          title: "Duplicate file",
-          description: `"${file.name}" is already selected.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
-      filesToAdd.push(file);
-      previewUrlsToAdd.push(URL.createObjectURL(file));
-    }
-
-    if (filesToAdd.length > 0) {
-      setSelectedFiles(prev => [...prev, ...filesToAdd]);
-      setFilePreviewUrls(prev => [...prev, ...previewUrlsToAdd]);
-      return true;
-    }
-
-    return false;
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    validateAndAddFiles(files);
     
-    // Clear the input so the same files can be selected again if needed
+    if (!message.trim() && selectedFiles.length === 0) return;
+    
+    // Validate files if any are selected
+    if (selectedFiles.length > 0) {
+      const validation = validateFiles(selectedFiles);
+      if (!validation.isValid) {
+        toast({
+          title: "File Upload Error",
+          description: validation.error,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    onSendMessage(message, selectedFiles.length > 0 ? selectedFiles : undefined);
+    setMessage("");
+    
+    // Clean up file URLs and reset selection
+    selectedFiles.forEach(file => {
+      const url = URL.createObjectURL(file);
+      cleanupFileUrl(url);
+    });
+    setSelectedFiles([]);
+    
+    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handlePaperclipClick = () => {
-    if (selectedFiles.length >= MAX_FILES) {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate files before adding
+    const validation = validateFiles(files);
+    if (!validation.isValid) {
       toast({
-        title: "Maximum files reached",
-        description: `You can only select up to ${MAX_FILES} files. Please remove some files first.`,
+        title: "File Selection Error",
+        description: validation.error,
         variant: "destructive",
       });
       return;
     }
-    fileInputRef.current?.click();
-  };
 
-  const clearSelectedFiles = () => {
-    setSelectedFiles([]);
-    // Clean up preview URLs
-    filePreviewUrls.forEach(url => URL.revokeObjectURL(url));
-    setFilePreviewUrls([]);
-  };
-
-  const removeFile = (indexToRemove: number) => {
-    // Clean up the preview URL for the removed file
-    URL.revokeObjectURL(filePreviewUrls[indexToRemove]);
+    setSelectedFiles(prev => [...prev, ...files]);
     
-    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-    setFilePreviewUrls(prev => prev.filter((_, index) => index !== indexToRemove));
+    toast({
+      title: "Files Selected",
+      description: `${files.length} file${files.length > 1 ? 's' : ''} selected successfully.`,
+    });
   };
 
-  // Drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDragOver) {
-      setIsDragOver(true);
-    }
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set to false if we're leaving the drop zone entirely
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
+  const removeFile = (index: number) => {
+    const fileToRemove = selectedFiles[index];
+    const url = URL.createObjectURL(fileToRemove);
+    cleanupFileUrl(url);
     
-    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      setIsDragOver(false);
-    }
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    
+    toast({
+      title: "File Removed",
+      description: `"${fileToRemove.name}" has been removed.`,
+    });
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      validateAndAddFiles(files);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as any);
     }
   };
-
-  // Clean up preview URLs on unmount
-  useEffect(() => {
-    return () => {
-      filePreviewUrls.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [filePreviewUrls]);
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [message]);
 
   return (
-    <div className="border-t bg-white p-4">
-      <div className="mx-auto max-w-4xl">
-        {/* Selected files preview */}
-        {selectedFiles.length > 0 && (
-          <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                Selected Files ({selectedFiles.length}/{MAX_FILES})
-              </span>
-              {selectedFiles.length > 1 && (
+    <div 
+      className="border-t p-4"
+      style={{ 
+        backgroundColor: currentTheme.colors.background,
+        borderColor: currentTheme.colors.border 
+      }}
+    >
+      {/* File attachments preview */}
+      {selectedFiles.length > 0 && (
+        <div className="mb-3 space-y-2">
+          <div 
+            className="text-sm font-medium"
+            style={{ color: currentTheme.colors.text.primary }}
+          >
+            Attached Files ({selectedFiles.length})
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm"
+                style={{ 
+                  backgroundColor: currentTheme.colors.surface,
+                  borderColor: currentTheme.colors.border,
+                  color: currentTheme.colors.text.primary
+                }}
+              >
+                <span className="truncate max-w-32">{file.name}</span>
+                <span 
+                  className="text-xs"
+                  style={{ color: currentTheme.colors.text.secondary }}
+                >
+                  ({formatFileSize(file.size)})
+                </span>
                 <Button
-                  type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={clearSelectedFiles}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  onClick={() => removeFile(index)}
+                  className="h-4 w-4 p-0 hover:bg-red-100"
                 >
-                  Clear All
+                  <X className="h-3 w-3" />
                 </Button>
-              )}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {selectedFiles.map((file, index) => (
-                <div key={`${file.name}-${index}`} className="flex items-start gap-3 p-2 bg-white rounded border">
-                  {/* Image thumbnail */}
-                  {filePreviewUrls[index] && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={filePreviewUrls[index]}
-                        alt={file.name}
-                        className="w-12 h-12 object-cover rounded border"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* File info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-900 truncate">
-                      {file.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {Math.round(file.size / 1024)}KB • {file.type.split('/')[1].toUpperCase()}
-                    </div>
-                  </div>
-                  
-                  {/* Remove button */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(index)}
-                    className="flex-shrink-0 h-6 w-6 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-200"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="relative">
-          <div 
-            className={`flex items-end gap-2 bg-white border rounded-xl shadow-sm transition-all ${
-              isDragOver 
-                ? 'border-blue-400 bg-blue-50 shadow-md' 
-                : 'border-gray-300 focus-within:border-gray-400 focus-within:shadow-md'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            {/* Drag overlay */}
-            {isDragOver && (
-              <div className="absolute inset-0 bg-blue-50 bg-opacity-90 rounded-xl flex items-center justify-center z-10 border-2 border-dashed border-blue-400">
-                <div className="text-center">
-                  <Upload className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <p className="text-sm text-blue-600 font-medium">
-                    Drop your images here ({MAX_FILES - selectedFiles.length} remaining)
-                  </p>
-                </div>
               </div>
-            )}
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handlePaperclipClick}
-              className={`m-2 transition-colors ${
-                selectedFiles.length > 0
-                  ? 'text-blue-600 hover:text-blue-700' 
-                  : 'text-gray-400 hover:text-gray-600'
-              } ${selectedFiles.length >= MAX_FILES ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={selectedFiles.length >= MAX_FILES}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            
-            <Textarea
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                selectedFiles.length > 0
-                  ? `Add a message with your ${selectedFiles.length} image${selectedFiles.length > 1 ? 's' : ''}...` 
-                  : `Message ChatGPT or drag & drop images (up to ${MAX_FILES})...`
-              }
-              className="flex-1 border-0 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 max-h-32 min-h-[40px]"
-              disabled={disabled}
-              rows={1}
-            />
-            
-            <Button
-              type="submit"
-              disabled={!message.trim() || disabled}
-              className="m-2 bg-gray-900 hover:bg-gray-800 text-white disabled:bg-gray-300"
-              size="sm"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            ))}
           </div>
+        </div>
+      )}
 
-          {/* Hidden file input - allow multiple selection */}
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="flex-1 relative">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your message..."
+            className="min-h-[44px] max-h-32 pr-12 resize-none"
+            style={{ 
+              backgroundColor: currentTheme.colors.surface,
+              borderColor: currentTheme.colors.border,
+              color: currentTheme.colors.text.primary
+            }}
+            disabled={disabled}
+          />
+          
+          {/* File attachment button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute right-2 top-2 h-8 w-8 p-0"
+            style={{ color: currentTheme.colors.text.secondary }}
+            disabled={disabled}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
             multiple
+            accept="image/*,text/*,application/pdf,.doc,.docx,audio/*,video/*"
             onChange={handleFileSelect}
             className="hidden"
           />
-        </form>
-      </div>
+        </div>
+        
+        <Button 
+          type="submit" 
+          disabled={(!message.trim() && selectedFiles.length === 0) || disabled}
+          className="h-11"
+          style={{ 
+            backgroundColor: currentTheme.colors.primary,
+            color: 'white'
+          }}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </form>
     </div>
   );
 }
