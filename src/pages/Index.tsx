@@ -144,7 +144,7 @@ const Index = () => {
     });
   };
 
-  const handleSendMessage = async (content: string, files?: File[]) => {
+  const handleSendMessage = async (content: string, files?: FileAttachment[]) => {
     let currentConv = getCurrentConversation();
     
     // Create new conversation if none exists
@@ -154,8 +154,8 @@ const Index = () => {
       setActiveConversation(currentConv.id);
     }
 
-    // Convert files to attachments if provided
-    const attachments = files ? files.map(convertFileToAttachment) : undefined;
+    // Use attachments directly since they're already FileAttachment objects
+    const attachments = files;
 
     const userMessage: Message = {
       id: Date.now().toString(),
