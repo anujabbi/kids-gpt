@@ -112,7 +112,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
             backgroundColor: isUser ? currentTheme.colors.primary : currentTheme.colors.secondary || currentTheme.colors.primary 
           }}
         >
-          {isUser ? <User className="h-4 w-4" /> : <Rocket className="h-4 w-4" />}
+          {isUser ? (
+            <User className="h-4 w-4" />
+          ) : (
+            <Rocket 
+              className="h-4 w-4" 
+              style={{ color: currentTheme.colors.text.primary }}
+            />
+          )}
         </AvatarFallback>
       </Avatar>
       
