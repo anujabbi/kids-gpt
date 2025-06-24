@@ -478,7 +478,7 @@ export function AppSidebar({
             className="text-xs"
             style={{ color: currentTheme.colors.text.secondary }}
           >
-            KidsGPT Clone by Lovable
+            Created by ZenAI
           </div>
         )}
       </SidebarFooter>
