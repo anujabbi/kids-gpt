@@ -128,7 +128,7 @@ const Index = () => {
                       "🦕 Cool dinosaur facts",
                       "🎨 Write a fun story",
                       "🧮 Fun math games",
-                      "🔬 Science experiments",
+                      "🧠 Fun quiz",
                       "🌍 Learn about countries",
                       "🎵 Music and instruments"
                     ].map((suggestion, index) => (
