@@ -14,6 +14,8 @@ import { FileAttachment } from "@/types/chat";
 import { useConversations } from "@/hooks/useConversations";
 import { useOpenAI } from "@/hooks/useOpenAI";
 import { createUserMessage, createAssistantMessage } from "@/utils/messageUtils";
+import { detectImageRequest } from "@/utils/imageDetectionUtils";
+import { useImageGeneration } from "@/hooks/useImageGeneration";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ const Index = () => {
   } = useConversations();
 
   const { generateResponse, isTyping } = useOpenAI();
+  const { generateImage, isGenerating } = useImageGeneration();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,12 +61,39 @@ const Index = () => {
     const userMessage = createUserMessage(content, files);
     addMessageToConversation(currentConv.id, userMessage);
 
-    const allMessages = [...currentConv.messages, userMessage];
-    const result = await generateResponse(allMessages);
+    // Check if this is an image generation request
+    const imageDetection = detectImageRequest(content);
     
-    if (result) {
-      const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
-      addMessageToConversation(currentConv.id, assistantMessage);
+    if (imageDetection.isImageRequest) {
+      // Generate image instead of text response
+      const imageResult = await generateImage({
+        prompt: imageDetection.extractedPrompt,
+        size: '1024x1024',
+        style: 'vivid',
+        quality: 'standard'
+      });
+      
+      if (imageResult) {
+        const assistantMessage = {
+          ...createAssistantMessage("I've created this image for you!"),
+          generatedImage: {
+            id: Date.now().toString(),
+            url: imageResult.url,
+            prompt: imageResult.prompt,
+            timestamp: new Date(),
+          }
+        };
+        addMessageToConversation(currentConv.id, assistantMessage);
+      }
+    } else {
+      // Normal text response
+      const allMessages = [...currentConv.messages, userMessage];
+      const result = await generateResponse(allMessages);
+      
+      if (result) {
+        const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
+        addMessageToConversation(currentConv.id, assistantMessage);
+      }
     }
   };
 
@@ -184,7 +214,8 @@ const Index = () => {
           <ChatInput 
             onSendMessage={handleSendMessage} 
             onImageGenerated={handleImageGenerated}
-            disabled={isTyping} 
+            disabled={isTyping}
+            isGeneratingImage={isGenerating}
           />
         </div>
       </ThemedComponent>

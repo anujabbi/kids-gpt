@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,9 +14,10 @@ interface ChatInputProps {
   onSendMessage: (message: string, files?: FileAttachment[]) => void;
   onImageGenerated: (imageUrl: string, prompt: string) => void;
   disabled?: boolean;
+  isGeneratingImage?: boolean;
 }
 
-export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onImageGenerated, disabled, isGeneratingImage }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [showImageDialog, setShowImageDialog] = useState(false);
@@ -92,6 +92,8 @@ export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInp
     }
   };
 
+  const isInputDisabled = disabled || isUploading || isGeneratingImage;
+
   return (
     <div 
       className="border-t p-4"
@@ -104,6 +106,18 @@ export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInp
       {isUploading && uploadProgress.length > 0 && (
         <div className="mb-3">
           <FileUploadProgress progress={uploadProgress} />
+        </div>
+      )}
+
+      {/* Image generation indicator */}
+      {isGeneratingImage && (
+        <div className="mb-3 text-center">
+          <div 
+            className="text-sm"
+            style={{ color: currentTheme.colors.text.secondary }}
+          >
+            🎨 Creating your image...
+          </div>
         </div>
       )}
 
@@ -155,14 +169,14 @@ export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInp
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
+            placeholder={isGeneratingImage ? "Creating image..." : "Type your message..."}
             className="min-h-[44px] max-h-32 pr-20 resize-none"
             style={{ 
               backgroundColor: currentTheme.colors.surface,
               borderColor: currentTheme.colors.border,
               color: currentTheme.colors.text.primary
             }}
-            disabled={disabled || isUploading}
+            disabled={isInputDisabled}
           />
           
           {/* Action buttons */}
@@ -175,7 +189,7 @@ export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInp
               onClick={() => setShowImageDialog(true)}
               className="h-8 w-8 p-0"
               style={{ color: currentTheme.colors.text.secondary }}
-              disabled={disabled || isUploading}
+              disabled={isInputDisabled}
               title="Generate Image"
             >
               <Palette className="h-4 w-4" />
@@ -189,7 +203,7 @@ export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInp
               onClick={() => fileInputRef.current?.click()}
               className="h-8 w-8 p-0"
               style={{ color: currentTheme.colors.text.secondary }}
-              disabled={disabled || isUploading}
+              disabled={isInputDisabled}
               title="Attach File"
             >
               <Paperclip className="h-4 w-4" />
@@ -208,7 +222,7 @@ export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInp
         
         <Button 
           type="submit" 
-          disabled={(!message.trim() && attachments.length === 0) || disabled || isUploading}
+          disabled={(!message.trim() && attachments.length === 0) || isInputDisabled}
           className="h-11"
           style={{ 
             backgroundColor: currentTheme.colors.primary,
