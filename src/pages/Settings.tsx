@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ const Settings = () => {
   const navigate = useNavigate();
   const { currentTheme, themes, setTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
-  const [soundEffects, setSoundEffects] = useState(true);
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [age, setAge] = useState("");
@@ -215,33 +213,6 @@ const Settings = () => {
                   id="notifications"
                   checked={notifications}
                   onCheckedChange={setNotifications}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Audio */}
-          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
-            <CardHeader>
-              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Audio & Sound</CardTitle>
-              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                Configure audio settings and sound effects
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="sound-effects" style={{ color: currentTheme.colors.text.primary }}>
-                    Sound Effects
-                  </Label>
-                  <p className="text-sm" style={{ color: currentTheme.colors.text.secondary }}>
-                    Play sounds for interactions and notifications
-                  </p>
-                </div>
-                <Switch
-                  id="sound-effects"
-                  checked={soundEffects}
-                  onCheckedChange={setSoundEffects}
                 />
               </div>
             </CardContent>
