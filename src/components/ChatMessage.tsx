@@ -56,6 +56,25 @@ export function ChatMessage({ message }: ChatMessageProps) {
             ))}
           </div>
         )}
+
+        {/* Generated image */}
+        {message.generatedImage && (
+          <div className="mb-3">
+            <div 
+              className="text-sm font-medium mb-2"
+              style={{ color: currentTheme.colors.text.secondary }}
+            >
+              Generated Image: {message.generatedImage.prompt}
+            </div>
+            <img
+              src={message.generatedImage.url}
+              alt={message.generatedImage.prompt}
+              className="max-w-full h-auto rounded-lg border"
+              style={{ borderColor: currentTheme.colors.border }}
+              loading="lazy"
+            />
+          </div>
+        )}
         
         <MarkdownRenderer content={message.content} />
 

@@ -8,12 +8,20 @@ export interface FileAttachment {
   previewUrl?: string;
 }
 
+export interface GeneratedImage {
+  id: string;
+  url: string;
+  prompt: string;
+  timestamp: Date;
+}
+
 export interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
   attachments?: FileAttachment[];
+  generatedImage?: GeneratedImage;
   homeworkMisuseScore?: number;
 }
 

@@ -2,22 +2,25 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X } from "lucide-react";
+import { Send, Paperclip, X, Palette } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
 import { validateFiles, formatFileSize, cleanupFileUrl, convertFileToAttachment } from "@/utils/fileUtils";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { FileUploadProgress } from "./FileUploadProgress";
+import { ImageGenerationDialog } from "./ImageGenerationDialog";
 import { FileAttachment } from "@/types/chat";
 
 interface ChatInputProps {
   onSendMessage: (message: string, files?: FileAttachment[]) => void;
+  onImageGenerated: (imageUrl: string, prompt: string) => void;
   disabled?: boolean;
 }
 
-export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onImageGenerated, disabled }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [showImageDialog, setShowImageDialog] = useState(false);
   const { currentTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles, uploadProgress, isUploading } = useFileUpload();
@@ -153,7 +156,7 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="min-h-[44px] max-h-32 pr-12 resize-none"
+            className="min-h-[44px] max-h-32 pr-20 resize-none"
             style={{ 
               backgroundColor: currentTheme.colors.surface,
               borderColor: currentTheme.colors.border,
@@ -162,18 +165,36 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
             disabled={disabled || isUploading}
           />
           
-          {/* File attachment button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute right-2 top-2 h-8 w-8 p-0"
-            style={{ color: currentTheme.colors.text.secondary }}
-            disabled={disabled || isUploading}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
+          {/* Action buttons */}
+          <div className="absolute right-2 top-2 flex gap-1">
+            {/* Image generation button */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowImageDialog(true)}
+              className="h-8 w-8 p-0"
+              style={{ color: currentTheme.colors.text.secondary }}
+              disabled={disabled || isUploading}
+              title="Generate Image"
+            >
+              <Palette className="h-4 w-4" />
+            </Button>
+            
+            {/* File attachment button */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="h-8 w-8 p-0"
+              style={{ color: currentTheme.colors.text.secondary }}
+              disabled={disabled || isUploading}
+              title="Attach File"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+          </div>
           
           <input
             ref={fileInputRef}
@@ -197,6 +218,12 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
           <Send className="h-4 w-4" />
         </Button>
       </form>
+
+      <ImageGenerationDialog
+        open={showImageDialog}
+        onOpenChange={setShowImageDialog}
+        onImageGenerated={onImageGenerated}
+      />
     </div>
   );
 }

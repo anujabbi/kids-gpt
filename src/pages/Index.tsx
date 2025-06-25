@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -66,6 +65,30 @@ const Index = () => {
       const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
       addMessageToConversation(currentConv.id, assistantMessage);
     }
+  };
+
+  const handleImageGenerated = (imageUrl: string, prompt: string) => {
+    let currentConv = getCurrentConversation();
+    
+    if (!currentConv) {
+      currentConv = createNewConversation();
+    }
+
+    // Create a user message for the image generation request
+    const userMessage = createUserMessage(`Generate an image: ${prompt}`);
+    addMessageToConversation(currentConv.id, userMessage);
+
+    // Create an assistant message with the generated image
+    const assistantMessage = {
+      ...createAssistantMessage("I've created this image for you!"),
+      generatedImage: {
+        id: Date.now().toString(),
+        url: imageUrl,
+        prompt: prompt,
+        timestamp: new Date(),
+      }
+    };
+    addMessageToConversation(currentConv.id, assistantMessage);
   };
 
   const currentMessages = getCurrentConversation()?.messages || [];
@@ -158,7 +181,11 @@ const Index = () => {
           </ScrollArea>
 
           {/* Input */}
-          <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+          <ChatInput 
+            onSendMessage={handleSendMessage} 
+            onImageGenerated={handleImageGenerated}
+            disabled={isTyping} 
+          />
         </div>
       </ThemedComponent>
     </SidebarProvider>

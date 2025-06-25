@@ -1,5 +1,5 @@
 
-import { Message, FileAttachment } from '@/types/chat';
+import { Message, FileAttachment, GeneratedImage } from '@/types/chat';
 
 export const createUserMessage = (content: string, attachments?: FileAttachment[]): Message => {
   return {
@@ -11,13 +11,14 @@ export const createUserMessage = (content: string, attachments?: FileAttachment[
   };
 };
 
-export const createAssistantMessage = (content: string, homeworkScore?: number): Message => {
+export const createAssistantMessage = (content: string, homeworkScore?: number, generatedImage?: GeneratedImage): Message => {
   return {
     id: (Date.now() + 1).toString(),
     content,
     role: 'assistant',
     timestamp: new Date(),
     homeworkMisuseScore: homeworkScore,
+    generatedImage,
   };
 };
 
