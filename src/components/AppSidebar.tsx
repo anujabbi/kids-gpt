@@ -1,4 +1,4 @@
-import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Shield } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -190,21 +190,6 @@ export function AppSidebar({
                 </DialogContent>
               </Dialog>
             </div>
-            
-            {/* Parent Dashboard Link */}
-            <Button
-              onClick={() => window.location.href = '/parents'}
-              variant="outline"
-              className="w-full mb-4 border"
-              style={{
-                backgroundColor: currentTheme.colors.secondary,
-                color: currentTheme.colors.text.primary,
-                borderColor: currentTheme.colors.border
-              }}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Parent Dashboard
-            </Button>
           </>
         )}
         {isCollapsed && (
@@ -260,18 +245,6 @@ export function AppSidebar({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button
-              onClick={() => window.location.href = '/parents'}
-              size="icon"
-              className="border"
-              style={{
-                backgroundColor: currentTheme.colors.secondary,
-                color: currentTheme.colors.text.primary,
-                borderColor: currentTheme.colors.border
-              }}
-            >
-              <Shield className="h-4 w-4" />
-            </Button>
           </div>
         )}
       </SidebarHeader>
