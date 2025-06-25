@@ -125,12 +125,12 @@ const Index = () => {
                   </p>
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      "🦕 Tell me cool facts about dinosaurs",
-                      "🎨 Help me write a fun story about magic",
-                      "🧮 Make math fun with a cool game",
-                      "🔬 Show me awesome science experiments",
-                      "🌍 Teach me about different countries",
-                      "🎵 Help me learn about music and instruments"
+                      "🦕 Cool dinosaur facts",
+                      "🎨 Write a fun story",
+                      "🧮 Fun math games",
+                      "🔬 Science experiments",
+                      "🌍 Learn about countries",
+                      "🎵 Music and instruments"
                     ].map((suggestion, index) => (
                       <Button
                         key={index}
