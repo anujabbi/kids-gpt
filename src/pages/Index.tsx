@@ -110,7 +110,7 @@ const Index = () => {
           <ScrollArea className="flex-1">
             {currentMessages.length === 0 ? (
               <ThemedComponent variant="background" className="flex-1 flex items-center justify-center p-8">
-                <div className="text-center max-w-md">
+                <div className="text-center max-w-4xl">
                   <h2 
                     className="text-3xl font-bold mb-4"
                     style={{ color: currentTheme.colors.text.primary }}
@@ -123,12 +123,14 @@ const Index = () => {
                   >
                     I'm here to help you learn, create, and have fun! What would you like to explore?
                   </p>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     {[
                       "🦕 Tell me cool facts about dinosaurs",
                       "🎨 Help me write a fun story about magic",
                       "🧮 Make math fun with a cool game",
-                      "🔬 Show me awesome science experiments"
+                      "🔬 Show me awesome science experiments",
+                      "🌍 Teach me about different countries",
+                      "🎵 Help me learn about music and instruments"
                     ].map((suggestion, index) => (
                       <Button
                         key={index}
