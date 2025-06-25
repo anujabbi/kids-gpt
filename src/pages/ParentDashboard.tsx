@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { MessageSquare, TrendingUp, TrendingDown, Brain, Shield, Calendar, Clock, BookOpen } from 'lucide-react';
+import { MessageSquare, TrendingUp, TrendingDown, Brain, Shield, Calendar, Clock, BookOpen, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useConversations } from '@/hooks/useConversations';
 import { useParentAnalytics } from '@/hooks/useParentAnalytics';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -17,6 +18,7 @@ import { toast } from '@/hooks/use-toast';
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe'];
 
 export default function ParentDashboard() {
+  const navigate = useNavigate();
   const { conversations } = useConversations();
   const { currentTheme } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -97,9 +99,24 @@ export default function ParentDashboard() {
     <div className="container mx-auto p-6 space-y-6" style={{ color: currentTheme.colors.text.primary }}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Parent Dashboard</h1>
-          <p className="text-muted-foreground">Monitor your child's KidsGPT usage and learning progress</p>
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={() => navigate('/')}
+            size="icon"
+            variant="ghost"
+            className="h-10 w-10"
+            style={{
+              color: currentTheme.colors.text.secondary,
+              backgroundColor: 'transparent'
+            }}
+            title="Back to KidsGPT"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Parent Dashboard</h1>
+            <p className="text-muted-foreground">Monitor your child's KidsGPT usage and learning progress</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <Select value={timeRange.toString()} onValueChange={(value) => setTimeRange(Number(value) as 7 | 30 | 90)}>
