@@ -1,4 +1,4 @@
-import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Brain, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -129,13 +129,33 @@ export function AppSidebar({
       >
         {!isCollapsed && (
           <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 
-                className="text-lg font-semibold"
-                style={{ color: currentTheme.colors.text.primary }}
-              >
-                KidsGPT
-              </h2>
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: currentTheme.colors.primary + '10' }}>
+                <div className="relative">
+                  <Brain 
+                    className="h-6 w-6" 
+                    style={{ color: currentTheme.colors.primary }}
+                  />
+                  <Sparkles 
+                    className="h-3 w-3 absolute -top-1 -right-1" 
+                    style={{ color: currentTheme.colors.accent }}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <div 
+                    className="text-xs font-bold tracking-wider"
+                    style={{ color: currentTheme.colors.primary }}
+                  >
+                    AI KIDS
+                  </div>
+                  <div 
+                    className="text-xs font-light"
+                    style={{ color: currentTheme.colors.text.secondary }}
+                  >
+                    Learning Hub
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex gap-2 mb-4">
               <Button
@@ -194,6 +214,18 @@ export function AppSidebar({
         )}
         {isCollapsed && (
           <div className="space-y-2">
+            <div className="flex justify-center mb-4">
+              <div className="relative p-1 rounded" style={{ backgroundColor: currentTheme.colors.primary + '20' }}>
+                <Brain 
+                  className="h-5 w-5" 
+                  style={{ color: currentTheme.colors.primary }}
+                />
+                <Sparkles 
+                  className="h-2 w-2 absolute -top-0.5 -right-0.5" 
+                  style={{ color: currentTheme.colors.accent }}
+                />
+              </div>
+            </div>
             <Button
               onClick={() => onNewChat()}
               size="icon"
