@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AppHeader } from "@/components/AppHeader";
 import { ChatInput } from "@/components/ChatInput";
 import { MessageList } from "@/components/MessageList";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -102,15 +103,7 @@ const Index = () => {
                 KidsGPT
               </h1>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/settings")}
-              className="h-8 w-8"
-              style={{ color: currentTheme.colors.text.secondary }}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+            <AppHeader />
           </header>
 
           {/* Messages */}
