@@ -1,4 +1,4 @@
-import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Brain, Sparkles } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -130,31 +130,21 @@ export function AppSidebar({
         {!isCollapsed && (
           <>
             <div className="flex items-center justify-center mb-4">
-              <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: currentTheme.colors.primary + '10' }}>
-                <div className="relative">
-                  <Brain 
-                    className="h-6 w-6" 
-                    style={{ color: currentTheme.colors.primary }}
-                  />
-                  <Sparkles 
-                    className="h-3 w-3 absolute -top-1 -right-1" 
-                    style={{ color: currentTheme.colors.accent }}
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <div 
-                    className="text-xs font-bold tracking-wider"
-                    style={{ color: currentTheme.colors.primary }}
-                  >
-                    AI KIDS
-                  </div>
-                  <div 
-                    className="text-xs font-light"
-                    style={{ color: currentTheme.colors.text.secondary }}
-                  >
-                    Learning Hub
-                  </div>
-                </div>
+              <div 
+                className="w-12 h-12 rounded-lg flex items-center justify-center relative overflow-hidden"
+                style={{ 
+                  background: `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`,
+                  boxShadow: `0 4px 12px ${currentTheme.colors.primary}20`
+                }}
+              >
+                <div 
+                  className="w-6 h-6 rounded-sm transform rotate-45"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                />
+                <div 
+                  className="absolute top-2 right-2 w-2 h-2 rounded-full"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+                />
               </div>
             </div>
             <div className="flex gap-2 mb-4">
@@ -215,14 +205,20 @@ export function AppSidebar({
         {isCollapsed && (
           <div className="space-y-2">
             <div className="flex justify-center mb-4">
-              <div className="relative p-1 rounded" style={{ backgroundColor: currentTheme.colors.primary + '20' }}>
-                <Brain 
-                  className="h-5 w-5" 
-                  style={{ color: currentTheme.colors.primary }}
+              <div 
+                className="w-8 h-8 rounded-md flex items-center justify-center relative overflow-hidden"
+                style={{ 
+                  background: `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`,
+                  boxShadow: `0 2px 8px ${currentTheme.colors.primary}20`
+                }}
+              >
+                <div 
+                  className="w-3 h-3 rounded-sm transform rotate-45"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
                 />
-                <Sparkles 
-                  className="h-2 w-2 absolute -top-0.5 -right-0.5" 
-                  style={{ color: currentTheme.colors.accent }}
+                <div 
+                  className="absolute top-1 right-1 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
                 />
               </div>
             </div>
