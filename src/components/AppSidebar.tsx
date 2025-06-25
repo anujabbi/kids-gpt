@@ -1,4 +1,5 @@
-import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Shield } from "lucide-react";
+
+import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Shield, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -190,21 +191,6 @@ export function AppSidebar({
                 </DialogContent>
               </Dialog>
             </div>
-            
-            {/* Parent Dashboard Link */}
-            <Button
-              onClick={() => window.location.href = '/parents'}
-              variant="outline"
-              className="w-full mb-4 border"
-              style={{
-                backgroundColor: currentTheme.colors.secondary,
-                color: currentTheme.colors.text.primary,
-                borderColor: currentTheme.colors.border
-              }}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Parent Dashboard
-            </Button>
           </>
         )}
         {isCollapsed && (
@@ -260,18 +246,6 @@ export function AppSidebar({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button
-              onClick={() => window.location.href = '/parents'}
-              size="icon"
-              className="border"
-              style={{
-                backgroundColor: currentTheme.colors.secondary,
-                color: currentTheme.colors.text.primary,
-                borderColor: currentTheme.colors.border
-              }}
-            >
-              <Shield className="h-4 w-4" />
-            </Button>
           </div>
         )}
       </SidebarHeader>
@@ -500,6 +474,33 @@ export function AppSidebar({
         className="p-4 border-t"
         style={{ borderColor: currentTheme.colors.border }}
       >
+        <div className="flex gap-2 mb-4">
+          <Button
+            onClick={() => window.location.href = '/settings'}
+            size="icon"
+            className="border"
+            style={{
+              backgroundColor: currentTheme.colors.secondary,
+              color: currentTheme.colors.text.primary,
+              borderColor: currentTheme.colors.border
+            }}
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={() => window.location.href = '/parents'}
+            size="icon"
+            className="border"
+            style={{
+              backgroundColor: currentTheme.colors.secondary,
+              color: currentTheme.colors.text.primary,
+              borderColor: currentTheme.colors.border
+            }}
+          >
+            <Shield className="h-4 w-4" />
+          </Button>
+        </div>
+        
         {!isCollapsed && (
           <div 
             className="text-xs"
