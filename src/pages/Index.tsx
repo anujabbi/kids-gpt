@@ -1,29 +1,40 @@
-import { useState, useRef, useEffect } from "react";
+
+import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/AppSidebar";
-import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
-import { toast } from "@/hooks/use-toast";
+import { MessageList } from "@/components/MessageList";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ThemedComponent } from "@/components/ThemedComponent";
-import { getSystemPrompt } from "@/utils/systemPrompts";
-import { Message, Conversation, Folder, FileAttachment } from "@/types/chat";
-import { convertFileToAttachment } from "@/utils/fileUtils";
-import { analyzeHomeworkMisuse } from "@/services/homeworkDetectionService";
+import { FileAttachment } from "@/types/chat";
+import { useConversations } from "@/hooks/useConversations";
+import { useOpenAI } from "@/hooks/useOpenAI";
+import { createUserMessage, createAssistantMessage } from "@/utils/messageUtils";
 
 const Index = () => {
   const navigate = useNavigate();
   const { currentTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [activeConversation, setActiveConversation] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const {
+    conversations,
+    folders,
+    activeConversation,
+    setActiveConversation,
+    getCurrentConversation,
+    createNewConversation,
+    addMessageToConversation,
+    deleteConversation,
+    createFolder,
+    deleteFolder,
+    renameFolder,
+  } = useConversations();
+
+  const { generateResponse, isTyping } = useOpenAI();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,270 +44,27 @@ const Index = () => {
     scrollToBottom();
   }, [conversations, activeConversation]);
 
-  const getCurrentConversation = () => {
-    return conversations.find(c => c.id === activeConversation);
-  };
-
-  const generateResponse = async (messages: Message[]): Promise<{ response: string; homeworkScore: number }> => {
-    const apiKey = localStorage.getItem("openai_api_key");
-    
-    if (!apiKey) {
-      throw new Error("OpenAI API key not found. Please add your API key in Settings.");
-    }
-
-    try {
-      // Get user age from localStorage
-      const userAge = localStorage.getItem("user_age");
-      
-      // Get age-appropriate system message
-      const systemMessage = {
-        role: "system" as const,
-        content: getSystemPrompt(userAge || undefined)
-      };
-
-      // Convert blob URLs to base64 for images
-      const convertBlobToBase64 = async (blobUrl: string): Promise<string> => {
-        try {
-          const response = await fetch(blobUrl);
-          const blob = await response.blob();
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64 = reader.result as string;
-              resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-        } catch (error) {
-          console.error('Error converting blob to base64:', error);
-          throw new Error('Failed to process image attachment');
-        }
-      };
-
-      // Convert messages to OpenAI format, handling attachments
-      const openAIMessages = await Promise.all(messages.map(async msg => {
-        if (msg.attachments && msg.attachments.length > 0) {
-          // For messages with attachments, create a content array
-          const content: any[] = [
-            {
-              type: "text",
-              text: msg.content
-            }
-          ];
-
-          // Process attachments
-          for (const attachment of msg.attachments) {
-            if (attachment.type.startsWith('image/')) {
-              try {
-                // Convert blob URL to base64 for images
-                const base64Data = await convertBlobToBase64(attachment.url);
-                content.push({
-                  type: "image_url",
-                  image_url: {
-                    url: base64Data
-                  }
-                });
-              } catch (error) {
-                console.error('Failed to process image:', error);
-                // Fallback to text description if image processing fails
-                content[0].text += `\n\n[Image attachment: ${attachment.name} - Could not process for vision analysis]`;
-              }
-            } else {
-              // For non-image files, add text description
-              content[0].text += `\n\n[Attached file: ${attachment.name} (${attachment.type}, ${(attachment.size / 1024).toFixed(1)}KB)]`;
-            }
-          }
-
-          return {
-            role: msg.role,
-            content: content
-          };
-        } else {
-          // For messages without attachments, use simple text content
-          return {
-            role: msg.role,
-            content: msg.content
-          };
-        }
-      }));
-
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            systemMessage,
-            ...openAIMessages
-          ],
-          max_tokens: 1000,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const aiResponse = data.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
-      
-      // Get the last user message for homework analysis
-      const lastUserMessage = messages[messages.length - 1];
-      const userQuestion = lastUserMessage?.content || "";
-      
-      // Analyze homework misuse (runs in parallel to avoid blocking)
-      const homeworkScore = await analyzeHomeworkMisuse(userQuestion, aiResponse);
-      
-      return { response: aiResponse, homeworkScore };
-    } catch (error) {
-      console.error("OpenAI API Error:", error);
-      throw error;
-    }
-  };
-
-  const createNewConversation = (folderId?: string): Conversation => {
-    const id = Date.now().toString();
-    return {
-      id,
-      title: "New conversation",
-      timestamp: new Date(),
-      messages: [],
-      folderId,
-    };
-  };
-
   const handleNewChat = (folderId?: string) => {
-    const newConv = createNewConversation(folderId);
-    setConversations(prev => [newConv, ...prev]);
-    setActiveConversation(newConv.id);
-    setSidebarOpen(false);
-  };
-
-  const handleCreateFolder = (name: string) => {
-    const newFolder: Folder = {
-      id: Date.now().toString(),
-      name,
-      timestamp: new Date(),
-    };
-    setFolders(prev => [newFolder, ...prev]);
-    toast({
-      title: "Folder created",
-      description: `Folder "${name}" has been created.`,
-    });
-  };
-
-  const handleDeleteFolder = (folderId: string) => {
-    // Move conversations from folder to root
-    setConversations(prev => prev.map(conv => 
-      conv.folderId === folderId 
-        ? { ...conv, folderId: undefined }
-        : conv
-    ));
-    
-    setFolders(prev => prev.filter(folder => folder.id !== folderId));
-    toast({
-      title: "Folder deleted",
-      description: "The folder has been removed and conversations moved to root.",
-    });
-  };
-
-  const handleRenameFolder = (folderId: string, newName: string) => {
-    setFolders(prev => prev.map(folder => 
-      folder.id === folderId 
-        ? { ...folder, name: newName }
-        : folder
-    ));
-    toast({
-      title: "Folder renamed",
-      description: `Folder has been renamed to "${newName}".`,
-    });
+    createNewConversation(folderId);
   };
 
   const handleSendMessage = async (content: string, files?: FileAttachment[]) => {
     let currentConv = getCurrentConversation();
     
-    // Create new conversation if none exists
     if (!currentConv) {
       currentConv = createNewConversation();
-      setConversations(prev => [currentConv!, ...prev]);
-      setActiveConversation(currentConv.id);
     }
 
-    // Use attachments directly since they're already FileAttachment objects
-    const attachments = files;
+    const userMessage = createUserMessage(content, files);
+    addMessageToConversation(currentConv.id, userMessage);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: 'user',
-      timestamp: new Date(),
-      attachments,
-    };
-
-    // Add user message
-    setConversations(prev => prev.map(conv => 
-      conv.id === currentConv!.id 
-        ? { 
-            ...conv, 
-            messages: [...conv.messages, userMessage],
-            title: conv.messages.length === 0 ? content.slice(0, 30) + (content.length > 30 ? '...' : '') : conv.title
-          }
-        : conv
-    ));
-
-    setIsTyping(true);
-
-    try {
-      // Get all messages including the current user message
-      const allMessages = [...currentConv.messages, userMessage];
-      
-      const { response, homeworkScore } = await generateResponse(allMessages);
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response,
-        role: 'assistant',
-        timestamp: new Date(),
-        homeworkMisuseScore: homeworkScore,
-      };
-
-      setConversations(prev => prev.map(conv => 
-        conv.id === currentConv!.id 
-          ? { ...conv, messages: [...conv.messages, assistantMessage] }
-          : conv
-      ));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get response. Please try again.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsTyping(false);
+    const allMessages = [...currentConv.messages, userMessage];
+    const result = await generateResponse(allMessages);
+    
+    if (result) {
+      const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
+      addMessageToConversation(currentConv.id, assistantMessage);
     }
-  };
-
-  const handleSelectConversation = (id: string) => {
-    setActiveConversation(id);
-    setSidebarOpen(false);
-  };
-
-  const handleDeleteConversation = (id: string) => {
-    setConversations(prev => prev.filter(conv => conv.id !== id));
-    if (activeConversation === id) {
-      setActiveConversation(null);
-    }
-    toast({
-      title: "Conversation deleted",
-      description: "The conversation has been removed.",
-    });
   };
 
   const currentMessages = getCurrentConversation()?.messages || [];
@@ -309,11 +77,11 @@ const Index = () => {
           conversations={conversations}
           folders={folders}
           activeConversation={activeConversation}
-          onSelectConversation={handleSelectConversation}
-          onDeleteConversation={handleDeleteConversation}
-          onCreateFolder={handleCreateFolder}
-          onDeleteFolder={handleDeleteFolder}
-          onRenameFolder={handleRenameFolder}
+          onSelectConversation={setActiveConversation}
+          onDeleteConversation={deleteConversation}
+          onCreateFolder={createFolder}
+          onDeleteFolder={deleteFolder}
+          onRenameFolder={renameFolder}
         />
 
         <div className="flex-1 flex flex-col">
@@ -387,38 +155,10 @@ const Index = () => {
                 </div>
               </ThemedComponent>
             ) : (
-              <div className="pb-4">
-                {currentMessages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
-                ))}
-                {isTyping && (
-                  <div 
-                    className="flex gap-4 p-6"
-                    style={{ backgroundColor: currentTheme.colors.surface }}
-                  >
-                    <div 
-                      className="h-8 w-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: currentTheme.colors.primary }}
-                    >
-                      <div className="text-white text-xs font-bold">AI</div>
-                    </div>
-                    <div className="flex-1">
-                      <div 
-                        className="text-sm font-medium mb-2"
-                        style={{ color: currentTheme.colors.text.primary }}
-                      >
-                        KidsGPT
-                      </div>
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <>
+                <MessageList messages={currentMessages} isTyping={isTyping} />
                 <div ref={messagesEndRef} />
-              </div>
+              </>
             )}
           </ScrollArea>
 
