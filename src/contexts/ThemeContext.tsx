@@ -113,7 +113,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [currentTheme, setCurrentTheme] = useState<Theme>(defaultThemes[0]);
+  const [currentTheme, setCurrentTheme] = useState<Theme>(defaultThemes[2]); // Changed from defaultThemes[0] to defaultThemes[2] (Purple Rain)
 
   useEffect(() => {
     const savedThemeId = localStorage.getItem('theme-id');
