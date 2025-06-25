@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,6 +52,12 @@ export default function ParentDashboard() {
     }
   };
 
+  const handleCloseDialog = () => {
+    setShowPinDialog(false);
+    // Navigate back to main page when dialog is closed
+    navigate('/');
+  };
+
   const getScoreColor = (score: number) => {
     if (score <= 30) return 'text-green-600';
     if (score <= 60) return 'text-yellow-600';
@@ -67,7 +72,7 @@ export default function ParentDashboard() {
 
   if (!isAuthenticated) {
     return (
-      <Dialog open={showPinDialog} onOpenChange={() => {}}>
+      <Dialog open={showPinDialog} onOpenChange={handleCloseDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
