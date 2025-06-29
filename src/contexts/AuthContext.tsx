@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +48,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        console.log('Profile fetch error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         setProfile(null);
       } else {
         console.log('Profile fetched successfully:', data);
@@ -165,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, metadata?: any) => {
+    console.log('Attempting to sign up with metadata:', metadata);
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -175,6 +181,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: metadata
       }
     });
+    
+    if (error) {
+      console.error('Sign up error:', error);
+    } else {
+      console.log('Sign up successful');
+    }
+    
     return { error };
   };
 
