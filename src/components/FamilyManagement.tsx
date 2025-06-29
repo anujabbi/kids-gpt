@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Copy, Plus, Users, User, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,7 +40,11 @@ export function FamilyManagement() {
   const [childName, setChildName] = useState('');
   const [childEmail, setChildEmail] = useState('');
   const [childPassword, setChildPassword] = useState('');
+  const [childAge, setChildAge] = useState('');
   const [addingChild, setAddingChild] = useState(false);
+
+  // Generate age options from 4 to 25
+  const ageOptions = Array.from({ length: 22 }, (_, i) => i + 4);
 
   useEffect(() => {
     if (profile?.family_id) {
@@ -92,7 +97,7 @@ export function FamilyManagement() {
 
   const handleAddChild = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!family) return;
+    if (!family || !childAge) return;
 
     setAddingChild(true);
     
@@ -104,7 +109,8 @@ export function FamilyManagement() {
           data: {
             full_name: childName,
             role: 'child',
-            family_code: family.family_code
+            family_code: family.family_code,
+            age: parseInt(childAge)
           }
         }
       });
@@ -116,6 +122,7 @@ export function FamilyManagement() {
       setChildName('');
       setChildEmail('');
       setChildPassword('');
+      setChildAge('');
       
       // Refresh family data
       setTimeout(() => {
@@ -229,6 +236,21 @@ export function FamilyManagement() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="child-age">Age</Label>
+                    <Select value={childAge} onValueChange={setChildAge} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select age" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ageOptions.map((age) => (
+                          <SelectItem key={age} value={age.toString()}>
+                            {age} years old
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="child-email">Email Address</Label>
                     <Input
                       id="child-email"
@@ -254,7 +276,7 @@ export function FamilyManagement() {
                     <Button type="button" variant="outline" onClick={() => setShowAddChild(false)}>
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={addingChild}>
+                    <Button type="submit" disabled={addingChild || !childAge}>
                       {addingChild ? 'Creating...' : 'Create Account'}
                     </Button>
                   </DialogFooter>

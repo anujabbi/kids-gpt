@@ -1,6 +1,6 @@
 
-export const getSystemPrompt = (userAge?: string): string => {
-  const age = userAge ? parseInt(userAge) : null;
+export const getSystemPrompt = (userAge?: number): string => {
+  const age = userAge;
   
   // Age-specific introduction
   const ageIntro = age 
