@@ -25,7 +25,10 @@ const RoleBasedRedirect = () => {
     console.log('RoleBasedRedirect - Still loading, showing spinner');
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="flex items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-lg">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -34,9 +37,12 @@ const RoleBasedRedirect = () => {
   if (profile?.role === 'parent') {
     console.log('RoleBasedRedirect - Redirecting parent to /parents');
     return <Navigate to="/parents" replace />;
-  } else {
+  } else if (profile?.role === 'child') {
     console.log('RoleBasedRedirect - Redirecting child to /chat');
     return <Navigate to="/chat" replace />;
+  } else {
+    console.log('RoleBasedRedirect - No valid role, redirecting to auth');
+    return <Navigate to="/auth" replace />;
   }
 };
 

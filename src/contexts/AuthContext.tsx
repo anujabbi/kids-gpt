@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,7 +36,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initializing, setInitializing] = useState(true);
 
   const fetchUserProfile = async (userId: string) => {
     console.log('Fetching profile for user:', userId);
@@ -50,20 +48,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        console.log('Profile fetch error details:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
         setProfile(null);
+        return null;
       } else {
         console.log('Profile fetched successfully:', data);
         setProfile(data);
+        return data;
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setProfile(null);
+      return null;
     }
   };
 
@@ -84,14 +79,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
-          if (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token')) {
-            console.log('Clearing corrupted session data');
-            await supabase.auth.signOut();
-          }
           if (mounted) {
             clearAuthState();
             setLoading(false);
-            setInitializing(false);
           }
           return;
         }
@@ -100,21 +90,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (!mounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
-        
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          setSession(session);
+          setUser(session.user);
+          const profileData = await fetchUserProfile(session.user.id);
+          console.log('Profile loaded during init:', profileData);
+        } else {
+          clearAuthState();
         }
         
         setLoading(false);
-        setInitializing(false);
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {
           clearAuthState();
           setLoading(false);
-          setInitializing(false);
         }
       }
     };
@@ -126,36 +116,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
 
-        // Don't process events during initialization
-        if (initializing) {
-          console.log('Skipping auth state change during initialization');
-          return;
-        }
-
-        if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+        if (event === 'SIGNED_OUT') {
           clearAuthState();
           setLoading(false);
           return;
         }
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          console.log('Processing sign in event...');
-          setLoading(true); // Set loading to true during profile fetch
+          console.log('Processing auth event:', event);
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            await fetchUserProfile(session.user.id);
+            const profileData = await fetchUserProfile(session.user.id);
+            console.log('Profile loaded after auth event:', profileData);
           } else {
             clearAuthState();
           }
           setLoading(false);
-          console.log('Sign in processing complete');
         }
       }
     );
 
-    // Initialize auth after setting up listener
+    // Initialize auth
     initializeAuth();
 
     return () => {
@@ -176,10 +159,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       console.error('Sign in error:', error);
       setLoading(false);
-    } else {
-      console.log('Sign in successful - waiting for auth state change');
-      // Don't set loading to false here - let the auth state change handler do it
     }
+    // Don't set loading to false on success - let auth state change handle it
     
     return { error };
   };
