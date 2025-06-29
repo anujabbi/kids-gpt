@@ -15,6 +15,7 @@ export type Database = {
           family_code: string
           id: string
           name: string
+          openai_api_key: string | null
           updated_at: string
         }
         Insert: {
@@ -22,6 +23,7 @@ export type Database = {
           family_code: string
           id?: string
           name: string
+          openai_api_key?: string | null
           updated_at?: string
         }
         Update: {
@@ -29,6 +31,7 @@ export type Database = {
           family_code?: string
           id?: string
           name?: string
+          openai_api_key?: string | null
           updated_at?: string
         }
         Relationships: []

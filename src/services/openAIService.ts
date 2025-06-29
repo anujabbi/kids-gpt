@@ -1,6 +1,7 @@
 
 import { Message } from '@/types/chat';
 import { getSystemPrompt } from '@/utils/systemPrompts';
+import { familyApiKeyService } from './familyApiKeyService';
 
 export interface OpenAIResponse {
   response: string;
@@ -8,12 +9,25 @@ export interface OpenAIResponse {
 }
 
 export class OpenAIService {
-  private getApiKey(): string {
-    const apiKey = localStorage.getItem("openai_api_key");
-    if (!apiKey) {
-      throw new Error("OpenAI API key not found. Please add your API key in Settings.");
+  private async getApiKey(familyId?: string): Promise<string> {
+    // First, try to get family API key if familyId is provided
+    if (familyId) {
+      console.log('Attempting to get family API key for family:', familyId);
+      const familyApiKey = await familyApiKeyService.getFamilyApiKey(familyId);
+      if (familyApiKey) {
+        console.log('Using family API key');
+        return familyApiKey;
+      }
     }
-    return apiKey;
+    
+    // Fall back to localStorage API key
+    const localApiKey = localStorage.getItem("openai_api_key");
+    if (localApiKey) {
+      console.log('Using local API key');
+      return localApiKey;
+    }
+    
+    throw new Error("OpenAI API key not found. Please add your API key in Settings or ask your parent to set the family API key.");
   }
 
   private async convertBlobToBase64(blobUrl: string): Promise<string> {
@@ -70,8 +84,8 @@ export class OpenAIService {
     return formattedMessages;
   }
 
-  async generateResponse(messages: Message[]): Promise<OpenAIResponse> {
-    const apiKey = this.getApiKey();
+  async generateResponse(messages: Message[], familyId?: string): Promise<OpenAIResponse> {
+    const apiKey = await this.getApiKey(familyId);
     console.log('Generating OpenAI response...');
     
     try {

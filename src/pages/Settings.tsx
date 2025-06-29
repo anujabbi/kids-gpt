@@ -9,11 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ThemedComponent } from "@/components/ThemedComponent";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { currentTheme, themes, setTheme } = useTheme();
+  const { profile } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
@@ -31,6 +33,8 @@ const Settings = () => {
     setApiKey(value);
     localStorage.setItem("openai_api_key", value);
   };
+
+  const isChild = profile?.role === 'child';
 
   return (
     <ThemedComponent variant="surface" className="min-h-screen p-4">
@@ -57,53 +61,58 @@ const Settings = () => {
 
         {/* Settings Cards */}
         <div className="space-y-6">
-          {/* API Key */}
-          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
-            <CardHeader>
-              <CardTitle style={{ color: currentTheme.colors.text.primary }}>API Key</CardTitle>
-              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                Enter your OpenAI API key to enable chat functionality
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="api-key" style={{ color: currentTheme.colors.text.primary }}>
-                  OpenAI API Key
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="api-key"
-                    type={showApiKey ? "text" : "password"}
-                    value={apiKey}
-                    onChange={(e) => handleApiKeyChange(e.target.value)}
-                    placeholder="sk-..."
-                    className="pr-10"
-                    style={{ 
-                      backgroundColor: currentTheme.colors.background,
-                      borderColor: currentTheme.colors.border,
-                      color: currentTheme.colors.text.primary
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                  >
-                    {showApiKey ? (
-                      <EyeOff className="h-4 w-4" style={{ color: currentTheme.colors.text.secondary }} />
-                    ) : (
-                      <Eye className="h-4 w-4" style={{ color: currentTheme.colors.text.secondary }} />
-                    )}
-                  </Button>
+          {/* API Key - Only show for children or if no family API key is set */}
+          {isChild && (
+            <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
+              <CardHeader>
+                <CardTitle style={{ color: currentTheme.colors.text.primary }}>Personal API Key</CardTitle>
+                <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
+                  {profile?.role === 'child' 
+                    ? "Your family's API key is managed by your parent. You can set a personal key here if needed."
+                    : "Enter your OpenAI API key to enable chat functionality"
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="api-key" style={{ color: currentTheme.colors.text.primary }}>
+                    OpenAI API Key (Optional)
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="api-key"
+                      type={showApiKey ? "text" : "password"}
+                      value={apiKey}
+                      onChange={(e) => handleApiKeyChange(e.target.value)}
+                      placeholder="sk-..."
+                      className="pr-10"
+                      style={{ 
+                        backgroundColor: currentTheme.colors.background,
+                        borderColor: currentTheme.colors.border,
+                        color: currentTheme.colors.text.primary
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                    >
+                      {showApiKey ? (
+                        <EyeOff className="h-4 w-4" style={{ color: currentTheme.colors.text.secondary }} />
+                      ) : (
+                        <Eye className="h-4 w-4" style={{ color: currentTheme.colors.text.secondary }} />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs" style={{ color: currentTheme.colors.text.secondary }}>
+                    Your personal API key is stored locally and never shared
+                  </p>
                 </div>
-                <p className="text-xs" style={{ color: currentTheme.colors.text.secondary }}>
-                  Your API key is stored locally and never shared
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Theme Selection */}
           <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
