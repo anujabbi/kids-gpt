@@ -3,9 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
@@ -14,6 +14,26 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Component to handle role-based redirects after login
+const RoleBasedRedirect = () => {
+  const { profile, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  // Redirect parents to dashboard, children to main chat
+  if (profile?.role === 'parent') {
+    return <Navigate to="/parents" replace />;
+  } else {
+    return <Navigate to="/chat" replace />;
+  }
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -27,6 +47,11 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
                 <ProtectedRoute>
+                  <RoleBasedRedirect />
+                </ProtectedRoute>
+              } />
+              <Route path="/chat" element={
+                <ProtectedRoute requireRole="child">
                   <Index />
                 </ProtectedRoute>
               } />
@@ -36,7 +61,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/parents" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="parent">
                   <ParentDashboard />
                 </ProtectedRoute>
               } />

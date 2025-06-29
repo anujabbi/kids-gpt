@@ -7,12 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
+import { Users, User } from 'lucide-react';
 
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'parent' | 'child'>('parent');
+  const [familyCode, setFamilyCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Redirect if already authenticated
@@ -37,14 +42,34 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (role === 'child' && !familyCode.trim()) {
+      toast.error('Family code is required for children');
+      return;
+    }
+    
     setLoading(true);
     
-    const { error } = await signUp(email, password);
+    const metadata = {
+      full_name: fullName,
+      role: role,
+      ...(role === 'child' && { family_code: familyCode.trim().toUpperCase() })
+    };
+    
+    const { error } = await signUp(email, password, metadata);
     
     if (error) {
-      toast.error(error.message);
+      if (error.message.includes('family_code')) {
+        toast.error('Invalid family code. Please check with your parent.');
+      } else {
+        toast.error(error.message);
+      }
     } else {
-      toast.success('Account created successfully! You can now sign in.');
+      if (role === 'parent') {
+        toast.success('Parent account created successfully! You can now sign in.');
+      } else {
+        toast.success('Child account created successfully! You can now sign in.');
+      }
     }
     
     setLoading(false);
@@ -96,6 +121,56 @@ const Auth = () => {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-3">
+                  <Label>I am a:</Label>
+                  <RadioGroup value={role} onValueChange={(value: 'parent' | 'child') => setRole(value)}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="parent" id="parent" />
+                      <Label htmlFor="parent" className="flex items-center gap-2 cursor-pointer">
+                        <Users className="h-4 w-4" />
+                        Parent/Guardian
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="child" id="child" />
+                      <Label htmlFor="child" className="flex items-center gap-2 cursor-pointer">
+                        <User className="h-4 w-4" />
+                        Child
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {role === 'child' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="family-code">Family Code</Label>
+                    <Input
+                      id="family-code"
+                      type="text"
+                      placeholder="Enter your family code"
+                      value={familyCode}
+                      onChange={(e) => setFamilyCode(e.target.value.toUpperCase())}
+                      maxLength={6}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ask your parent for the 6-character family code
+                    </p>
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input

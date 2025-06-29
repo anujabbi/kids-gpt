@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { MessageSquare, TrendingUp, TrendingDown, Brain, Shield, Calendar, Clock, BookOpen, Home } from 'lucide-react';
+import { MessageSquare, TrendingUp, TrendingDown, Brain, Shield, Calendar, Clock, BookOpen, Home, Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useConversations } from '@/hooks/useConversations';
 import { useParentAnalytics } from '@/hooks/useParentAnalytics';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { FamilyManagement } from '@/components/FamilyManagement';
 import { toast } from '@/hooks/use-toast';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe'];
@@ -20,6 +22,7 @@ export default function ParentDashboard() {
   const navigate = useNavigate();
   const { conversations } = useConversations();
   const { currentTheme } = useTheme();
+  const { profile, signOut } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
   const [showPinDialog, setShowPinDialog] = useState(true);
@@ -56,6 +59,14 @@ export default function ParentDashboard() {
     setShowPinDialog(false);
     // Navigate back to main page when dialog is closed
     navigate('/');
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully",
+    });
   };
 
   const getScoreColor = (score: number) => {
@@ -120,10 +131,12 @@ export default function ParentDashboard() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Parent Dashboard</h1>
-            <p className="text-muted-foreground">Monitor your child's KidsGPT usage and learning progress</p>
+            <p className="text-muted-foreground">
+              Welcome, {profile?.full_name || 'Parent'}! Monitor your family's KidsGPT usage.
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Select value={timeRange.toString()} onValueChange={(value) => setTimeRange(Number(value) as 7 | 30 | 90)}>
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -134,99 +147,120 @@ export default function ParentDashboard() {
               <SelectItem value="90">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
+          <Button
+            onClick={() => navigate('/settings')}
+            size="icon"
+            variant="ghost"
+            title="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+          <Button
+            onClick={handleSignOut}
+            size="icon"
+            variant="ghost"
+            title="Sign Out"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Key Insights */}
-      {insights.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
-              Key Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2">
-              {insights.map((insight, index) => (
-                <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                  <span>{insight}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Conversations</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usageStats.totalConversations}</div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              {usageStats.weeklyTrend > 0 ? (
-                <TrendingUp className="h-3 w-3 text-green-600" />
-              ) : (
-                <TrendingDown className="h-3 w-3 text-red-600" />
-              )}
-              {Math.abs(usageStats.weeklyTrend).toFixed(1)}% from last week
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usageStats.totalMessages}</div>
-            <p className="text-xs text-muted-foreground">
-              {usageStats.avgMessagesPerConversation.toFixed(1)} avg per conversation
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Learning Quality</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${getScoreColor(usageStats.avgHomeworkScore)}`}>
-              {getScoreLabel(usageStats.avgHomeworkScore)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Score: {usageStats.avgHomeworkScore.toFixed(1)}/100
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Most Active Day</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usageStats.mostActiveDay}</div>
-            <p className="text-xs text-muted-foreground">Peak usage day</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Analytics */}
-      <Tabs defaultValue="activity" className="space-y-4">
+      {/* Main Content */}
+      <Tabs defaultValue="family" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="activity">Daily Activity</TabsTrigger>
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
-          <TabsTrigger value="conversations">Recent Conversations</TabsTrigger>
+          <TabsTrigger value="family">Family Management</TabsTrigger>
+          <TabsTrigger value="activity">Activity Analytics</TabsTrigger>
+          <TabsTrigger value="conversations">Conversations</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="family">
+          <FamilyManagement />
+        </TabsContent>
+
         <TabsContent value="activity" className="space-y-4">
+          {/* Key Insights */}
+          {insights.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5" />
+                  Key Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2">
+                  {insights.map((insight, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <span>{insight}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Overview Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Conversations</CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{usageStats.totalConversations}</div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {usageStats.weeklyTrend > 0 ? (
+                    <TrendingUp className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-600" />
+                  )}
+                  {Math.abs(usageStats.weeklyTrend).toFixed(1)}% from last week
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{usageStats.totalMessages}</div>
+                <p className="text-xs text-muted-foreground">
+                  {usageStats.avgMessagesPerConversation.toFixed(1)} avg per conversation
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Learning Quality</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${getScoreColor(usageStats.avgHomeworkScore)}`}>
+                  {getScoreLabel(usageStats.avgHomeworkScore)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Score: {usageStats.avgHomeworkScore.toFixed(1)}/100
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Most Active Day</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{usageStats.mostActiveDay}</div>
+                <p className="text-xs text-muted-foreground">Peak usage day</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts */}
           <Card>
             <CardHeader>
               <CardTitle>Daily Activity</CardTitle>
@@ -244,71 +278,6 @@ export default function ParentDashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="subjects" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Popular Subjects</CardTitle>
-                <CardDescription>Most discussed topics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={usageStats.subjectInsights}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({subject, percent}) => `${subject} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="count"
-                    >
-                      {usageStats.subjectInsights.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Subject Analysis</CardTitle>
-                <CardDescription>Discussion frequency and homework scores</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {usageStats.subjectInsights.slice(0, 6).map((subject, index) => (
-                    <div key={subject.subject} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <span className="font-medium">{subject.subject}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{subject.count} discussions</Badge>
-                        {subject.avgHomeworkScore !== undefined && (
-                          <Badge 
-                            variant="outline" 
-                            className={getScoreColor(subject.avgHomeworkScore)}
-                          >
-                            {subject.avgHomeworkScore.toFixed(0)}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="conversations" className="space-y-4">
