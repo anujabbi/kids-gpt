@@ -11,8 +11,14 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireRole }) => {
   const { user, profile, loading } = useAuth();
 
-  console.log('ProtectedRoute state:', { user: !!user, profile, loading, requireRole });
+  console.log('ProtectedRoute state:', { 
+    user: !!user, 
+    profile: profile ? { role: profile.role, id: profile.id } : null, 
+    loading, 
+    requireRole 
+  });
 
+  // Show loading spinner while auth is being determined
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -22,27 +28,26 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     );
   }
 
+  // No user - redirect to auth
   if (!user) {
     console.log('No user, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  // If user exists but no profile, redirect to auth (user needs to complete signup)
+  // User exists but no profile - redirect to auth to complete signup
   if (user && !profile) {
     console.log('User exists but no profile, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  // If a specific role is required and user doesn't have it, redirect
+  // Role-based access control
   if (requireRole && profile?.role !== requireRole) {
     console.log('Role mismatch, redirecting based on role:', profile?.role);
-    // Parents trying to access child routes go to parent dashboard
     if (profile?.role === 'parent') {
       return <Navigate to="/parents" replace />;
     }
-    // Children trying to access parent routes go to main page
     if (profile?.role === 'child') {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/chat" replace />;
     }
   }
 

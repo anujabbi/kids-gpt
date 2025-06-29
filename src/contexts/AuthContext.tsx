@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initializing, setInitializing] = useState(true);
 
   const fetchUserProfile = async (userId: string) => {
     console.log('Fetching profile for user:', userId);
@@ -62,9 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error fetching user profile:', error);
       setProfile(null);
-    } finally {
-      console.log('Setting loading to false after profile fetch');
-      setLoading(false);
     }
   };
 
@@ -73,39 +72,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setSession(null);
     setProfile(null);
-    setLoading(false);
   };
 
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        
-        if (!mounted) return;
-
-        // Handle different auth events
-        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
-          clearAuthState();
-          return;
-        }
-
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await fetchUserProfile(session.user.id);
-          } else {
-            clearAuthState();
-          }
-        }
-      }
-    );
-
-    // Check for existing session
     const initializeAuth = async () => {
       console.log('Initializing auth...');
       try {
@@ -113,13 +84,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
-          // Clear any potentially corrupted session data
           if (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token')) {
             console.log('Clearing corrupted session data');
             await supabase.auth.signOut();
           }
           if (mounted) {
             clearAuthState();
+            setLoading(false);
+            setInitializing(false);
           }
           return;
         }
@@ -133,18 +105,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
-        } else {
-          console.log('No initial session, setting loading to false');
-          setLoading(false);
         }
+        
+        setLoading(false);
+        setInitializing(false);
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {
           clearAuthState();
+          setLoading(false);
+          setInitializing(false);
         }
       }
     };
 
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (!mounted) return;
+
+        // Don't process events during initialization
+        if (initializing) {
+          console.log('Skipping auth state change during initialization');
+          return;
+        }
+
+        if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+          clearAuthState();
+          setLoading(false);
+          return;
+        }
+
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await fetchUserProfile(session.user.id);
+          } else {
+            clearAuthState();
+          }
+          setLoading(false);
+        }
+      }
+    );
+
+    // Initialize auth after setting up listener
     initializeAuth();
 
     return () => {
@@ -195,6 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('Signing out...');
     await supabase.auth.signOut();
     clearAuthState();
+    setLoading(false);
   };
 
   const value = {
