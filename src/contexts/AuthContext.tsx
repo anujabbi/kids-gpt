@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,11 +42,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Making Supabase query to profiles table...');
       
-      const { data, error } = await supabase
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000); // 10 second timeout
+      });
+
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       console.log('Supabase profiles query result:', { data, error });
 
@@ -105,8 +111,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(session);
           setUser(session.user);
           console.log('User found, fetching profile...');
-          const profileData = await fetchUserProfile(session.user.id);
-          console.log('Profile loaded during init:', profileData);
+          try {
+            const profileData = await fetchUserProfile(session.user.id);
+            console.log('Profile loaded during init:', profileData);
+          } catch (profileError) {
+            console.error('Profile fetch failed during init:', profileError);
+            // Continue anyway - don't block auth for profile failures
+          }
         } else {
           clearAuthState();
         }
@@ -141,8 +152,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (session?.user) {
             console.log('User authenticated, fetching profile...');
-            const profileData = await fetchUserProfile(session.user.id);
-            console.log('Profile loaded after auth event:', profileData);
+            try {
+              const profileData = await fetchUserProfile(session.user.id);
+              console.log('Profile loaded after auth event:', profileData);
+            } catch (profileError) {
+              console.error('Profile fetch failed after auth event:', profileError);
+              // Continue anyway - don't block auth for profile failures
+            }
           } else {
             clearAuthState();
           }
