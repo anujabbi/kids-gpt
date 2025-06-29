@@ -1,7 +1,5 @@
 
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface MarkdownRendererProps {
@@ -21,7 +19,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             
             return isInline ? (
               <code 
-                className="px-1 py-0.5 rounded text-sm" 
+                className="px-1 py-0.5 rounded text-sm font-mono" 
                 style={{ 
                   backgroundColor: currentTheme.colors.surface,
                   color: currentTheme.colors.text.primary
@@ -31,13 +29,19 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 {children}
               </code>
             ) : (
-              <SyntaxHighlighter
-                style={tomorrow}
-                language={match[1]}
-                PreTag="div"
-              >
-                {String(children).replace(/\n$/, '')}
-              </SyntaxHighlighter>
+              <div className="my-4">
+                <pre 
+                  className="p-4 rounded-lg overflow-x-auto text-sm font-mono"
+                  style={{ 
+                    backgroundColor: '#2d3748',
+                    color: '#e2e8f0'
+                  }}
+                >
+                  <code className="text-sm">
+                    {String(children).replace(/\n$/, '')}
+                  </code>
+                </pre>
+              </div>
             );
           },
           p: ({ children }) => (
