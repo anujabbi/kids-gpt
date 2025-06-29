@@ -27,6 +27,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/auth" replace />;
   }
 
+  // If user exists but no profile, redirect to auth (user needs to complete signup)
+  if (user && !profile) {
+    console.log('User exists but no profile, redirecting to auth');
+    return <Navigate to="/auth" replace />;
+  }
+
   // If a specific role is required and user doesn't have it, redirect
   if (requireRole && profile?.role !== requireRole) {
     console.log('Role mismatch, redirecting based on role:', profile?.role);
