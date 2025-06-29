@@ -65,10 +65,12 @@ export class OpenAIService {
     const apiKey = this.getApiKey();
     
     try {
-      const userAge = localStorage.getItem("user_age");
+      const userAgeString = localStorage.getItem("user_age");
+      const userAge = userAgeString ? parseInt(userAgeString, 10) : undefined;
+      
       const systemMessage = {
         role: "system" as const,
-        content: getSystemPrompt(userAge || undefined)
+        content: getSystemPrompt(userAge)
       };
 
       const openAIMessages = await this.formatMessagesForOpenAI(messages);
