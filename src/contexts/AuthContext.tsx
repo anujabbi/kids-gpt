@@ -63,6 +63,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const clearAuthState = () => {
+    console.log('Clearing auth state');
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setLoading(false);
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -73,15 +81,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          console.log('No session, setting loading to false');
-          setProfile(null);
-          setLoading(false);
+        // Handle different auth events
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+          clearAuthState();
+          return;
+        }
+
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await fetchUserProfile(session.user.id);
+          } else {
+            clearAuthState();
+          }
         }
       }
     );
@@ -94,8 +108,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error getting session:', error);
+          // Clear any potentially corrupted session data
+          if (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token')) {
+            console.log('Clearing corrupted session data');
+            await supabase.auth.signOut();
+          }
           if (mounted) {
-            setLoading(false);
+            clearAuthState();
           }
           return;
         }
@@ -116,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {
-          setLoading(false);
+          clearAuthState();
         }
       }
     };
@@ -130,10 +149,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.log('Attempting to sign in...');
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
+    if (error) {
+      console.error('Sign in error:', error);
+    } else {
+      console.log('Sign in successful');
+    }
+    
     return { error };
   };
 
@@ -154,9 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     console.log('Signing out...');
     await supabase.auth.signOut();
-    setProfile(null);
-    setUser(null);
-    setSession(null);
+    clearAuthState();
   };
 
   const value = {
