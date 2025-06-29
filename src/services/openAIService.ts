@@ -22,7 +22,10 @@ export class OpenAIService {
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
@@ -33,7 +36,9 @@ export class OpenAIService {
   }
 
   private async formatMessagesForOpenAI(messages: Message[]): Promise<any[]> {
-    return Promise.all(messages.map(async msg => {
+    const formattedMessages = [];
+    
+    for (const msg of messages) {
       if (msg.attachments && msg.attachments.length > 0) {
         const content: any[] = [{ type: "text", text: msg.content }];
 
@@ -47,26 +52,31 @@ export class OpenAIService {
               });
             } catch (error) {
               console.error('Failed to process image:', error);
+              const sizeKB = (attachment.size / 1024).toFixed(1);
               content[0].text += `\n\n[Image attachment: ${attachment.name} - Could not process for vision analysis]`;
             }
           } else {
-            content[0].text += `\n\n[Attached file: ${attachment.name} (${attachment.type}, ${(attachment.size / 1024).toFixed(1)}KB)]`;
+            const sizeKB = (attachment.size / 1024).toFixed(1);
+            content[0].text += `\n\n[Attached file: ${attachment.name} (${attachment.type}, ${sizeKB}KB)]`;
           }
         }
 
-        return { role: msg.role, content };
+        formattedMessages.push({ role: msg.role, content });
       } else {
-        return { role: msg.role, content: msg.content };
+        formattedMessages.push({ role: msg.role, content: msg.content });
       }
-    }));
+    }
+    
+    return formattedMessages;
   }
 
   async generateResponse(messages: Message[]): Promise<OpenAIResponse> {
     const apiKey = this.getApiKey();
+    console.log('Generating OpenAI response...');
     
     try {
       const userAgeString = localStorage.getItem("user_age");
-      const userAge = userAgeString ? parseInt(userAgeString, 10) : undefined;
+      const userAge = userAgeString ? Number(userAgeString) : undefined;
       
       const systemMessage = {
         role: "system" as const,
@@ -74,6 +84,14 @@ export class OpenAIService {
       };
 
       const openAIMessages = await this.formatMessagesForOpenAI(messages);
+      console.log('Formatted messages for OpenAI:', openAIMessages.length);
+
+      const requestBody = {
+        model: "gpt-4o-mini",
+        messages: [systemMessage, ...openAIMessages],
+        max_tokens: 1000,
+        temperature: 0.7,
+      };
 
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -81,17 +99,13 @@ export class OpenAIService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [systemMessage, ...openAIMessages],
-          max_tokens: 1000,
-          temperature: 0.7,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+        const errorMessage = errorData.error?.message || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -102,6 +116,7 @@ export class OpenAIService {
       const lastUserMessage = messages[messages.length - 1];
       const homeworkScore = await analyzeHomeworkMisuse(lastUserMessage?.content || "", aiResponse);
       
+      console.log('OpenAI response generated successfully');
       return { response: aiResponse, homeworkScore };
     } catch (error) {
       console.error("OpenAI API Error:", error);

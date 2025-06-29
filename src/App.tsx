@@ -19,7 +19,10 @@ const queryClient = new QueryClient();
 const RoleBasedRedirect = () => {
   const { profile, loading } = useAuth();
   
+  console.log('RoleBasedRedirect - Profile:', profile, 'Loading:', loading);
+  
   if (loading) {
+    console.log('RoleBasedRedirect - Still loading, showing spinner');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -29,8 +32,10 @@ const RoleBasedRedirect = () => {
   
   // Redirect parents to dashboard, children to main chat
   if (profile?.role === 'parent') {
+    console.log('RoleBasedRedirect - Redirecting parent to /parents');
     return <Navigate to="/parents" replace />;
   } else {
+    console.log('RoleBasedRedirect - Redirecting child to /chat');
     return <Navigate to="/chat" replace />;
   }
 };
