@@ -139,6 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('Processing sign in event...');
+          setLoading(true); // Set loading to true during profile fetch
           setSession(session);
           setUser(session?.user ?? null);
           
@@ -148,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearAuthState();
           }
           setLoading(false);
+          console.log('Sign in processing complete');
         }
       }
     );
@@ -163,6 +166,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     console.log('Attempting to sign in...');
+    setLoading(true);
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -170,8 +175,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (error) {
       console.error('Sign in error:', error);
+      setLoading(false);
     } else {
-      console.log('Sign in successful');
+      console.log('Sign in successful - waiting for auth state change');
+      // Don't set loading to false here - let the auth state change handler do it
     }
     
     return { error };

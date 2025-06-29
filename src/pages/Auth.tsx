@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,32 +12,65 @@ import { toast } from 'sonner';
 import { Users, User } from 'lucide-react';
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user, profile, loading, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [familyCode, setFamilyCode] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already authenticated
-  if (user) {
-    return <Navigate to="/" replace />;
+  console.log('Auth page state:', { user: !!user, profile: profile ? { role: profile.role } : null, loading });
+
+  // Redirect if already authenticated - check both user and loading state
+  useEffect(() => {
+    if (!loading && user && profile) {
+      console.log('User authenticated, redirecting to home');
+      navigate('/', { replace: true });
+    }
+  }, [user, profile, loading, navigate]);
+
+  // Show loading spinner while auth is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+        <div className="flex items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-lg">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user exists but we're still on auth page, let useEffect handle redirect
+  if (user && profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+        <div className="flex items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-lg">Redirecting...</div>
+        </div>
+      </div>
+    );
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSubmitting(true);
     
+    console.log('Attempting sign in...');
     const { error } = await signIn(email, password);
     
     if (error) {
+      console.error('Sign in error:', error);
       toast.error(error.message);
+      setIsSubmitting(false);
     } else {
+      console.log('Sign in successful, waiting for auth state update...');
       toast.success('Signed in successfully!');
+      // Don't set loading to false here - let the auth context handle the redirect
     }
-    
-    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -48,7 +81,7 @@ const Auth = () => {
       return;
     }
     
-    setLoading(true);
+    setIsSubmitting(true);
     
     const metadata = {
       full_name: fullName,
@@ -72,7 +105,7 @@ const Auth = () => {
       }
     }
     
-    setLoading(false);
+    setIsSubmitting(false);
   };
 
   return (
@@ -100,6 +133,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-2">
@@ -111,10 +145,11 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
             </TabsContent>
@@ -130,12 +165,13 @@ const Auth = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 
                 <div className="space-y-3">
                   <Label>I am a:</Label>
-                  <RadioGroup value={role} onValueChange={(value: 'parent' | 'child') => setRole(value)}>
+                  <RadioGroup value={role} onValueChange={(value: 'parent' | 'child') => setRole(value)} disabled={isSubmitting}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="parent" id="parent" />
                       <Label htmlFor="parent" className="flex items-center gap-2 cursor-pointer">
@@ -164,6 +200,7 @@ const Auth = () => {
                       onChange={(e) => setFamilyCode(e.target.value.toUpperCase())}
                       maxLength={6}
                       required
+                      disabled={isSubmitting}
                     />
                     <p className="text-xs text-muted-foreground">
                       Ask your parent for the 6-character family code
@@ -180,6 +217,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-2">
@@ -191,10 +229,11 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating account...' : 'Sign Up'}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Creating account...' : 'Sign Up'}
                 </Button>
               </form>
             </TabsContent>
