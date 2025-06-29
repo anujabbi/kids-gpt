@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ interface FamilyMember {
   profiles: {
     full_name: string | null;
     email: string | null;
-  };
+  } | null;
 }
 
 interface Family {
@@ -297,8 +296,8 @@ export function FamilyManagement() {
                       <div className="flex items-center gap-3">
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">{member.profiles.full_name || 'Unnamed'}</p>
-                          <p className="text-sm text-muted-foreground">{member.profiles.email}</p>
+                          <p className="font-medium">{member.profiles?.full_name || 'Unnamed'}</p>
+                          <p className="text-sm text-muted-foreground">{member.profiles?.email || 'No email'}</p>
                         </div>
                       </div>
                       <Badge variant="secondary">Parent</Badge>
@@ -318,8 +317,8 @@ export function FamilyManagement() {
                       <div className="flex items-center gap-3">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">{member.profiles.full_name || 'Unnamed'}</p>
-                          <p className="text-sm text-muted-foreground">{member.profiles.email}</p>
+                          <p className="font-medium">{member.profiles?.full_name || 'Unnamed'}</p>
+                          <p className="text-sm text-muted-foreground">{member.profiles?.email || 'No email'}</p>
                         </div>
                       </div>
                       <Badge variant="outline">Child</Badge>
