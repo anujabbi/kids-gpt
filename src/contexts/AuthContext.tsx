@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,14 +41,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserProfile = async (userId: string) => {
     console.log('Fetching profile for user:', userId);
     try {
+      console.log('Making Supabase query to profiles table...');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
+      console.log('Supabase profiles query result:', { data, error });
+
       if (error) {
         console.error('Error fetching user profile:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         setProfile(null);
         return null;
       } else {
@@ -56,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return data;
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Unexpected error fetching user profile:', error);
       setProfile(null);
       return null;
     }
@@ -93,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           setSession(session);
           setUser(session.user);
+          console.log('User found, fetching profile...');
           const profileData = await fetchUserProfile(session.user.id);
           console.log('Profile loaded during init:', profileData);
         } else {
@@ -128,6 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session?.user ?? null);
           
           if (session?.user) {
+            console.log('User authenticated, fetching profile...');
             const profileData = await fetchUserProfile(session.user.id);
             console.log('Profile loaded after auth event:', profileData);
           } else {
