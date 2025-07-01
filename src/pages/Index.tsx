@@ -65,6 +65,8 @@ const Index = () => {
     const imageDetection = detectImageRequest(content);
     
     if (imageDetection.isImageRequest) {
+      console.log('Detected image request, generating image with prompt:', imageDetection.extractedPrompt);
+      
       // Generate image instead of text response
       const imageResult = await generateImage({
         prompt: imageDetection.extractedPrompt,
@@ -75,7 +77,7 @@ const Index = () => {
       
       if (imageResult) {
         const assistantMessage = {
-          ...createAssistantMessage("I've created this image for you!"),
+          ...createAssistantMessage("Here's the image I created for you!"),
           generatedImage: {
             id: Date.now().toString(),
             url: imageResult.url,
@@ -84,6 +86,10 @@ const Index = () => {
           }
         };
         addMessageToConversation(currentConv.id, assistantMessage);
+      } else {
+        // Fallback to text response if image generation fails
+        const fallbackMessage = createAssistantMessage("I'm sorry, I wasn't able to create an image right now. Let me help you with something else instead!");
+        addMessageToConversation(currentConv.id, fallbackMessage);
       }
     } else {
       // Normal text response
@@ -110,7 +116,7 @@ const Index = () => {
 
     // Create an assistant message with the generated image
     const assistantMessage = {
-      ...createAssistantMessage("I've created this image for you!"),
+      ...createAssistantMessage("Here's the image I created for you!"),
       generatedImage: {
         id: Date.now().toString(),
         url: imageUrl,
@@ -198,7 +204,7 @@ const Index = () => {
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       "🦕 Cool dinosaur facts",
-                      "🎨 Write a fun story",
+                      "🎨 Draw a magical castle",
                       "🧮 Fun math games",
                       "🧠 Fun quiz",
                       "🌍 Learn about countries",
