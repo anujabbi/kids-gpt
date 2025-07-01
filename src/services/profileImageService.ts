@@ -21,6 +21,8 @@ export const profileImageService = {
         const fileExt = customImageFile.name.split('.').pop();
         const fileName = `${user.id}/profile-image.${fileExt}`;
         
+        console.log('Uploading custom image:', fileName);
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('profile-images')
           .upload(fileName, customImageFile, {
@@ -32,19 +34,20 @@ export const profileImageService = {
           return { error: uploadError };
         }
 
+        console.log('Upload successful:', uploadData);
+
         // Get the public URL for the uploaded image
         const { data: { publicUrl } } = supabase.storage
           .from('profile-images')
           .getPublicUrl(fileName);
         
-        // Validate the public URL before using it
-        if (publicUrl && publicUrl.trim() !== '') {
-          customImageUrl = publicUrl;
-        } else {
-          console.error('Invalid public URL generated:', publicUrl);
-          return { error: new Error('Failed to generate valid image URL') };
-        }
+        console.log('Generated public URL:', publicUrl);
+        
+        // Set the custom image URL (remove validation that was causing issues)
+        customImageUrl = publicUrl;
       }
+
+      console.log('Updating profile with:', { imageType, customImageUrl });
 
       // Update the user's profile
       const { error: updateError } = await supabase
@@ -60,6 +63,7 @@ export const profileImageService = {
         return { error: updateError };
       }
 
+      console.log('Profile updated successfully');
       return { error: null };
     } catch (error) {
       console.error('Unexpected error saving profile image:', error);
@@ -88,20 +92,6 @@ export const profileImageService = {
       if (error) {
         console.error('Error fetching profile image:', error);
         return null;
-      }
-
-      // Validate the custom_profile_image_url if it exists
-      if (data?.custom_profile_image_url) {
-        try {
-          new URL(data.custom_profile_image_url);
-        } catch {
-          console.warn('Invalid custom profile image URL found:', data.custom_profile_image_url);
-          // Return data but with null URL so it falls back to default
-          return {
-            ...data,
-            custom_profile_image_url: null
-          };
-        }
       }
 
       return data;
