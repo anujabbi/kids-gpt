@@ -37,16 +37,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, timeout = 10000) => {
     console.log('Fetching profile for user:', userId);
     try {
       console.log('Making Supabase query to profiles table...');
       
-      const { data, error } = await supabase
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), timeout);
+      });
+      
+      // Race the query against the timeout
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       console.log('Supabase profiles query result:', { data, error });
 
@@ -67,6 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Unexpected error fetching user profile:', error);
+      // Don't block auth for profile failures - continue with null profile
       setProfile(null);
       return null;
     }
@@ -81,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let initTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       console.log('Initializing auth...');
@@ -105,8 +115,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session.user);
           console.log('User found, fetching profile...');
           try {
-            const profileData = await fetchUserProfile(session.user.id);
-            console.log('Profile loaded during init:', profileData);
+            await fetchUserProfile(session.user.id, 5000); // 5 second timeout for initial load
+            console.log('Profile loaded during init');
           } catch (profileError) {
             console.error('Profile fetch failed during init:', profileError);
             // Continue anyway - don't block auth for profile failures
@@ -115,7 +125,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           clearAuthState();
         }
         
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {
@@ -146,8 +158,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (session?.user) {
             console.log('User authenticated, fetching profile...');
             try {
-              const profileData = await fetchUserProfile(session.user.id);
-              console.log('Profile loaded after auth event:', profileData);
+              await fetchUserProfile(session.user.id, 5000); // 5 second timeout
+              console.log('Profile loaded after auth event');
             } catch (profileError) {
               console.error('Profile fetch failed after auth event:', profileError);
               // Continue anyway - don't block auth for profile failures
@@ -160,11 +172,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
+    // Set a maximum timeout for initialization
+    initTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth initialization timeout - forcing completion');
+        setLoading(false);
+      }
+    }, 15000); // 15 second max timeout
+
     // Initialize auth
     initializeAuth();
 
     return () => {
       mounted = false;
+      if (initTimeout) clearTimeout(initTimeout);
       subscription.unsubscribe();
     };
   }, []);
