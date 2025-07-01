@@ -1,16 +1,21 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Upload } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { profileImageService } from "@/services/profileImageService";
+import { useToast } from "@/hooks/use-toast";
 
 export const ProfileImageSelector = () => {
   const { currentTheme } = useTheme();
+  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState("alien1");
   const [customImage, setCustomImage] = useState<string | null>(null);
+  const [customImageFile, setCustomImageFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const imageOptions = [
     { id: "alien1", emoji: "👽" },
@@ -20,24 +25,84 @@ export const ProfileImageSelector = () => {
     { id: "alien5", emoji: "⭐" }
   ];
 
+  useEffect(() => {
+    const loadCurrentProfileImage = async () => {
+      const profileData = await profileImageService.getProfileImage();
+      if (profileData) {
+        setSelectedImage(profileData.profile_image_type || "alien1");
+        if (profileData.profile_image_type === 'custom' && profileData.custom_profile_image_url) {
+          setCustomImage(profileData.custom_profile_image_url);
+        }
+      }
+    };
+
+    loadCurrentProfileImage();
+  }, []);
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select a valid image file.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setCustomImage(result);
+        setCustomImageFile(file);
         setSelectedImage("custom");
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = () => {
-    // Here you would typically save the profile image selection to the user's profile
-    console.log("Selected profile image:", selectedImage);
-    if (customImage) {
-      console.log("Custom image:", customImage);
+  const handleSave = async () => {
+    setLoading(true);
+    
+    try {
+      const { error } = await profileImageService.saveProfileImage(
+        selectedImage,
+        selectedImage === 'custom' ? customImageFile : undefined
+      );
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save profile image. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Profile image saved successfully!",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving profile image:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -130,12 +195,13 @@ export const ProfileImageSelector = () => {
         <div className="flex justify-end">
           <Button
             onClick={handleSave}
+            disabled={loading}
             style={{
               backgroundColor: currentTheme.colors.primary,
               color: currentTheme.colors.text.primary
             }}
           >
-            Save Profile Image
+            {loading ? "Saving..." : "Save Profile Image"}
           </Button>
         </div>
       </CardContent>

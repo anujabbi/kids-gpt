@@ -79,30 +79,36 @@ export type Database = {
         Row: {
           age: number | null
           created_at: string
+          custom_profile_image_url: string | null
           email: string | null
           family_id: string | null
           full_name: string | null
           id: string
+          profile_image_type: string | null
           role: Database["public"]["Enums"]["app_role"] | null
           updated_at: string
         }
         Insert: {
           age?: number | null
           created_at?: string
+          custom_profile_image_url?: string | null
           email?: string | null
           family_id?: string | null
           full_name?: string | null
           id: string
+          profile_image_type?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           updated_at?: string
         }
         Update: {
           age?: number | null
           created_at?: string
+          custom_profile_image_url?: string | null
           email?: string | null
           family_id?: string | null
           full_name?: string | null
           id?: string
+          profile_image_type?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           updated_at?: string
         }

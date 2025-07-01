@@ -2,6 +2,7 @@
 import { ChatMessage } from "./ChatMessage";
 import { Message } from "@/types/chat";
 import { useTheme } from "@/contexts/ThemeContext";
+import { ProfileImageDisplay } from "./ProfileImageDisplay";
 
 interface MessageListProps {
   messages: Message[];
@@ -21,11 +22,12 @@ export function MessageList({ messages, isTyping }: MessageListProps) {
           className="flex gap-4 p-6"
           style={{ backgroundColor: currentTheme.colors.surface }}
         >
-          <div 
-            className="h-8 w-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: currentTheme.colors.primary }}
-          >
-            <div className="text-white text-xs font-bold">AI</div>
+          <div className="h-8 w-8 shrink-0">
+            <ProfileImageDisplay 
+              isUser={false}
+              size="md"
+              className="w-full h-full"
+            />
           </div>
           <div className="flex-1">
             <div 

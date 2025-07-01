@@ -6,6 +6,7 @@ import { Message } from "@/types/chat";
 import { FileAttachmentDisplay } from "./FileAttachmentDisplay";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { HomeworkScoreBadge } from "./HomeworkScoreBadge";
+import { ProfileImageDisplay } from "./ProfileImageDisplay";
 
 interface ChatMessageProps {
   message: Message;
@@ -24,19 +25,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
     >
       <Avatar className="h-8 w-8 shrink-0">
         <AvatarFallback 
-          className="text-white"
+          className="p-0 overflow-hidden"
           style={{ 
-            backgroundColor: isUser ? currentTheme.colors.primary : currentTheme.colors.secondary || currentTheme.colors.primary 
+            backgroundColor: 'transparent'
           }}
         >
-          {isUser ? (
-            <User className="h-4 w-4" />
-          ) : (
-            <Rocket 
-              className="h-4 w-4" 
-              style={{ color: currentTheme.colors.text.primary }}
-            />
-          )}
+          <ProfileImageDisplay 
+            isUser={isUser}
+            size="md"
+            className="w-full h-full"
+          />
         </AvatarFallback>
       </Avatar>
       
