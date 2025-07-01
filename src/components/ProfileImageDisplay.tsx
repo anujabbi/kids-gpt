@@ -48,6 +48,14 @@ export const ProfileImageDisplay = ({
       
       // If it's a user message, use the current user's ID
       const targetUserId = isUser ? user?.id : userId;
+      
+      if (!targetUserId) {
+        console.log('ProfileImageDisplay - No user ID available, using default');
+        setProfileImage(null);
+        setLoading(false);
+        return;
+      }
+      
       const data = await profileImageService.getProfileImage(targetUserId);
       console.log('ProfileImageDisplay - Profile data received:', data);
       setProfileImage(data);
@@ -63,8 +71,11 @@ export const ProfileImageDisplay = ({
     );
   }
 
+  console.log('ProfileImageDisplay - Rendering with profile:', profileImage);
+
   // If custom image, show it
   if (profileImage?.profile_image_type === 'custom' && profileImage.custom_profile_image_url) {
+    console.log('ProfileImageDisplay - Showing custom image:', profileImage.custom_profile_image_url);
     return (
       <img
         src={profileImage.custom_profile_image_url}
@@ -75,9 +86,10 @@ export const ProfileImageDisplay = ({
   }
 
   // If preset emoji, show it
-  if (profileImage?.profile_image_type) {
+  if (profileImage?.profile_image_type && profileImage.profile_image_type !== 'custom') {
     const selectedOption = imageOptions.find(option => option.id === profileImage.profile_image_type);
     if (selectedOption) {
+      console.log('ProfileImageDisplay - Showing preset emoji:', selectedOption.emoji);
       return (
         <div className={`${sizeClasses[size]} rounded-full flex items-center justify-center bg-blue-100 ${className}`}>
           <span className={emojiSizes[size]}>{selectedOption.emoji}</span>
@@ -86,6 +98,7 @@ export const ProfileImageDisplay = ({
     }
   }
 
+  console.log('ProfileImageDisplay - Using fallback icons');
   // Fallback to default icons
   return (
     <div className={`${sizeClasses[size]} rounded-full flex items-center justify-center bg-blue-500 text-white ${className}`}>

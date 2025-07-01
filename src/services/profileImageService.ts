@@ -63,8 +63,20 @@ export const profileImageService = {
 
   async getProfileImage(userId?: string): Promise<ProfileImageData | null> {
     try {
-      const targetUserId = userId || (await supabase.auth.getUser()).data.user?.id;
-      if (!targetUserId) return null;
+      console.log('profileImageService.getProfileImage called with userId:', userId);
+      
+      let targetUserId = userId;
+      if (!targetUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        targetUserId = user?.id;
+      }
+      
+      if (!targetUserId) {
+        console.log('profileImageService.getProfileImage - No user ID available');
+        return null;
+      }
+
+      console.log('profileImageService.getProfileImage - Fetching for user:', targetUserId);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -77,6 +89,7 @@ export const profileImageService = {
         return null;
       }
 
+      console.log('profileImageService.getProfileImage - Retrieved data:', data);
       return data;
     } catch (error) {
       console.error('Unexpected error fetching profile image:', error);
