@@ -149,6 +149,25 @@ const Index = () => {
           >
             <div className="flex items-center gap-3">
               <SidebarTrigger />
+              
+              {/* Logo */}
+              <div 
+                className="w-8 h-8 rounded-md flex items-center justify-center relative overflow-hidden"
+                style={{ 
+                  background: `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`,
+                  boxShadow: `0 2px 8px ${currentTheme.colors.primary}20`
+                }}
+              >
+                <div 
+                  className="w-3 h-3 rounded-sm transform rotate-45"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                />
+                <div 
+                  className="absolute top-1 right-1 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+                />
+              </div>
+              
               <h1 
                 className="text-xl font-semibold"
                 style={{ color: currentTheme.colors.text.primary }}

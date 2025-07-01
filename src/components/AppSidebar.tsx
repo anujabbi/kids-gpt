@@ -2,6 +2,7 @@ import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, Ch
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: string;
@@ -74,13 +76,9 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { state } = useSidebar();
   const { currentTheme } = useTheme();
+  const { profile, loading } = useAuth();
   const isCollapsed = state === "collapsed";
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  const [newFolderName, setNewFolderName] = useState("");
-  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-  const [editingFolderName, setEditingFolderName] = useState("");
-  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
-
+  
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
     if (newExpanded.has(folderId)) {
@@ -114,6 +112,31 @@ export function AppSidebar({
 
   const rootConversations = conversations.filter(conv => !conv.folderId);
 
+  const getUserInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (profile?.email) {
+      return profile.email[0].toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getUserDisplayName = () => {
+    if (profile?.full_name) {
+      return profile.full_name;
+    }
+    if (profile?.email) {
+      return profile.email.split('@')[0];
+    }
+    return 'User';
+  };
+
   return (
     <Sidebar 
       className="border-r-0"
@@ -129,24 +152,35 @@ export function AppSidebar({
       >
         {!isCollapsed && (
           <>
-            <div className="flex items-center justify-center mb-4">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center relative overflow-hidden"
-                style={{ 
-                  background: `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`,
-                  boxShadow: `0 4px 12px ${currentTheme.colors.primary}20`
-                }}
-              >
-                <div 
-                  className="w-6 h-6 rounded-sm transform rotate-45"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                />
-                <div 
-                  className="absolute top-2 right-2 w-2 h-2 rounded-full"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
-                />
+            {/* User Profile Section */}
+            <div className="flex items-center gap-3 mb-4 p-2 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src="" alt={getUserDisplayName()} />
+                <AvatarFallback 
+                  style={{ 
+                    backgroundColor: currentTheme.colors.primary + '20',
+                    color: currentTheme.colors.primary 
+                  }}
+                >
+                  {loading ? '...' : getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p 
+                  className="text-sm font-medium truncate"
+                  style={{ color: currentTheme.colors.text.primary }}
+                >
+                  {loading ? 'Loading...' : getUserDisplayName()}
+                </p>
+                <p 
+                  className="text-xs truncate"
+                  style={{ color: currentTheme.colors.text.secondary }}
+                >
+                  {loading ? '' : (profile?.role === 'parent' ? 'Parent' : 'Child')}
+                </p>
               </div>
             </div>
+
             <div className="flex gap-2 mb-4">
               <Button
                 onClick={() => onNewChat()}
@@ -204,24 +238,21 @@ export function AppSidebar({
         )}
         {isCollapsed && (
           <div className="space-y-2">
+            {/* User Avatar Only */}
             <div className="flex justify-center mb-4">
-              <div 
-                className="w-8 h-8 rounded-md flex items-center justify-center relative overflow-hidden"
-                style={{ 
-                  background: `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`,
-                  boxShadow: `0 2px 8px ${currentTheme.colors.primary}20`
-                }}
-              >
-                <div 
-                  className="w-3 h-3 rounded-sm transform rotate-45"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                />
-                <div 
-                  className="absolute top-1 right-1 w-1 h-1 rounded-full"
-                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
-                />
-              </div>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="" alt={getUserDisplayName()} />
+                <AvatarFallback 
+                  style={{ 
+                    backgroundColor: currentTheme.colors.primary + '20',
+                    color: currentTheme.colors.primary 
+                  }}
+                >
+                  {loading ? '...' : getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
             </div>
+            
             <Button
               onClick={() => onNewChat()}
               size="icon"
