@@ -1,5 +1,3 @@
-
-
 import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,6 +29,7 @@ import {
 import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -79,6 +78,7 @@ export function AppSidebar({
   const { state } = useSidebar();
   const { currentTheme } = useTheme();
   const { profile, loading } = useAuth();
+  const navigate = useNavigate();
   const isCollapsed = state === "collapsed";
   
   // State declarations that were missing
@@ -199,6 +199,15 @@ export function AppSidebar({
                   >
                     {getUserSubtitle()}
                   </p>
+                )}
+                {!loading && (
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className="text-xs hover:underline mt-2"
+                    style={{ color: currentTheme.colors.primary }}
+                  >
+                    Edit Profile
+                  </button>
                 )}
               </div>
             </div>
@@ -566,4 +575,3 @@ export function AppSidebar({
     </Sidebar>
   );
 }
-
