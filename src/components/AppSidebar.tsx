@@ -1,4 +1,5 @@
 
+
 import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -145,6 +146,16 @@ export function AppSidebar({
     return 'User';
   };
 
+  const getUserSubtitle = () => {
+    if (profile?.role === 'parent') {
+      return 'Parent';
+    }
+    if (profile?.role === 'child') {
+      return 'Child';
+    }
+    return '';
+  };
+
   return (
     <Sidebar 
       className="border-r-0"
@@ -160,11 +171,12 @@ export function AppSidebar({
       >
         {!isCollapsed && (
           <>
-            {/* User Profile Section */}
-            <div className="flex items-center gap-3 mb-4 p-2 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-              <Avatar className="h-10 w-10">
+            {/* User Profile Section - Centered Layout */}
+            <div className="flex flex-col items-center text-center mb-6 p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
+              <Avatar className="h-16 w-16 mb-3">
                 <AvatarImage src="" alt={getUserDisplayName()} />
                 <AvatarFallback 
+                  className="text-lg font-semibold"
                   style={{ 
                     backgroundColor: currentTheme.colors.primary + '20',
                     color: currentTheme.colors.primary 
@@ -173,19 +185,21 @@ export function AppSidebar({
                   {loading ? '...' : getUserInitials()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <p 
-                  className="text-sm font-medium truncate"
+              <div className="space-y-1">
+                <h3 
+                  className="font-semibold text-base"
                   style={{ color: currentTheme.colors.text.primary }}
                 >
                   {loading ? 'Loading...' : getUserDisplayName()}
-                </p>
-                <p 
-                  className="text-xs truncate"
-                  style={{ color: currentTheme.colors.text.secondary }}
-                >
-                  {loading ? '' : (profile?.role === 'parent' ? 'Parent' : 'Child')}
-                </p>
+                </h3>
+                {!loading && getUserSubtitle() && (
+                  <p 
+                    className="text-sm"
+                    style={{ color: currentTheme.colors.text.secondary }}
+                  >
+                    {getUserSubtitle()}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -246,9 +260,9 @@ export function AppSidebar({
         )}
         {isCollapsed && (
           <div className="space-y-2">
-            {/* User Avatar Only */}
+            {/* User Avatar Only - Centered */}
             <div className="flex justify-center mb-4">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-10 w-10">
                 <AvatarImage src="" alt={getUserDisplayName()} />
                 <AvatarFallback 
                   style={{ 
@@ -552,3 +566,4 @@ export function AppSidebar({
     </Sidebar>
   );
 }
+
