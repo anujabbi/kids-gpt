@@ -23,6 +23,17 @@ const emojiSizes = {
   lg: 'text-xl'
 };
 
+// Helper function to validate URL
+const isValidUrl = (urlString: string | null | undefined): boolean => {
+  if (!urlString || urlString.trim() === '') return false;
+  try {
+    new URL(urlString);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const ProfileImageDisplay = ({ 
   userId, 
   isUser = false, 
@@ -73,14 +84,19 @@ export const ProfileImageDisplay = ({
 
   console.log('ProfileImageDisplay - Rendering with profile:', profileImage);
 
-  // If custom image, show it
-  if (profileImage?.profile_image_type === 'custom' && profileImage.custom_profile_image_url) {
+  // If custom image, show it (with URL validation)
+  if (profileImage?.profile_image_type === 'custom' && isValidUrl(profileImage.custom_profile_image_url)) {
     console.log('ProfileImageDisplay - Showing custom image:', profileImage.custom_profile_image_url);
     return (
       <img
         src={profileImage.custom_profile_image_url}
         alt="Profile"
         className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
+        onError={(e) => {
+          console.error('Failed to load custom profile image:', profileImage.custom_profile_image_url);
+          // Fallback to default when image fails to load
+          e.currentTarget.style.display = 'none';
+        }}
       />
     );
   }

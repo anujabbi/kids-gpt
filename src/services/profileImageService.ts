@@ -37,7 +37,13 @@ export const profileImageService = {
           .from('profile-images')
           .getPublicUrl(fileName);
         
-        customImageUrl = publicUrl;
+        // Validate the public URL before using it
+        if (publicUrl && publicUrl.trim() !== '') {
+          customImageUrl = publicUrl;
+        } else {
+          console.error('Invalid public URL generated:', publicUrl);
+          return { error: new Error('Failed to generate valid image URL') };
+        }
       }
 
       // Update the user's profile
@@ -82,6 +88,20 @@ export const profileImageService = {
       if (error) {
         console.error('Error fetching profile image:', error);
         return null;
+      }
+
+      // Validate the custom_profile_image_url if it exists
+      if (data?.custom_profile_image_url) {
+        try {
+          new URL(data.custom_profile_image_url);
+        } catch {
+          console.warn('Invalid custom profile image URL found:', data.custom_profile_image_url);
+          // Return data but with null URL so it falls back to default
+          return {
+            ...data,
+            custom_profile_image_url: null
+          };
+        }
       }
 
       return data;
