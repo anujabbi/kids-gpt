@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileImageDisplay } from "@/components/ProfileImageDisplay";
 import {
   Dialog,
   DialogContent,
@@ -173,18 +174,11 @@ export function AppSidebar({
           <>
             {/* User Profile Section - Centered Layout */}
             <div className="flex flex-col items-center text-center mb-6 p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-              <Avatar className="h-16 w-16 mb-3">
-                <AvatarImage src="" alt={getUserDisplayName()} />
-                <AvatarFallback 
-                  className="text-lg font-semibold"
-                  style={{ 
-                    backgroundColor: currentTheme.colors.primary + '20',
-                    color: currentTheme.colors.primary 
-                  }}
-                >
-                  {loading ? '...' : getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileImageDisplay 
+                isUser={true} 
+                size="lg" 
+                className="mb-3"
+              />
               <div className="space-y-1">
                 <h3 
                   className="font-semibold text-base"
@@ -271,17 +265,10 @@ export function AppSidebar({
           <div className="space-y-2">
             {/* User Avatar Only - Centered */}
             <div className="flex justify-center mb-4">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="" alt={getUserDisplayName()} />
-                <AvatarFallback 
-                  style={{ 
-                    backgroundColor: currentTheme.colors.primary + '20',
-                    color: currentTheme.colors.primary 
-                  }}
-                >
-                  {loading ? '...' : getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileImageDisplay 
+                isUser={true} 
+                size="md" 
+              />
             </div>
             
             <Button
