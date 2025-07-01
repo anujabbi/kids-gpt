@@ -2,6 +2,7 @@
 import { User, Rocket } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Message } from "@/types/chat";
 import { FileAttachmentDisplay } from "./FileAttachmentDisplay";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -14,6 +15,7 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const { currentTheme } = useTheme();
+  const { user } = useAuth();
   const isUser = message.role === 'user';
 
   return (
@@ -31,6 +33,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           }}
         >
           <ProfileImageDisplay 
+            userId={isUser ? user?.id : undefined}
             isUser={isUser}
             size="md"
             className="w-full h-full"

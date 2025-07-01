@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { User, Rocket } from "lucide-react";
 import { profileImageService, ProfileImageData } from "@/services/profileImageService";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileImageDisplayProps {
   userId?: string;
@@ -30,6 +31,7 @@ export const ProfileImageDisplay = ({
 }: ProfileImageDisplayProps) => {
   const [profileImage, setProfileImage] = useState<ProfileImageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const imageOptions = [
     { id: "alien1", emoji: "👽" },
@@ -42,13 +44,18 @@ export const ProfileImageDisplay = ({
   useEffect(() => {
     const fetchProfileImage = async () => {
       setLoading(true);
-      const data = await profileImageService.getProfileImage(userId);
+      console.log('ProfileImageDisplay - Fetching profile for:', { userId, isUser, currentUserId: user?.id });
+      
+      // If it's a user message, use the current user's ID
+      const targetUserId = isUser ? user?.id : userId;
+      const data = await profileImageService.getProfileImage(targetUserId);
+      console.log('ProfileImageDisplay - Profile data received:', data);
       setProfileImage(data);
       setLoading(false);
     };
 
     fetchProfileImage();
-  }, [userId]);
+  }, [userId, isUser, user?.id]);
 
   if (loading) {
     return (
