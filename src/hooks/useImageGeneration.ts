@@ -1,16 +1,18 @@
 
 import { useState } from 'react';
 import { imageGenerationService, ImageGenerationParams, GeneratedImage } from '@/services/imageGenerationService';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 export const useImageGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const { profile } = useAuth();
 
   const generateImage = async (params: ImageGenerationParams): Promise<GeneratedImage | null> => {
     setIsGenerating(true);
     
     try {
-      const result = await imageGenerationService.generateImage(params);
+      const result = await imageGenerationService.generateImage(params, profile?.family_id || undefined);
       toast({
         title: "Image Generated",
         description: "Your image has been created successfully!",

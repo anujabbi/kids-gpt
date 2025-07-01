@@ -1,5 +1,5 @@
 
-import { openAIService } from './openAIService';
+import { familyApiKeyService } from './familyApiKeyService';
 
 export interface ImageGenerationParams {
   prompt: string;
@@ -15,16 +15,29 @@ export interface GeneratedImage {
 }
 
 export class ImageGenerationService {
-  private getApiKey(): string {
-    const apiKey = localStorage.getItem("openai_api_key");
-    if (!apiKey) {
-      throw new Error("OpenAI API key not found. Please add your API key in Settings.");
+  private async getApiKey(familyId?: string): Promise<string> {
+    // First, try to get family API key if familyId is provided
+    if (familyId) {
+      console.log('Attempting to get family API key for image generation:', familyId);
+      const familyApiKey = await familyApiKeyService.getFamilyApiKey(familyId);
+      if (familyApiKey) {
+        console.log('Using family API key for image generation');
+        return familyApiKey;
+      }
     }
-    return apiKey;
+    
+    // Fall back to localStorage API key
+    const localApiKey = localStorage.getItem("openai_api_key");
+    if (localApiKey) {
+      console.log('Using local API key for image generation');
+      return localApiKey;
+    }
+    
+    throw new Error("OpenAI API key not found. Please add your API key in Settings or ask your parent to set the family API key.");
   }
 
-  async generateImage(params: ImageGenerationParams): Promise<GeneratedImage> {
-    const apiKey = this.getApiKey();
+  async generateImage(params: ImageGenerationParams, familyId?: string): Promise<GeneratedImage> {
+    const apiKey = await this.getApiKey(familyId);
     
     // Add kid-friendly prompt enhancement
     const enhancedPrompt = this.enhancePromptForKids(params.prompt);
