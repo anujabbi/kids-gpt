@@ -1,18 +1,8 @@
-import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Square } from "lucide-react";
+
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ProfileImageDisplay } from "@/components/ProfileImageDisplay";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -22,15 +12,13 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { UserProfileSection } from "@/components/sidebar/UserProfileSection";
+import { CreateFolderDialog } from "@/components/sidebar/CreateFolderDialog";
+import { FolderSection } from "@/components/sidebar/FolderSection";
+import { ConversationList } from "@/components/sidebar/ConversationList";
 
 interface Message {
   id: string;
@@ -78,16 +66,9 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { state } = useSidebar();
   const { currentTheme } = useTheme();
-  const { profile, loading } = useAuth();
-  const navigate = useNavigate();
   const isCollapsed = state === "collapsed";
   
-  // State declarations that were missing
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  const [newFolderName, setNewFolderName] = useState("");
-  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
-  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-  const [editingFolderName, setEditingFolderName] = useState("");
   
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -99,63 +80,7 @@ export function AppSidebar({
     setExpandedFolders(newExpanded);
   };
 
-  const handleCreateFolder = () => {
-    if (newFolderName.trim()) {
-      onCreateFolder(newFolderName.trim());
-      setNewFolderName("");
-      setIsCreateFolderOpen(false);
-    }
-  };
-
-  const handleRenameFolder = (folderId: string) => {
-    if (editingFolderName.trim()) {
-      onRenameFolder(folderId, editingFolderName.trim());
-      setEditingFolderId(null);
-      setEditingFolderName("");
-    }
-  };
-
-  const startRenaming = (folder: Folder) => {
-    setEditingFolderId(folder.id);
-    setEditingFolderName(folder.name);
-  };
-
   const rootConversations = conversations.filter(conv => !conv.folderId);
-
-  const getUserInitials = () => {
-    if (profile?.full_name) {
-      return profile.full_name
-        .split(' ')
-        .map(name => name[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (profile?.email) {
-      return profile.email[0].toUpperCase();
-    }
-    return 'U';
-  };
-
-  const getUserDisplayName = () => {
-    if (profile?.full_name) {
-      return profile.full_name;
-    }
-    if (profile?.email) {
-      return profile.email.split('@')[0];
-    }
-    return 'User';
-  };
-
-  const getUserSubtitle = () => {
-    if (profile?.role === 'parent') {
-      return 'Parent';
-    }
-    if (profile?.role === 'child') {
-      return 'Child';
-    }
-    return '';
-  };
 
   return (
     <Sidebar 
@@ -172,39 +97,7 @@ export function AppSidebar({
       >
         {!isCollapsed && (
           <>
-            {/* User Profile Section - Centered Layout */}
-            <div className="flex flex-col items-center text-center mb-6 p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-              <ProfileImageDisplay 
-                isUser={true} 
-                size="lg" 
-                className="mb-3"
-              />
-              <div className="space-y-1">
-                <h3 
-                  className="font-semibold text-base"
-                  style={{ color: currentTheme.colors.text.primary }}
-                >
-                  {loading ? 'Loading...' : getUserDisplayName()}
-                </h3>
-                {!loading && getUserSubtitle() && (
-                  <p 
-                    className="text-sm"
-                    style={{ color: currentTheme.colors.text.secondary }}
-                  >
-                    {getUserSubtitle()}
-                  </p>
-                )}
-                {!loading && (
-                  <button
-                    onClick={() => navigate('/settings')}
-                    className="text-xs hover:underline mt-2"
-                    style={{ color: currentTheme.colors.primary }}
-                  >
-                    Edit Profile
-                  </button>
-                )}
-              </div>
-            </div>
+            <UserProfileSection isCollapsed={isCollapsed} />
 
             <div className="flex gap-2 mb-4">
               <Button
@@ -219,57 +112,13 @@ export function AppSidebar({
                 <Plus className="h-4 w-4 mr-2" />
                 New chat
               </Button>
-              <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    size="icon"
-                    className="border"
-                    style={{
-                      backgroundColor: currentTheme.colors.secondary,
-                      color: currentTheme.colors.text.primary,
-                      borderColor: currentTheme.colors.border
-                    }}
-                  >
-                    <FolderPlus className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Folder</DialogTitle>
-                    <DialogDescription>
-                      Enter a name for your new folder to organize your conversations.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    placeholder="Folder name"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleCreateFolder();
-                      }
-                    }}
-                  />
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCreateFolderOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleCreateFolder}>Create Folder</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <CreateFolderDialog onCreateFolder={onCreateFolder} />
             </div>
           </>
         )}
         {isCollapsed && (
           <div className="space-y-2">
-            {/* User Avatar Only - Centered */}
-            <div className="flex justify-center mb-4">
-              <ProfileImageDisplay 
-                isUser={true} 
-                size="md" 
-              />
-            </div>
+            <UserProfileSection isCollapsed={isCollapsed} />
             
             <Button
               onClick={() => onNewChat()}
@@ -283,45 +132,7 @@ export function AppSidebar({
             >
               <Plus className="h-4 w-4" />
             </Button>
-            <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  size="icon"
-                  className="border"
-                  style={{
-                    backgroundColor: currentTheme.colors.secondary,
-                    color: currentTheme.colors.text.primary,
-                    borderColor: currentTheme.colors.border
-                  }}
-                >
-                  <FolderPlus className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Folder</DialogTitle>
-                  <DialogDescription>
-                    Enter a name for your new folder to organize your conversations.
-                  </DialogDescription>
-                </DialogHeader>
-                <Input
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Folder name"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleCreateFolder();
-                    }
-                  }}
-                />
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateFolderOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateFolder}>Create Folder</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <CreateFolderDialog onCreateFolder={onCreateFolder} isIconOnly />
           </div>
         )}
       </SidebarHeader>
@@ -341,205 +152,35 @@ export function AppSidebar({
               <SidebarMenu className="px-2">
                 {/* Folders */}
                 {folders.map((folder) => (
-                  <div key={folder.id} className="mb-2">
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => toggleFolder(folder.id)}
-                        className="group w-full p-3 rounded-lg transition-colors"
-                        style={{
-                          backgroundColor: 'transparent',
-                          color: currentTheme.colors.text.primary
-                        }}
-                      >
-                        {expandedFolders.has(folder.id) ? (
-                          <ChevronDown 
-                            className="h-4 w-4" 
-                            style={{ color: currentTheme.colors.text.secondary }}
-                          />
-                        ) : (
-                          <ChevronRight 
-                            className="h-4 w-4" 
-                            style={{ color: currentTheme.colors.text.secondary }}
-                          />
-                        )}
-                        <Folder 
-                          className="h-4 w-4" 
-                          style={{ color: currentTheme.colors.text.secondary }}
-                        />
-                        {!isCollapsed && (
-                          <span className="flex-1 text-sm truncate text-left">
-                            {editingFolderId === folder.id ? (
-                              <Input
-                                value={editingFolderName}
-                                onChange={(e) => setEditingFolderName(e.target.value)}
-                                onBlur={() => handleRenameFolder(folder.id)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleRenameFolder(folder.id);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingFolderId(null);
-                                    setEditingFolderName("");
-                                  }
-                                }}
-                                className="h-6 text-sm"
-                                style={{
-                                  backgroundColor: currentTheme.colors.background,
-                                  borderColor: currentTheme.colors.border,
-                                  color: currentTheme.colors.text.primary
-                                }}
-                                autoFocus
-                              />
-                            ) : (
-                              folder.name
-                            )}
-                          </span>
-                        )}
-                      </SidebarMenuButton>
-                      {!isCollapsed && (
-                        <div className="flex gap-1">
-                          <Button
-                            onClick={() => onNewChat(folder.id)}
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 hover:bg-opacity-20"
-                            style={{ 
-                              color: currentTheme.colors.text.secondary,
-                              backgroundColor: 'transparent'
-                            }}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startRenaming(folder);
-                            }}
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 hover:bg-opacity-20"
-                            style={{ 
-                              color: currentTheme.colors.text.secondary,
-                              backgroundColor: 'transparent'
-                            }}
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onDeleteFolder(folder.id);
-                            }}
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 hover:bg-opacity-20"
-                            style={{ 
-                              color: currentTheme.colors.text.secondary,
-                              backgroundColor: 'transparent'
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </SidebarMenuItem>
-                    
-                    {/* Conversations in folder */}
-                    {expandedFolders.has(folder.id) && (
-                      <div className="ml-6 mt-1 space-y-1">
-                        {conversations
-                          .filter(conv => conv.folderId === folder.id)
-                          .map((conversation) => (
-                            <SidebarMenuItem key={conversation.id}>
-                              <SidebarMenuButton
-                                isActive={activeConversation === conversation.id}
-                                onClick={() => onSelectConversation(conversation.id)}
-                                className="group w-full p-2 rounded-lg transition-colors"
-                                style={{
-                                  backgroundColor: activeConversation === conversation.id 
-                                    ? currentTheme.colors.primary + '20' 
-                                    : 'transparent',
-                                  color: activeConversation === conversation.id 
-                                    ? currentTheme.colors.text.accent 
-                                    : currentTheme.colors.text.primary
-                                }}
-                              >
-                                <MessageSquare 
-                                  className="h-3 w-3" 
-                                  style={{ color: currentTheme.colors.text.secondary }}
-                                />
-                                {!isCollapsed && (
-                                  <span className="flex-1 text-xs truncate text-left">
-                                    {conversation.title}
-                                  </span>
-                                )}
-                              </SidebarMenuButton>
-                              {!isCollapsed && (
-                                <SidebarMenuAction
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteConversation(conversation.id);
-                                  }}
-                                  className="hover:bg-opacity-20"
-                                  style={{ 
-                                    color: currentTheme.colors.text.secondary,
-                                    backgroundColor: 'transparent'
-                                  }}
-                                  showOnHover
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </SidebarMenuAction>
-                              )}
-                            </SidebarMenuItem>
-                          ))}
-                      </div>
-                    )}
-                  </div>
+                  <FolderSection
+                    key={folder.id}
+                    folder={folder}
+                    isExpanded={expandedFolders.has(folder.id)}
+                    isCollapsed={isCollapsed}
+                    onToggle={() => toggleFolder(folder.id)}
+                    onNewChat={onNewChat}
+                    onRename={onRenameFolder}
+                    onDelete={onDeleteFolder}
+                  >
+                    <ConversationList
+                      conversations={conversations.filter(conv => conv.folderId === folder.id)}
+                      activeConversation={activeConversation}
+                      isCollapsed={isCollapsed}
+                      onSelectConversation={onSelectConversation}
+                      onDeleteConversation={onDeleteConversation}
+                      isInFolder
+                    />
+                  </FolderSection>
                 ))}
 
                 {/* Root conversations (not in folders) */}
-                {rootConversations.map((conversation) => (
-                  <SidebarMenuItem key={conversation.id}>
-                    <SidebarMenuButton
-                      isActive={activeConversation === conversation.id}
-                      onClick={() => onSelectConversation(conversation.id)}
-                      className="group w-full p-3 rounded-lg transition-colors"
-                      style={{
-                        backgroundColor: activeConversation === conversation.id 
-                          ? currentTheme.colors.primary + '20' 
-                          : 'transparent',
-                        color: activeConversation === conversation.id 
-                          ? currentTheme.colors.text.accent 
-                          : currentTheme.colors.text.primary
-                      }}
-                    >
-                      <MessageSquare 
-                        className="h-4 w-4" 
-                        style={{ color: currentTheme.colors.text.secondary }}
-                      />
-                      {!isCollapsed && (
-                        <span className="flex-1 text-sm truncate text-left">
-                          {conversation.title}
-                        </span>
-                      )}
-                    </SidebarMenuButton>
-                    {!isCollapsed && (
-                      <SidebarMenuAction
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteConversation(conversation.id);
-                        }}
-                        className="hover:bg-opacity-20"
-                        style={{ 
-                          color: currentTheme.colors.text.secondary,
-                          backgroundColor: 'transparent'
-                        }}
-                        showOnHover
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </SidebarMenuAction>
-                    )}
-                  </SidebarMenuItem>
-                ))}
+                <ConversationList
+                  conversations={rootConversations}
+                  activeConversation={activeConversation}
+                  isCollapsed={isCollapsed}
+                  onSelectConversation={onSelectConversation}
+                  onDeleteConversation={onDeleteConversation}
+                />
               </SidebarMenu>
             </ScrollArea>
           </SidebarGroupContent>
