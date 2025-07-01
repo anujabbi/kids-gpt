@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -68,6 +67,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Profile fetched successfully:', data);
       setProfile(data);
+      
+      // Store user age in localStorage for OpenAI service
+      if (data && data.age !== null) {
+        localStorage.setItem('user_age', data.age.toString());
+        console.log('Stored user age in localStorage:', data.age);
+      } else {
+        localStorage.removeItem('user_age');
+        console.log('Removed user age from localStorage (no age available)');
+      }
+      
       return data;
     } catch (error) {
       console.error('Unexpected error fetching user profile:', error);
@@ -82,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // After retries, continue without profile but don't block auth
       console.warn('Profile fetch failed after retries, continuing without profile');
       setProfile(null);
+      localStorage.removeItem('user_age');
       return null;
     }
   };
@@ -91,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setSession(null);
     setProfile(null);
+    localStorage.removeItem('user_age');
   };
 
   useEffect(() => {

@@ -33,6 +33,13 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
     return '';
   };
 
+  const getUserAge = () => {
+    if (profile?.role === 'child' && profile?.age !== null && profile?.age !== undefined) {
+      return `Age ${profile.age}`;
+    }
+    return null;
+  };
+
   if (isCollapsed) {
     return (
       <div className="flex justify-center mb-4">
@@ -64,6 +71,14 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
             style={{ color: currentTheme.colors.text.secondary }}
           >
             {getUserSubtitle()}
+          </p>
+        )}
+        {!loading && getUserAge() && (
+          <p 
+            className="text-xs"
+            style={{ color: currentTheme.colors.text.secondary }}
+          >
+            {getUserAge()}
           </p>
         )}
         {!loading && (
