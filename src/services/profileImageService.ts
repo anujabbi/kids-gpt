@@ -11,8 +11,11 @@ export const profileImageService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.error('No authenticated user found');
         return { error: new Error('User not authenticated') };
       }
+
+      console.log('Starting profile image save process:', { imageType, hasFile: !!customImageFile, userId: user.id });
 
       let customImageUrl = null;
 
@@ -31,6 +34,10 @@ export const profileImageService = {
 
         if (uploadError) {
           console.error('Error uploading image:', uploadError);
+          console.error('Upload error details:', {
+            message: uploadError.message,
+            statusCode: uploadError.statusCode,
+          });
           return { error: uploadError };
         }
 
@@ -43,27 +50,39 @@ export const profileImageService = {
         
         console.log('Generated public URL:', publicUrl);
         
-        // Set the custom image URL (remove validation that was causing issues)
         customImageUrl = publicUrl;
       }
 
-      console.log('Updating profile with:', { imageType, customImageUrl });
+      console.log('About to update profile with:', { 
+        imageType, 
+        customImageUrl,
+        userId: user.id 
+      });
 
       // Update the user's profile
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('profiles')
         .update({
           profile_image_type: imageType,
           custom_profile_image_url: customImageUrl
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select(); // Add select to see what was actually updated
 
       if (updateError) {
         console.error('Error updating profile:', updateError);
+        console.error('Update error details:', {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
         return { error: updateError };
       }
 
-      console.log('Profile updated successfully');
+      console.log('Profile update successful:', updateData);
+      console.log('Updated profile data:', updateData?.[0]);
+      
       return { error: null };
     } catch (error) {
       console.error('Unexpected error saving profile image:', error);
