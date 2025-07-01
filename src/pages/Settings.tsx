@@ -16,23 +16,6 @@ const Settings = () => {
   const navigate = useNavigate();
   const { currentTheme, themes, setTheme } = useTheme();
   const { profile } = useAuth();
-  const [notifications, setNotifications] = useState(true);
-  const [apiKey, setApiKey] = useState("");
-  const [showApiKey, setShowApiKey] = useState(false);
-
-  // Load settings from localStorage on component mount
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem("openai_api_key");
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
-  // Save API key to localStorage whenever it changes
-  const handleApiKeyChange = (value: string) => {
-    setApiKey(value);
-    localStorage.setItem("openai_api_key", value);
-  };
 
   const isChild = profile?.role === 'child';
 
@@ -61,59 +44,6 @@ const Settings = () => {
 
         {/* Settings Cards */}
         <div className="space-y-6">
-          {/* API Key - Only show for children or if no family API key is set */}
-          {isChild && (
-            <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
-              <CardHeader>
-                <CardTitle style={{ color: currentTheme.colors.text.primary }}>Personal API Key</CardTitle>
-                <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                  {profile?.role === 'child' 
-                    ? "Your family's API key is managed by your parent. You can set a personal key here if needed."
-                    : "Enter your OpenAI API key to enable chat functionality"
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="api-key" style={{ color: currentTheme.colors.text.primary }}>
-                    OpenAI API Key (Optional)
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="api-key"
-                      type={showApiKey ? "text" : "password"}
-                      value={apiKey}
-                      onChange={(e) => handleApiKeyChange(e.target.value)}
-                      placeholder="sk-..."
-                      className="pr-10"
-                      style={{ 
-                        backgroundColor: currentTheme.colors.background,
-                        borderColor: currentTheme.colors.border,
-                        color: currentTheme.colors.text.primary
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowApiKey(!showApiKey)}
-                    >
-                      {showApiKey ? (
-                        <EyeOff className="h-4 w-4" style={{ color: currentTheme.colors.text.secondary }} />
-                      ) : (
-                        <Eye className="h-4 w-4" style={{ color: currentTheme.colors.text.secondary }} />
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-xs" style={{ color: currentTheme.colors.text.secondary }}>
-                    Your personal API key is stored locally and never shared
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Theme Selection */}
           <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
@@ -150,50 +80,6 @@ const Settings = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notifications */}
-          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
-            <CardHeader>
-              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Notifications</CardTitle>
-              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                Control how you receive updates and alerts
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="notifications" style={{ color: currentTheme.colors.text.primary }}>
-                    Enable Notifications
-                  </Label>
-                  <p className="text-sm" style={{ color: currentTheme.colors.text.secondary }}>
-                    Get notified about important updates
-                  </p>
-                </div>
-                <Switch
-                  id="notifications"
-                  checked={notifications}
-                  onCheckedChange={setNotifications}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* About */}
-          <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
-            <CardHeader>
-              <CardTitle style={{ color: currentTheme.colors.text.primary }}>About KidsGPT</CardTitle>
-              <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                Information about this application
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm" style={{ color: currentTheme.colors.text.secondary }}>
-                <p><strong>Version:</strong> 1.0.0</p>
-                <p><strong>Built with:</strong> React, TypeScript, Tailwind CSS</p>
-                <p><strong>Created by:</strong> Lovable</p>
               </div>
             </CardContent>
           </Card>
