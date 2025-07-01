@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Copy, Plus, Users, User, Eye, EyeOff } from 'lucide-react';
+import { Copy, Plus, Users, User, Eye, EyeOff, Edit } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ interface FamilyMember {
   profiles: {
     full_name: string | null;
     email: string | null;
+    age: number | null;
   } | null;
 }
 
@@ -41,6 +43,11 @@ export function FamilyManagement() {
   const [childPassword, setChildPassword] = useState('');
   const [childAge, setChildAge] = useState('');
   const [addingChild, setAddingChild] = useState(false);
+  
+  // Age editing state
+  const [editingAgeFor, setEditingAgeFor] = useState<string | null>(null);
+  const [newAge, setNewAge] = useState('');
+  const [updatingAge, setUpdatingAge] = useState(false);
 
   // Generate age options from 4 to 25
   const ageOptions = Array.from({ length: 22 }, (_, i) => i + 4);
@@ -72,7 +79,8 @@ export function FamilyManagement() {
           *,
           profiles:user_id (
             full_name,
-            email
+            email,
+            age
           )
         `)
         .eq('family_id', profile.family_id);
@@ -134,6 +142,42 @@ export function FamilyManagement() {
     } finally {
       setAddingChild(false);
     }
+  };
+
+  const handleEditAge = (userId: string, currentAge: number | null) => {
+    setEditingAgeFor(userId);
+    setNewAge(currentAge?.toString() || '');
+  };
+
+  const handleUpdateAge = async (userId: string) => {
+    if (!newAge) return;
+
+    setUpdatingAge(true);
+    
+    try {
+      const { error } = await supabase.rpc('update_child_age', {
+        child_user_id: userId,
+        new_age: parseInt(newAge)
+      });
+
+      if (error) throw error;
+      
+      toast.success('Age updated successfully!');
+      setEditingAgeFor(null);
+      setNewAge('');
+      fetchFamilyData(); // Refresh the data
+      
+    } catch (error: any) {
+      console.error('Error updating age:', error);
+      toast.error(error.message || 'Failed to update age');
+    } finally {
+      setUpdatingAge(false);
+    }
+  };
+
+  const cancelEditAge = () => {
+    setEditingAgeFor(null);
+    setNewAge('');
   };
 
   if (loading) {
@@ -319,6 +363,55 @@ export function FamilyManagement() {
                         <div>
                           <p className="font-medium">{member.profiles?.full_name || 'Unnamed'}</p>
                           <p className="text-sm text-muted-foreground">{member.profiles?.email || 'No email'}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {editingAgeFor === member.user_id ? (
+                              <div className="flex items-center gap-2">
+                                <Select value={newAge} onValueChange={setNewAge}>
+                                  <SelectTrigger className="w-32 h-7">
+                                    <SelectValue placeholder="Select age" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {ageOptions.map((age) => (
+                                      <SelectItem key={age} value={age.toString()}>
+                                        {age} years
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleUpdateAge(member.user_id)}
+                                  disabled={updatingAge || !newAge}
+                                  className="h-7"
+                                >
+                                  {updatingAge ? 'Saving...' : 'Save'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditAge}
+                                  disabled={updatingAge}
+                                  className="h-7"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                  Age: {member.profiles?.age || 'Not set'}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEditAge(member.user_id, member.profiles?.age)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Badge variant="outline">Child</Badge>

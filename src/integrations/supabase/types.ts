@@ -135,6 +135,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      update_child_age: {
+        Args: { child_user_id: string; new_age: number }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "parent" | "child"
