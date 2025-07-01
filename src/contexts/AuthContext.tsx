@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,45 +38,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = async (userId: string, timeout = 10000) => {
-    console.log('Fetching profile for user:', userId);
+  const fetchUserProfile = async (userId: string, retryCount = 0) => {
+    console.log('Fetching profile for user:', userId, 'retry:', retryCount);
     try {
       console.log('Making Supabase query to profiles table...');
       
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), timeout);
-      });
-      
-      // Race the query against the timeout
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
-
       console.log('Supabase profiles query result:', { data, error });
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        console.error('Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        setProfile(null);
+        
+        // If it's a connection error and we haven't retried too many times, try again
+        if (retryCount < 2 && (error.message.includes('timeout') || error.message.includes('network'))) {
+          console.log('Retrying profile fetch due to network error...');
+          setTimeout(() => fetchUserProfile(userId, retryCount + 1), 2000);
+          return;
+        }
+        
+        // For other errors, continue without profile but don't block auth
+        console.warn('Continuing without profile due to fetch error');
         return null;
-      } else {
-        console.log('Profile fetched successfully:', data);
-        setProfile(data);
-        return data;
       }
+
+      console.log('Profile fetched successfully:', data);
+      setProfile(data);
+      return data;
     } catch (error) {
       console.error('Unexpected error fetching user profile:', error);
-      // Don't block auth for profile failures - continue with null profile
+      
+      // If it's a timeout and we haven't retried too many times, try again
+      if (retryCount < 2) {
+        console.log('Retrying profile fetch due to timeout...');
+        setTimeout(() => fetchUserProfile(userId, retryCount + 1), 2000);
+        return;
+      }
+      
+      // After retries, continue without profile but don't block auth
+      console.warn('Profile fetch failed after retries, continuing without profile');
       setProfile(null);
       return null;
     }
@@ -114,13 +119,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(session);
           setUser(session.user);
           console.log('User found, fetching profile...');
-          try {
-            await fetchUserProfile(session.user.id, 5000); // 5 second timeout for initial load
-            console.log('Profile loaded during init');
-          } catch (profileError) {
-            console.error('Profile fetch failed during init:', profileError);
-            // Continue anyway - don't block auth for profile failures
-          }
+          
+          // Don't await profile fetch to prevent blocking auth
+          fetchUserProfile(session.user.id).catch(error => {
+            console.error('Profile fetch failed during init:', error);
+          });
         } else {
           clearAuthState();
         }
@@ -157,13 +160,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (session?.user) {
             console.log('User authenticated, fetching profile...');
-            try {
-              await fetchUserProfile(session.user.id, 5000); // 5 second timeout
-              console.log('Profile loaded after auth event');
-            } catch (profileError) {
-              console.error('Profile fetch failed after auth event:', profileError);
-              // Continue anyway - don't block auth for profile failures
-            }
+            
+            // Don't await profile fetch to prevent blocking auth
+            fetchUserProfile(session.user.id).catch(error => {
+              console.error('Profile fetch failed after auth event:', error);
+            });
           } else {
             clearAuthState();
           }
@@ -178,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Auth initialization timeout - forcing completion');
         setLoading(false);
       }
-    }, 15000); // 15 second max timeout
+    }, 10000); // Reduced to 10 seconds
 
     // Initialize auth
     initializeAuth();
