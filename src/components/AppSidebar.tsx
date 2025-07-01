@@ -1,3 +1,4 @@
+
 import { Plus, MessageSquare, Trash2, Folder, FolderPlus, Edit2, ChevronDown, ChevronRight, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -78,6 +79,13 @@ export function AppSidebar({
   const { currentTheme } = useTheme();
   const { profile, loading } = useAuth();
   const isCollapsed = state === "collapsed";
+  
+  // State declarations that were missing
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [newFolderName, setNewFolderName] = useState("");
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editingFolderName, setEditingFolderName] = useState("");
   
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
