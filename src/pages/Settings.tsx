@@ -17,12 +17,12 @@ const Settings = () => {
   const navigate = useNavigate();
   const { currentTheme, themes, setTheme } = useTheme();
   const { profile } = useAuth();
-  const [selectedAvatar, setSelectedAvatar] = useState("alien1");
+  const [selectedImage, setSelectedImage] = useState("alien1");
   const [customImage, setCustomImage] = useState<string | null>(null);
 
   const isChild = profile?.role === 'child';
 
-  const avatarOptions = [
+  const imageOptions = [
     { id: "alien1", emoji: "👽" },
     { id: "alien2", emoji: "🛸" },
     { id: "alien3", emoji: "🌌" },
@@ -37,7 +37,7 @@ const Settings = () => {
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setCustomImage(result);
-        setSelectedAvatar("custom");
+        setSelectedImage("custom");
       };
       reader.readAsDataURL(file);
     }
@@ -71,29 +71,29 @@ const Settings = () => {
           {/* Profile Image Selection */}
           <Card style={{ backgroundColor: currentTheme.colors.background, borderColor: currentTheme.colors.border }}>
             <CardHeader>
-              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Profile Avatar</CardTitle>
+              <CardTitle style={{ color: currentTheme.colors.text.primary }}>Profile Image</CardTitle>
               <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                Choose your avatar or upload a custom image
+                Choose your profile image or upload a custom image
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <RadioGroup value={selectedAvatar} onValueChange={setSelectedAvatar} className="grid grid-cols-3 gap-6">
-                {avatarOptions.map((avatar) => (
-                  <div key={avatar.id} className="flex flex-col items-center space-y-2">
-                    <RadioGroupItem value={avatar.id} id={avatar.id} className="sr-only" />
+              <RadioGroup value={selectedImage} onValueChange={setSelectedImage} className="grid grid-cols-3 gap-6">
+                {imageOptions.map((image) => (
+                  <div key={image.id} className="flex flex-col items-center space-y-2">
+                    <RadioGroupItem value={image.id} id={image.id} className="sr-only" />
                     <Label
-                      htmlFor={avatar.id}
+                      htmlFor={image.id}
                       className="cursor-pointer flex flex-col items-center p-4 rounded-lg border-2 transition-all hover:scale-105"
                       style={{
-                        borderColor: selectedAvatar === avatar.id ? currentTheme.colors.primary : currentTheme.colors.border,
-                        backgroundColor: selectedAvatar === avatar.id ? currentTheme.colors.primary + '20' : 'transparent',
+                        borderColor: selectedImage === image.id ? currentTheme.colors.primary : currentTheme.colors.border,
+                        backgroundColor: selectedImage === image.id ? currentTheme.colors.primary + '20' : 'transparent',
                       }}
                     >
                       <div 
                         className="w-20 h-20 rounded-full flex items-center justify-center text-4xl animate-pulse"
                         style={{ backgroundColor: currentTheme.colors.surface }}
                       >
-                        {avatar.emoji}
+                        {image.emoji}
                       </div>
                     </Label>
                   </div>
@@ -106,14 +106,14 @@ const Settings = () => {
                     htmlFor="custom"
                     className="cursor-pointer flex flex-col items-center p-4 rounded-lg border-2 transition-all hover:scale-105"
                     style={{
-                      borderColor: selectedAvatar === "custom" ? currentTheme.colors.primary : currentTheme.colors.border,
-                      backgroundColor: selectedAvatar === "custom" ? currentTheme.colors.primary + '20' : 'transparent',
+                      borderColor: selectedImage === "custom" ? currentTheme.colors.primary : currentTheme.colors.border,
+                      backgroundColor: selectedImage === "custom" ? currentTheme.colors.primary + '20' : 'transparent',
                     }}
                   >
                     {customImage ? (
                       <img 
                         src={customImage} 
-                        alt="Custom avatar" 
+                        alt="Custom profile image" 
                         className="w-20 h-20 rounded-full object-cover"
                       />
                     ) : (
@@ -138,10 +138,10 @@ const Settings = () => {
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
-                  id="avatar-upload"
+                  id="profile-image-upload"
                 />
                 <Label
-                  htmlFor="avatar-upload"
+                  htmlFor="profile-image-upload"
                   className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-md border transition-colors hover:bg-opacity-80"
                   style={{
                     backgroundColor: currentTheme.colors.secondary,
@@ -157,8 +157,8 @@ const Settings = () => {
               <div className="flex justify-end">
                 <Button
                   onClick={() => {
-                    // Here you would typically save the avatar selection to the user's profile
-                    console.log("Selected avatar:", selectedAvatar);
+                    // Here you would typically save the profile image selection to the user's profile
+                    console.log("Selected profile image:", selectedImage);
                     if (customImage) {
                       console.log("Custom image:", customImage);
                     }
@@ -168,7 +168,7 @@ const Settings = () => {
                     color: currentTheme.colors.text.primary
                   }}
                 >
-                  Save Avatar
+                  Save Profile Image
                 </Button>
               </div>
             </CardContent>
