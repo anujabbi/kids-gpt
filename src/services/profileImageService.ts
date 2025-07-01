@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfileImageData {
@@ -36,7 +35,6 @@ export const profileImageService = {
           console.error('Error uploading image:', uploadError);
           console.error('Upload error details:', {
             message: uploadError.message,
-            statusCode: uploadError.statusCode,
           });
           return { error: uploadError };
         }
