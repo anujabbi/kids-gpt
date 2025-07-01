@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,16 +18,30 @@ const Settings = () => {
   const { currentTheme, themes, setTheme } = useTheme();
   const { profile } = useAuth();
   const [selectedAvatar, setSelectedAvatar] = useState("alien1");
+  const [customImage, setCustomImage] = useState<string | null>(null);
 
   const isChild = profile?.role === 'child';
 
   const avatarOptions = [
-    { id: "alien1", name: "Friendly Green Alien", emoji: "👽" },
-    { id: "alien2", name: "Purple Space Explorer", emoji: "🛸" },
-    { id: "alien3", name: "Blue Cosmic Wanderer", emoji: "🌌" },
-    { id: "alien4", name: "Orange Galaxy Traveler", emoji: "🚀" },
-    { id: "alien5", name: "Pink Stardust Alien", emoji: "⭐" }
+    { id: "alien1", emoji: "👽" },
+    { id: "alien2", emoji: "🛸" },
+    { id: "alien3", emoji: "🌌" },
+    { id: "alien4", emoji: "🚀" },
+    { id: "alien5", emoji: "⭐" }
   ];
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setCustomImage(result);
+        setSelectedAvatar("custom");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <ThemedComponent variant="surface" className="min-h-screen p-4">
@@ -59,39 +73,95 @@ const Settings = () => {
             <CardHeader>
               <CardTitle style={{ color: currentTheme.colors.text.primary }}>Profile Avatar</CardTitle>
               <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-                Choose your favorite alien avatar for your profile
+                Choose your avatar or upload a custom image
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <RadioGroup value={selectedAvatar} onValueChange={setSelectedAvatar} className="grid grid-cols-2 gap-4">
+            <CardContent className="space-y-6">
+              <RadioGroup value={selectedAvatar} onValueChange={setSelectedAvatar} className="grid grid-cols-3 gap-6">
                 {avatarOptions.map((avatar) => (
-                  <div key={avatar.id} className="flex items-center space-x-3">
-                    <RadioGroupItem value={avatar.id} id={avatar.id} />
+                  <div key={avatar.id} className="flex flex-col items-center space-y-2">
+                    <RadioGroupItem value={avatar.id} id={avatar.id} className="sr-only" />
                     <Label
                       htmlFor={avatar.id}
-                      className="flex items-center gap-3 cursor-pointer flex-1 p-3 rounded-lg border transition-colors hover:bg-opacity-50"
+                      className="cursor-pointer flex flex-col items-center p-4 rounded-lg border-2 transition-all hover:scale-105"
                       style={{
                         borderColor: selectedAvatar === avatar.id ? currentTheme.colors.primary : currentTheme.colors.border,
-                        backgroundColor: selectedAvatar === avatar.id ? currentTheme.colors.primary + '10' : 'transparent',
-                        color: currentTheme.colors.text.primary
+                        backgroundColor: selectedAvatar === avatar.id ? currentTheme.colors.primary + '20' : 'transparent',
                       }}
                     >
                       <div 
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-2xl animate-pulse"
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-4xl animate-pulse"
                         style={{ backgroundColor: currentTheme.colors.surface }}
                       >
                         {avatar.emoji}
                       </div>
-                      <div className="text-sm font-medium">{avatar.name}</div>
                     </Label>
                   </div>
                 ))}
+                
+                {/* Custom Image Upload Option */}
+                <div className="flex flex-col items-center space-y-2">
+                  <RadioGroupItem value="custom" id="custom" className="sr-only" />
+                  <Label
+                    htmlFor="custom"
+                    className="cursor-pointer flex flex-col items-center p-4 rounded-lg border-2 transition-all hover:scale-105"
+                    style={{
+                      borderColor: selectedAvatar === "custom" ? currentTheme.colors.primary : currentTheme.colors.border,
+                      backgroundColor: selectedAvatar === "custom" ? currentTheme.colors.primary + '20' : 'transparent',
+                    }}
+                  >
+                    {customImage ? (
+                      <img 
+                        src={customImage} 
+                        alt="Custom avatar" 
+                        className="w-20 h-20 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div 
+                        className="w-20 h-20 rounded-full flex items-center justify-center border-2 border-dashed"
+                        style={{ 
+                          backgroundColor: currentTheme.colors.surface,
+                          borderColor: currentTheme.colors.border
+                        }}
+                      >
+                        <Upload className="h-8 w-8" style={{ color: currentTheme.colors.text.secondary }} />
+                      </div>
+                    )}
+                  </Label>
+                </div>
               </RadioGroup>
+              
+              {/* File Upload Input */}
+              <div className="flex justify-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="avatar-upload"
+                />
+                <Label
+                  htmlFor="avatar-upload"
+                  className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-md border transition-colors hover:bg-opacity-80"
+                  style={{
+                    backgroundColor: currentTheme.colors.secondary,
+                    borderColor: currentTheme.colors.border,
+                    color: currentTheme.colors.text.primary
+                  }}
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Custom Image
+                </Label>
+              </div>
+              
               <div className="flex justify-end">
                 <Button
                   onClick={() => {
                     // Here you would typically save the avatar selection to the user's profile
                     console.log("Selected avatar:", selectedAvatar);
+                    if (customImage) {
+                      console.log("Custom image:", customImage);
+                    }
                   }}
                   style={{
                     backgroundColor: currentTheme.colors.primary,
