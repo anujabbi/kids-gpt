@@ -70,7 +70,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             <img
               src={message.generatedImage.url}
               alt={message.generatedImage.prompt}
-              className="max-w-full h-auto rounded-lg border"
+              className="w-1/2 h-auto rounded-lg border"
               style={{ borderColor: currentTheme.colors.border }}
               loading="lazy"
             />
