@@ -76,12 +76,16 @@ export class ConversationService {
 
   async saveConversation(conversation: Conversation): Promise<void> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { error } = await supabase
         .from('conversations')
         .upsert({
           id: conversation.id,
           title: conversation.title,
           folder_id: conversation.folderId,
+          user_id: user.id,
           updated_at: new Date().toISOString(),
         });
 
@@ -122,9 +126,15 @@ export class ConversationService {
 
   async createConversation(folderId?: string): Promise<Conversation> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return this.createLocalConversation(folderId);
+      }
+
       const newConversation = {
         title: "New conversation",
         folder_id: folderId,
+        user_id: user.id,
       };
 
       const { data, error } = await supabase
@@ -187,9 +197,21 @@ export class ConversationService {
 
   async createFolder(name: string): Promise<Folder> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return {
+          id: Date.now().toString(),
+          name,
+          timestamp: new Date(),
+        };
+      }
+
       const { data, error } = await supabase
         .from('conversation_folders')
-        .insert({ name })
+        .insert({ 
+          name,
+          user_id: user.id 
+        })
         .select()
         .single();
 
