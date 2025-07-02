@@ -1,3 +1,4 @@
+
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +27,7 @@ const Index = () => {
     conversations,
     folders,
     activeConversation,
+    loading,
     setActiveConversation,
     getCurrentConversation,
     createNewConversation,
@@ -55,11 +57,12 @@ const Index = () => {
     let currentConv = getCurrentConversation();
     
     if (!currentConv) {
-      currentConv = createNewConversation();
+      currentConv = await createNewConversation();
+      if (!currentConv) return; // Failed to create conversation
     }
 
     const userMessage = createUserMessage(content, files);
-    addMessageToConversation(currentConv.id, userMessage);
+    await addMessageToConversation(currentConv.id, userMessage);
 
     // Check if this is an image generation request
     const imageDetection = detectImageRequest(content);
@@ -85,11 +88,11 @@ const Index = () => {
             timestamp: new Date(),
           }
         };
-        addMessageToConversation(currentConv.id, assistantMessage);
+        await addMessageToConversation(currentConv.id, assistantMessage);
       } else {
         // Fallback to text response if image generation fails
         const fallbackMessage = createAssistantMessage("I'm sorry, I wasn't able to create an image right now. Let me help you with something else instead!");
-        addMessageToConversation(currentConv.id, fallbackMessage);
+        await addMessageToConversation(currentConv.id, fallbackMessage);
       }
     } else {
       // Normal text response
@@ -98,21 +101,22 @@ const Index = () => {
       
       if (result) {
         const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
-        addMessageToConversation(currentConv.id, assistantMessage);
+        await addMessageToConversation(currentConv.id, assistantMessage);
       }
     }
   };
 
-  const handleImageGenerated = (imageUrl: string, prompt: string) => {
+  const handleImageGenerated = async (imageUrl: string, prompt: string) => {
     let currentConv = getCurrentConversation();
     
     if (!currentConv) {
-      currentConv = createNewConversation();
+      currentConv = await createNewConversation();
+      if (!currentConv) return; // Failed to create conversation
     }
 
     // Create a user message for the image generation request
     const userMessage = createUserMessage(`Generate an image: ${prompt}`);
-    addMessageToConversation(currentConv.id, userMessage);
+    await addMessageToConversation(currentConv.id, userMessage);
 
     // Create an assistant message with the generated image
     const assistantMessage = {
@@ -124,10 +128,21 @@ const Index = () => {
         timestamp: new Date(),
       }
     };
-    addMessageToConversation(currentConv.id, assistantMessage);
+    await addMessageToConversation(currentConv.id, assistantMessage);
   };
 
   const currentMessages = getCurrentConversation()?.messages || [];
+
+  if (loading) {
+    return (
+      <ThemedComponent variant="background" className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-lg">Loading your conversations...</div>
+        </div>
+      </ThemedComponent>
+    );
+  }
 
   return (
     <SidebarProvider>
