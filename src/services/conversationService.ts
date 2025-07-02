@@ -1,4 +1,3 @@
-
 import { Conversation, Folder, Message } from '@/types/chat';
 import { supabase } from '@/integrations/supabase/client';
 
