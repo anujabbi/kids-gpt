@@ -104,9 +104,9 @@ export class ConversationService {
           conversation_id: conversationId,
           content: message.content,
           role: message.role,
-          attachments: message.attachments,
-          generated_image: message.generatedImage,
-          homework_misuse_score: message.homeworkMisuseScore,
+          attachments: message.attachments || null,
+          generated_image: message.generatedImage || null,
+          homework_misuse_score: message.homeworkMisuseScore || null,
         });
 
       if (error) {
