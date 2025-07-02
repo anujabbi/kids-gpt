@@ -100,14 +100,14 @@ export class ConversationService {
     try {
       const { error } = await supabase
         .from('messages')
-        .insert({
+        .insert([{
           conversation_id: conversationId,
           content: message.content,
           role: message.role,
           attachments: message.attachments || null,
           generated_image: message.generatedImage || null,
           homework_misuse_score: message.homeworkMisuseScore || null,
-        });
+        }]);
 
       if (error) {
         console.error('Failed to save message:', error);
