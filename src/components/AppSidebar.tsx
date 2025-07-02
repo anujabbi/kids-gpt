@@ -19,6 +19,7 @@ import { UserProfileSection } from "@/components/sidebar/UserProfileSection";
 import { CreateFolderDialog } from "@/components/sidebar/CreateFolderDialog";
 import { FolderSection } from "@/components/sidebar/FolderSection";
 import { ConversationList } from "@/components/sidebar/ConversationList";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: string;
@@ -33,6 +34,13 @@ interface Conversation {
   timestamp: Date;
   messages: Message[];
   folderId?: string;
+  userId?: string;
+  child?: {
+    id: string;
+    full_name: string;
+    profile_image_type: string;
+    custom_profile_image_url?: string;
+  };
 }
 
 interface Folder {
@@ -66,7 +74,9 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { state } = useSidebar();
   const { currentTheme } = useTheme();
+  const { profile } = useAuth();
   const isCollapsed = state === "collapsed";
+  const isParentView = profile?.role === 'parent' && conversations.some(c => c.child);
   
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   
@@ -99,40 +109,46 @@ export function AppSidebar({
           <>
             <UserProfileSection isCollapsed={isCollapsed} />
 
-            <div className="flex gap-2 mb-4">
-              <Button
-                onClick={() => onNewChat()}
-                className="flex-1 border"
-                style={{
-                  backgroundColor: currentTheme.colors.secondary,
-                  color: currentTheme.colors.text.primary,
-                  borderColor: currentTheme.colors.border
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                New chat
-              </Button>
-              <CreateFolderDialog onCreateFolder={onCreateFolder} />
-            </div>
+            {!isParentView && (
+              <div className="flex gap-2 mb-4">
+                <Button
+                  onClick={() => onNewChat()}
+                  className="flex-1 border"
+                  style={{
+                    backgroundColor: currentTheme.colors.secondary,
+                    color: currentTheme.colors.text.primary,
+                    borderColor: currentTheme.colors.border
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New chat
+                </Button>
+                <CreateFolderDialog onCreateFolder={onCreateFolder} />
+              </div>
+            )}
           </>
         )}
         {isCollapsed && (
           <div className="space-y-2">
             <UserProfileSection isCollapsed={isCollapsed} />
             
-            <Button
-              onClick={() => onNewChat()}
-              size="icon"
-              className="border"
-              style={{
-                backgroundColor: currentTheme.colors.secondary,
-                color: currentTheme.colors.text.primary,
-                borderColor: currentTheme.colors.border
-              }}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            <CreateFolderDialog onCreateFolder={onCreateFolder} isIconOnly />
+            {!isParentView && (
+              <>
+                <Button
+                  onClick={() => onNewChat()}
+                  size="icon"
+                  className="border"
+                  style={{
+                    backgroundColor: currentTheme.colors.secondary,
+                    color: currentTheme.colors.text.primary,
+                    borderColor: currentTheme.colors.border
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <CreateFolderDialog onCreateFolder={onCreateFolder} isIconOnly />
+              </>
+            )}
           </div>
         )}
       </SidebarHeader>
@@ -144,14 +160,14 @@ export function AppSidebar({
               className="px-2"
               style={{ color: currentTheme.colors.text.secondary }}
             >
-              Conversations
+              {isParentView ? "Children's Conversations" : "Conversations"}
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
             <ScrollArea className="h-full">
               <SidebarMenu className="px-2">
-                {/* Folders */}
-                {folders.map((folder) => (
+                {/* Folders - only show for non-parent view */}
+                {!isParentView && folders.map((folder) => (
                   <FolderSection
                     key={folder.id}
                     folder={folder}
@@ -173,13 +189,14 @@ export function AppSidebar({
                   </FolderSection>
                 ))}
 
-                {/* Root conversations (not in folders) */}
+                {/* Root conversations */}
                 <ConversationList
                   conversations={rootConversations}
                   activeConversation={activeConversation}
                   isCollapsed={isCollapsed}
                   onSelectConversation={onSelectConversation}
                   onDeleteConversation={onDeleteConversation}
+                  showChildNames={isParentView}
                 />
               </SidebarMenu>
             </ScrollArea>

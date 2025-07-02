@@ -50,6 +50,99 @@ export class ConversationService {
     }
   }
 
+  async loadChildrenConversations(): Promise<{ conversations: Conversation[], children: any[] }> {
+    try {
+      // First get the current user's family children
+      const { data: childrenData, error: childrenError } = await supabase
+        .from('profiles')
+        .select('id, full_name, profile_image_type, custom_profile_image_url')
+        .eq('role', 'child')
+        .not('family_id', 'is', null)
+        .eq('family_id', await this.getCurrentUserFamilyId());
+
+      if (childrenError) {
+        console.error('Failed to load children:', childrenError);
+        return { conversations: [], children: [] };
+      }
+
+      // Then get all conversations from children (RLS policies will handle permissions)
+      const { data: conversationsData, error: conversationsError } = await supabase
+        .from('conversations')
+        .select(`
+          id,
+          title,
+          created_at,
+          updated_at,
+          folder_id,
+          user_id,
+          messages (
+            id,
+            content,
+            role,
+            created_at,
+            attachments,
+            generated_image,
+            homework_misuse_score
+          )
+        `)
+        .order('updated_at', { ascending: false });
+
+      if (conversationsError) {
+        console.error('Failed to load children conversations:', conversationsError);
+        return { conversations: [], children: childrenData || [] };
+      }
+
+      // Filter to only children's conversations and add child info
+      const childIds = new Set(childrenData?.map(child => child.id) || []);
+      const childrenMap = new Map(childrenData?.map(child => [child.id, child]) || []);
+      
+      const conversations = conversationsData
+        ?.filter((conv: any) => childIds.has(conv.user_id))
+        .map((conv: any) => ({
+          id: conv.id,
+          title: conv.title,
+          timestamp: new Date(conv.created_at),
+          folderId: conv.folder_id,
+          userId: conv.user_id,
+          child: childrenMap.get(conv.user_id),
+          messages: conv.messages?.map((msg: any) => ({
+            id: msg.id,
+            content: msg.content,
+            role: msg.role,
+            timestamp: new Date(msg.created_at),
+            attachments: msg.attachments,
+            generatedImage: msg.generated_image,
+            homeworkMisuseScore: msg.homework_misuse_score,
+          })) || []
+        })) || [];
+
+      return { conversations, children: childrenData || [] };
+    } catch (error) {
+      console.error('Failed to load children conversations:', error);
+      return { conversations: [], children: [] };
+    }
+  }
+
+  private async getCurrentUserFamilyId(): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('family_id')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (error) {
+        console.error('Failed to get family ID:', error);
+        return null;
+      }
+
+      return data?.family_id || null;
+    } catch (error) {
+      console.error('Failed to get family ID:', error);
+      return null;
+    }
+  }
+
   async loadFolders(): Promise<Folder[]> {
     try {
       const { data, error } = await supabase

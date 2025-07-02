@@ -31,6 +31,13 @@ export interface Conversation {
   timestamp: Date;
   messages: Message[];
   folderId?: string;
+  userId?: string;
+  child?: {
+    id: string;
+    full_name: string;
+    profile_image_type: string;
+    custom_profile_image_url?: string;
+  };
 }
 
 export interface Folder {
