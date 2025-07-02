@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FamilyManagement } from "@/components/FamilyManagement";
 import { FamilyApiKeyManagement } from "@/components/FamilyApiKeyManagement";
+import { ChildActivityMonitoring } from "@/components/ChildActivityMonitoring";
 import { ThemedComponent } from "@/components/ThemedComponent";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,9 +74,10 @@ const ParentDashboard = () => {
         </div>
 
         <Tabs defaultValue="family" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="family">Family Management</TabsTrigger>
             <TabsTrigger value="settings">Family Settings</TabsTrigger>
+            <TabsTrigger value="activity">Child Activity</TabsTrigger>
           </TabsList>
           
           <TabsContent value="family" className="space-y-6">
@@ -84,6 +86,10 @@ const ParentDashboard = () => {
           
           <TabsContent value="settings" className="space-y-6">
             <FamilyApiKeyManagement />
+          </TabsContent>
+          
+          <TabsContent value="activity" className="space-y-6">
+            <ChildActivityMonitoring />
           </TabsContent>
         </Tabs>
       </div>
