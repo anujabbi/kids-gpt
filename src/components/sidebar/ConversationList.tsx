@@ -6,6 +6,7 @@ import {
   SidebarMenuAction,
 } from "@/components/ui/sidebar";
 import { useTheme } from "@/contexts/ThemeContext";
+import { ProfileImageDisplay } from "@/components/ProfileImageDisplay";
 
 interface Message {
   id: string;
@@ -20,6 +21,12 @@ interface Conversation {
   timestamp: Date;
   messages: Message[];
   folderId?: string;
+  child?: {
+    id: string;
+    full_name: string;
+    profile_image_type: string;
+    custom_profile_image_url?: string;
+  };
 }
 
 interface ConversationListProps {
@@ -29,6 +36,7 @@ interface ConversationListProps {
   onSelectConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
   isInFolder?: boolean;
+  showChildNames?: boolean;
 }
 
 export function ConversationList({
@@ -37,7 +45,8 @@ export function ConversationList({
   isCollapsed,
   onSelectConversation,
   onDeleteConversation,
-  isInFolder = false
+  isInFolder = false,
+  showChildNames = false
 }: ConversationListProps) {
   const { currentTheme } = useTheme();
 
@@ -63,9 +72,24 @@ export function ConversationList({
               style={{ color: currentTheme.colors.text.secondary }}
             />
             {!isCollapsed && (
-              <span className={`flex-1 ${isInFolder ? 'text-xs' : 'text-sm'} truncate text-left`}>
-                {conversation.title}
-              </span>
+              <div className="flex-1 flex items-center gap-2">
+                {showChildNames && conversation.child && (
+                  <div className="flex items-center gap-1">
+                    <ProfileImageDisplay
+                      userId={conversation.child.id}
+                      isUser={false}
+                      size="sm"
+                      className="flex-shrink-0"
+                    />
+                    <span className="text-xs text-gray-500 truncate">
+                      {conversation.child.full_name}:
+                    </span>
+                  </div>
+                )}
+                <span className={`${isInFolder ? 'text-xs' : 'text-sm'} truncate text-left`}>
+                  {conversation.title}
+                </span>
+              </div>
             )}
           </SidebarMenuButton>
           {!isCollapsed && (

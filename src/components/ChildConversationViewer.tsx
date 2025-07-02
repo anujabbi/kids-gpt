@@ -152,8 +152,7 @@ export const ChildConversationViewer = () => {
                         >
                           <div className="flex items-center gap-3 mb-2">
                             <ProfileImageDisplay
-                              imageType={child.profile_image_type}
-                              customImageUrl={child.custom_profile_image_url}
+                              userId={child.id}
                               isUser={false}
                               size="sm"
                             />
