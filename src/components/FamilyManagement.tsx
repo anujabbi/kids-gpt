@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Copy, Plus, Users, User, Eye, EyeOff, Edit, Check, X } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Copy, Plus, Users, User, Eye, EyeOff, Edit, Check, X, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -53,6 +53,9 @@ export function FamilyManagement() {
   const [editingFamilyName, setEditingFamilyName] = useState(false);
   const [newFamilyName, setNewFamilyName] = useState('');
   const [updatingFamilyName, setUpdatingFamilyName] = useState(false);
+
+  // Child removal state
+  const [removingChild, setRemovingChild] = useState<string | null>(null);
 
   // Generate age options from 4 to 25
   const ageOptions = Array.from({ length: 22 }, (_, i) => i + 4);
@@ -146,6 +149,37 @@ export function FamilyManagement() {
       toast.error(error.message || 'Failed to create child account');
     } finally {
       setAddingChild(false);
+    }
+  };
+
+  const handleRemoveChild = async (childUserId: string, childName: string) => {
+    setRemovingChild(childUserId);
+    
+    try {
+      // First, remove from family_members table
+      const { error: familyMemberError } = await supabase
+        .from('family_members')
+        .delete()
+        .eq('user_id', childUserId);
+
+      if (familyMemberError) throw familyMemberError;
+
+      // Update the child's profile to remove family association
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ family_id: null })
+        .eq('id', childUserId);
+
+      if (profileError) throw profileError;
+
+      toast.success(`${childName} has been removed from the family`);
+      fetchFamilyData(); // Refresh the data
+      
+    } catch (error: any) {
+      console.error('Error removing child:', error);
+      toast.error(error.message || 'Failed to remove child from family');
+    } finally {
+      setRemovingChild(null);
     }
   };
 
@@ -491,7 +525,44 @@ export function FamilyManagement() {
                           </div>
                         </div>
                       </div>
-                      <Badge variant="outline">Child</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Child</Badge>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              disabled={removingChild === member.user_id}
+                            >
+                              {removingChild === member.user_id ? (
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                              ) : (
+                                <Trash2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove Child from Family</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove <strong>{member.profiles?.full_name || 'this child'}</strong> from the family? 
+                                This will remove their access to the family account and they will no longer be able to use KidsGPT under your supervision.
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRemoveChild(member.user_id, member.profiles?.full_name || 'Child')}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Remove Child
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   ))}
                 </div>
