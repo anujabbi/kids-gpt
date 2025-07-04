@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Copy, Plus, Users, User, Eye, EyeOff, Edit } from 'lucide-react';
+import { Copy, Plus, Users, User, Eye, EyeOff, Edit, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -48,6 +48,11 @@ export function FamilyManagement() {
   const [editingAgeFor, setEditingAgeFor] = useState<string | null>(null);
   const [newAge, setNewAge] = useState('');
   const [updatingAge, setUpdatingAge] = useState(false);
+
+  // Family name editing state
+  const [editingFamilyName, setEditingFamilyName] = useState(false);
+  const [newFamilyName, setNewFamilyName] = useState('');
+  const [updatingFamilyName, setUpdatingFamilyName] = useState(false);
 
   // Generate age options from 4 to 25
   const ageOptions = Array.from({ length: 22 }, (_, i) => i + 4);
@@ -180,6 +185,42 @@ export function FamilyManagement() {
     setNewAge('');
   };
 
+  const handleEditFamilyName = () => {
+    setEditingFamilyName(true);
+    setNewFamilyName(family?.name || '');
+  };
+
+  const handleUpdateFamilyName = async () => {
+    if (!newFamilyName.trim() || !family) return;
+
+    setUpdatingFamilyName(true);
+    
+    try {
+      const { error } = await supabase
+        .from('families')
+        .update({ name: newFamilyName.trim() })
+        .eq('id', family.id);
+
+      if (error) throw error;
+      
+      toast.success('Family name updated successfully!');
+      setEditingFamilyName(false);
+      setNewFamilyName('');
+      fetchFamilyData(); // Refresh the data
+      
+    } catch (error: any) {
+      console.error('Error updating family name:', error);
+      toast.error(error.message || 'Failed to update family name');
+    } finally {
+      setUpdatingFamilyName(false);
+    }
+  };
+
+  const cancelEditFamilyName = () => {
+    setEditingFamilyName(false);
+    setNewFamilyName('');
+  };
+
   if (loading) {
     return (
       <Card>
@@ -210,7 +251,43 @@ export function FamilyManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            {family.name}
+            {editingFamilyName ? (
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  value={newFamilyName}
+                  onChange={(e) => setNewFamilyName(e.target.value)}
+                  className="text-xl font-semibold"
+                  autoFocus
+                />
+                <Button
+                  size="sm"
+                  onClick={handleUpdateFamilyName}
+                  disabled={updatingFamilyName || !newFamilyName.trim()}
+                >
+                  {updatingFamilyName ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div> : <Check className="h-4 w-4" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={cancelEditFamilyName}
+                  disabled={updatingFamilyName}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span>{family.name}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleEditFamilyName}
+                  className="h-6 w-6 p-0"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </CardTitle>
           <CardDescription>
             Manage your family members and settings
