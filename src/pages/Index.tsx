@@ -131,6 +131,16 @@ const Index = () => {
     await addMessageToConversation(currentConv.id, assistantMessage);
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    // Handle coloring page special case with custom prompt
+    if (suggestion === "🎨 Create coloring page") {
+      const coloringPagePrompt = "Create a black-and-white line drawing for a printable coloring page. The drawing should be simple, bold, and kid-friendly, suitable for children. Avoid small, intricate details. The style should be fun and cartoonish, with clear outlines for easy coloring. Do not include any text, shading, or background clutter.";
+      handleSendMessage(coloringPagePrompt);
+    } else {
+      handleSendMessage(suggestion);
+    }
+  };
+
   const currentMessages = getCurrentConversation()?.messages || [];
 
   if (loading) {
@@ -223,12 +233,12 @@ const Index = () => {
                       "🧮 Fun math games",
                       "🧠 Fun quiz",
                       "🌍 Learn about countries",
-                      "🎵 Music and instruments"
+                      "🎨 Create coloring page"
                     ].map((suggestion, index) => (
                       <Button
                         key={index}
                         variant="outline"
-                        onClick={() => handleSendMessage(suggestion)}
+                        onClick={() => handleSuggestionClick(suggestion)}
                         className="text-left justify-start h-auto p-4"
                         style={{ 
                           color: currentTheme.colors.text.primary,
