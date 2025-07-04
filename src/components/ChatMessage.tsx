@@ -8,6 +8,7 @@ import { FileAttachmentDisplay } from "./FileAttachmentDisplay";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { HomeworkScoreBadge } from "./HomeworkScoreBadge";
 import { ProfileImageDisplay } from "./ProfileImageDisplay";
+import { ImagePrintButton } from "./ImagePrintButton";
 
 interface ChatMessageProps {
   message: Message;
@@ -74,6 +75,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
               style={{ borderColor: currentTheme.colors.border }}
               loading="lazy"
             />
+            <div className="mt-2">
+              <ImagePrintButton 
+                imageUrl={message.generatedImage.url}
+                imageName={message.generatedImage.prompt}
+              />
+            </div>
           </div>
         )}
         
