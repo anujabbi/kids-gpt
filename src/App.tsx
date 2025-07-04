@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import ParentDashboard from "./pages/ParentDashboard";
+import ChildChatPage from "./pages/ChildChatPage";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -74,6 +75,11 @@ const App = () => (
               <Route path="/parents" element={
                 <ProtectedRoute requireRole="parent">
                   <ParentDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/child-chat/:childId" element={
+                <ProtectedRoute requireRole="parent">
+                  <ChildChatPage />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
