@@ -73,60 +73,6 @@ const ChildChatPage = () => {
     <ThemedComponent variant="surface" className="min-h-screen">
       <SidebarProvider>
         <div className="min-h-screen w-full flex">
-          {/* Header with sidebar trigger and breadcrumbs */}
-          <div className="fixed top-0 left-0 right-0 z-10 border-b p-4 bg-white dark:bg-gray-900" style={{ borderColor: currentTheme.colors.border }}>
-            <div className="flex items-center gap-4 mb-3">
-              <SidebarTrigger />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleBackClick}
-                className="h-8 w-8"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink onClick={handleBackClick} className="cursor-pointer">
-                      Parent Dashboard
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink onClick={handleBackClick} className="cursor-pointer">
-                      Child Activity
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>{child.full_name}'s Conversations</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <h1 
-                className="text-xl font-semibold"
-                style={{ color: currentTheme.colors.text.primary }}
-              >
-                Viewing {child.full_name}'s Conversations
-              </h1>
-              <div 
-                className="text-xs px-2 py-1 rounded-full"
-                style={{ 
-                  backgroundColor: currentTheme.colors.secondary,
-                  color: currentTheme.colors.text.secondary 
-                }}
-              >
-                Read Only
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
           <AppSidebar
             onNewChat={() => {}} // Disabled in read-only mode
             conversations={conversationsWithChild}
@@ -139,37 +85,93 @@ const ChildChatPage = () => {
             onRenameFolder={() => {}} // Disabled in read-only mode
           />
 
-          {/* Main content */}
-          <main className="flex-1 pt-32">
-            {currentConversation ? (
-              <div className="h-full overflow-y-auto">
-                <MessageList 
-                  messages={currentConversation.messages} 
-                  isTyping={false}
-                />
+          {/* Main content area */}
+          <div className="flex-1 flex flex-col">
+            {/* Header with sidebar trigger and breadcrumbs */}
+            <div className="border-b p-4" style={{ borderColor: currentTheme.colors.border }}>
+              <div className="flex items-center gap-4 mb-3">
+                <SidebarTrigger />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBackClick}
+                  className="h-8 w-8"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink onClick={handleBackClick} className="cursor-pointer">
+                        Parent Dashboard
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink onClick={handleBackClick} className="cursor-pointer">
+                        Child Activity
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>{child.full_name}'s Conversations</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
               </div>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <h3 
-                    className="text-lg font-medium mb-2"
-                    style={{ color: currentTheme.colors.text.primary }}
-                  >
-                    {conversations.length === 0 ? 'No Conversations' : 'Select a Conversation'}
-                  </h3>
-                  <p 
-                    className="text-sm"
-                    style={{ color: currentTheme.colors.text.secondary }}
-                  >
-                    {conversations.length === 0 
-                      ? `${child.full_name} hasn't started any conversations yet.`
-                      : 'Choose a conversation from the sidebar to view the messages.'
-                    }
-                  </p>
+
+              <div className="flex items-center gap-3">
+                <h1 
+                  className="text-xl font-semibold"
+                  style={{ color: currentTheme.colors.text.primary }}
+                >
+                  {currentConversation ? currentConversation.title : `Viewing ${child.full_name}'s Conversations`}
+                </h1>
+                <div 
+                  className="text-xs px-2 py-1 rounded-full"
+                  style={{ 
+                    backgroundColor: currentTheme.colors.secondary,
+                    color: currentTheme.colors.text.secondary 
+                  }}
+                >
+                  Read Only
                 </div>
               </div>
-            )}
-          </main>
+            </div>
+
+            {/* Main content */}
+            <main className="flex-1 overflow-hidden">
+              {currentConversation ? (
+                <div className="h-full overflow-y-auto">
+                  <MessageList 
+                    messages={currentConversation.messages} 
+                    isTyping={false}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <h3 
+                      className="text-lg font-medium mb-2"
+                      style={{ color: currentTheme.colors.text.primary }}
+                    >
+                      {conversations.length === 0 ? 'No Conversations' : 'Select a Conversation'}
+                    </h3>
+                    <p 
+                      className="text-sm"
+                      style={{ color: currentTheme.colors.text.secondary }}
+                    >
+                      {conversations.length === 0 
+                        ? `${child.full_name} hasn't started any conversations yet.`
+                        : 'Choose a conversation from the sidebar to view the messages.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
         </div>
       </SidebarProvider>
     </ThemedComponent>
