@@ -63,13 +63,19 @@ const ChildChatPage = () => {
     navigate('/parents');
   };
 
+  // Transform conversations to include child info for the sidebar
+  const conversationsWithChild = conversations.map(conv => ({
+    ...conv,
+    child: child
+  }));
+
   return (
     <ThemedComponent variant="surface" className="min-h-screen">
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
           <AppSidebar
             onNewChat={() => {}} // Disabled in read-only mode
-            conversations={conversations}
+            conversations={conversationsWithChild}
             folders={[]} // No folders in child view
             activeConversation={activeConversation}
             onSelectConversation={setActiveConversation}
