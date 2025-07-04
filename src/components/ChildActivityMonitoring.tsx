@@ -40,6 +40,9 @@ export const ChildActivityMonitoring = () => {
     );
   }
 
+  // Sort children by conversation count in descending order
+  const sortedChildSummaries = [...childSummaries].sort((a, b) => b.conversationCount - a.conversationCount);
+
   return (
     <div className="space-y-6">
       <div>
@@ -58,7 +61,7 @@ export const ChildActivityMonitoring = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {childSummaries.map((child) => (
+        {sortedChildSummaries.map((child) => (
           <ChildSummaryCard key={child.id} child={child} />
         ))}
       </div>
