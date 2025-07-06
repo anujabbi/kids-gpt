@@ -63,13 +63,15 @@ export function ConversationList({
                 ? currentTheme.colors.primary + '20' 
                 : 'transparent',
               color: activeConversation === conversation.id 
-                ? currentTheme.colors.text.accent 
-                : currentTheme.colors.text.primary
+                ? `${currentTheme.colors.text.accent} !important`
+                : `${currentTheme.colors.text.primary} !important`
             }}
           >
             <MessageSquare 
               className={isInFolder ? "h-3 w-3" : "h-4 w-4"} 
-              style={{ color: currentTheme.colors.text.secondary }}
+              style={{ 
+                color: `${currentTheme.colors.text.secondary} !important` 
+              }}
             />
             {!isCollapsed && (
               <div className="flex-1 flex items-center gap-2">
@@ -81,12 +83,24 @@ export function ConversationList({
                       size="sm"
                       className="flex-shrink-0"
                     />
-                    <span className="text-xs text-gray-500 truncate">
+                    <span 
+                      className={`text-xs truncate`}
+                      style={{ 
+                        color: `${currentTheme.colors.text.secondary} !important` 
+                      }}
+                    >
                       {conversation.child.full_name}:
                     </span>
                   </div>
                 )}
-                <span className={`${isInFolder ? 'text-xs' : 'text-sm'} truncate text-left`}>
+                <span 
+                  className={`${isInFolder ? 'text-xs' : 'text-sm'} truncate text-left`}
+                  style={{
+                    color: activeConversation === conversation.id 
+                      ? `${currentTheme.colors.text.accent} !important`
+                      : `${currentTheme.colors.text.primary} !important`
+                  }}
+                >
                   {conversation.title}
                 </span>
               </div>
@@ -100,7 +114,7 @@ export function ConversationList({
               }}
               className="hover:bg-opacity-20"
               style={{ 
-                color: currentTheme.colors.text.secondary,
+                color: `${currentTheme.colors.text.secondary} !important`,
                 backgroundColor: 'transparent'
               }}
               showOnHover
