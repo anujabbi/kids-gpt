@@ -61,7 +61,7 @@ export function ConversationList({
             style={{
               backgroundColor: activeConversation === conversation.id 
                 ? currentTheme.colors.primary + '20' 
-                : 'transparent',
+                : currentTheme.colors.background + ' !important',
               color: activeConversation === conversation.id 
                 ? `${currentTheme.colors.text.accent} !important`
                 : `${currentTheme.colors.text.primary} !important`
