@@ -52,7 +52,13 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
   }
 
   return (
-    <div className="flex flex-col items-center text-center mb-6 p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.primary }}>
+    <div 
+      className="flex flex-col items-center text-center mb-6 p-4 rounded-lg border-2" 
+      style={{ 
+        backgroundColor: currentTheme.colors.background,
+        borderColor: currentTheme.colors.primary
+      }}
+    >
       <ProfileImageDisplay 
         isUser={true} 
         size="lg" 
@@ -61,14 +67,14 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
       <div className="space-y-1">
         <h3 
           className="font-semibold text-base"
-          style={{ color: '#ffffff' }}
+          style={{ color: currentTheme.colors.text.primary }}
         >
           {loading ? 'Loading...' : getUserDisplayName()}
         </h3>
         {!loading && getUserSubtitle() && (
           <p 
             className="text-sm"
-            style={{ color: 'rgba(255, 255, 255, 0.8)' }}
+            style={{ color: currentTheme.colors.text.secondary }}
           >
             {getUserSubtitle()}
           </p>
@@ -76,7 +82,7 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
         {!loading && getUserAge() && (
           <p 
             className="text-xs"
-            style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+            style={{ color: currentTheme.colors.text.secondary }}
           >
             {getUserAge()}
           </p>
@@ -84,8 +90,8 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
         {!loading && (
           <button
             onClick={() => navigate('/settings')}
-            className="text-xs hover:underline mt-2 transition-opacity hover:opacity-80"
-            style={{ color: '#ffffff' }}
+            className="text-xs hover:underline mt-2"
+            style={{ color: currentTheme.colors.primary }}
           >
             Edit Profile
           </button>
