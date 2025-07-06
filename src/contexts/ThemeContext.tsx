@@ -74,6 +74,57 @@ const defaultThemes: Theme[] = [
     },
   },
   {
+    id: 'pink',
+    name: 'Pink Blossom',
+    colors: {
+      primary: '#ec4899',
+      secondary: '#fdf2f8',
+      background: '#ffffff',
+      surface: '#fef7f7',
+      text: {
+        primary: '#831843',
+        secondary: '#be185d',
+        accent: '#ec4899',
+      },
+      border: '#fce7f3',
+      accent: '#ec4899',
+    },
+  },
+  {
+    id: 'red',
+    name: 'Cherry Red',
+    colors: {
+      primary: '#ef4444',
+      secondary: '#fef2f2',
+      background: '#ffffff',
+      surface: '#fef8f8',
+      text: {
+        primary: '#7f1d1d',
+        secondary: '#dc2626',
+        accent: '#ef4444',
+      },
+      border: '#fecaca',
+      accent: '#ef4444',
+    },
+  },
+  {
+    id: 'orange',
+    name: 'Sunset Orange',
+    colors: {
+      primary: '#f97316',
+      secondary: '#fff7ed',
+      background: '#ffffff',
+      surface: '#fffbf5',
+      text: {
+        primary: '#9a3412',
+        secondary: '#ea580c',
+        accent: '#f97316',
+      },
+      border: '#fed7aa',
+      accent: '#f97316',
+    },
+  },
+  {
     id: 'dark',
     name: 'Dark Mode',
     colors: {
