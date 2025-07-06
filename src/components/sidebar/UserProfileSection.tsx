@@ -55,7 +55,7 @@ export function UserProfileSection({ isCollapsed }: UserProfileSectionProps) {
     <div 
       className="flex flex-col items-center text-center mb-6 p-4 rounded-lg border-2" 
       style={{ 
-        backgroundColor: currentTheme.colors.background,
+        backgroundColor: 'transparent',
         borderColor: currentTheme.colors.primary
       }}
     >

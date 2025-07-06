@@ -54,19 +54,22 @@ export function SidebarContent({
   const rootConversations = conversations.filter(conv => !conv.folderId);
 
   return (
-    <SidebarContentBase>
-      <SidebarGroup>
+    <SidebarContentBase style={{ backgroundColor: 'transparent' }}>
+      <SidebarGroup style={{ backgroundColor: 'transparent' }}>
         {!isCollapsed && (
           <SidebarGroupLabel 
             className="px-2"
-            style={{ color: currentTheme.colors.text.secondary }}
+            style={{ 
+              color: currentTheme.colors.text.secondary,
+              backgroundColor: 'transparent'
+            }}
           >
             {isParentView ? "Children's Conversations" : "Conversations"}
           </SidebarGroupLabel>
         )}
-        <SidebarGroupContent>
-          <ScrollArea className="h-full">
-            <SidebarMenu className="px-2">
+        <SidebarGroupContent style={{ backgroundColor: 'transparent' }}>
+          <ScrollArea className="h-full" style={{ backgroundColor: 'transparent' }}>
+            <SidebarMenu className="px-2" style={{ backgroundColor: 'transparent' }}>
               {/* Folders - only show for non-parent view */}
               {!isParentView && folders.map((folder) => (
                 <FolderSection
