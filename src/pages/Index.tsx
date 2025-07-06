@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -181,24 +180,12 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <SidebarTrigger />
               
-              {/* Logo with fallback */}
-              <div className="w-8 h-8 rounded-md overflow-hidden flex items-center justify-center bg-gray-100">
-                <img 
-                  src="/lovable-uploads/19dbaad9-f7dd-4e4e-bc97-3b9966e8e52d" 
-                  alt="KidsGPT Logo"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to a simple colored div if image fails to load
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.style.background = `linear-gradient(135deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`;
-                      parent.innerHTML = '<div class="w-4 h-4 bg-white/20 rounded-sm"></div>';
-                    }
-                  }}
-                />
-              </div>
+              {/* Logo */}
+              <img 
+                src="/app-icon.png" 
+                alt="KidsGPT Logo"
+                className="w-8 h-8 rounded-md object-cover"
+              />
               
               <h1 
                 className="text-xl font-semibold"
