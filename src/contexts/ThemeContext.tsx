@@ -144,6 +144,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           });
         }
       });
+
+      // Override shadcn sidebar CSS variables
+      root.style.setProperty('--sidebar-background', theme.colors.surface);
+      root.style.setProperty('--sidebar-foreground', theme.colors.text.primary);
+      root.style.setProperty('--sidebar-primary', theme.colors.primary);
+      root.style.setProperty('--sidebar-primary-foreground', theme.colors.text.primary);
+      root.style.setProperty('--sidebar-accent', theme.colors.surface);
+      root.style.setProperty('--sidebar-accent-foreground', theme.colors.text.primary);
+      root.style.setProperty('--sidebar-border', theme.colors.border);
     }
   };
 
