@@ -43,16 +43,16 @@ export function AppSidebar({
           backgroundColor: `${currentTheme.colors.surface} !important`
         }}
       >
+        <div className="px-4 pt-4">
+          <UserProfileSection isCollapsed={isCollapsed} />
+        </div>
+
         <SidebarHeader
           isCollapsed={isCollapsed}
           isParentView={isParentView}
           onNewChat={onNewChat}
           onCreateFolder={onCreateFolder}
         />
-
-        <div className="px-4">
-          <UserProfileSection isCollapsed={isCollapsed} />
-        </div>
 
         <SidebarContent
           conversations={conversations}
