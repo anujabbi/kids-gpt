@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Folder, Message } from '@/types/chat';
 
@@ -32,11 +33,81 @@ export class ConversationService {
         generatedImage: msg.generated_image as any,
         homeworkMisuseScore: msg.homework_misuse_score,
       })) || [],
-      createdAt: new Date(conv.created_at),
-      updatedAt: new Date(conv.updated_at),
+      timestamp: new Date(conv.created_at),
       folderId: conv.folder_id || undefined,
       type: (conv.type as 'regular' | 'personality-quiz') || 'regular',
     }));
+  }
+
+  async loadChildrenConversations(): Promise<{ conversations: Conversation[], children: Array<{ id: string, full_name: string, profile_image_type: string, custom_profile_image_url?: string }> }> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { conversations: [], children: [] };
+
+    // First get the current user's profile to check if they're a parent
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, family_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'parent') {
+      return { conversations: [], children: [] };
+    }
+
+    // Get all children in the family
+    const { data: children, error: childrenError } = await supabase
+      .from('profiles')
+      .select('id, full_name, profile_image_type, custom_profile_image_url')
+      .eq('family_id', profile.family_id)
+      .eq('role', 'child');
+
+    if (childrenError) {
+      console.error('Failed to load children:', childrenError);
+      return { conversations: [], children: [] };
+    }
+
+    if (!children || children.length === 0) {
+      return { conversations: [], children: children || [] };
+    }
+
+    // Get all conversations for these children
+    const childIds = children.map(child => child.id);
+    const { data: conversationsData, error: conversationsError } = await supabase
+      .from('conversations')
+      .select(`
+        *,
+        messages (*)
+      `)
+      .in('user_id', childIds)
+      .order('updated_at', { ascending: false });
+
+    if (conversationsError) {
+      console.error('Failed to load children conversations:', conversationsError);
+      return { conversations: [], children: children || [] };
+    }
+
+    const conversations = (conversationsData || []).map(conv => ({
+      id: conv.id,
+      title: conv.title,
+      messages: conv.messages?.map((msg: any) => ({
+        id: msg.id,
+        content: msg.content,
+        role: msg.role as 'user' | 'assistant',
+        timestamp: new Date(msg.created_at),
+        attachments: msg.attachments as any,
+        generatedImage: msg.generated_image as any,
+        homeworkMisuseScore: msg.homework_misuse_score,
+      })) || [],
+      timestamp: new Date(conv.created_at),
+      folderId: conv.folder_id || undefined,
+      type: (conv.type as 'regular' | 'personality-quiz') || 'regular',
+      userId: conv.user_id,
+    }));
+
+    return { 
+      conversations, 
+      children: children || [] 
+    };
   }
 
   async loadFolders(): Promise<Folder[]> {
@@ -57,7 +128,7 @@ export class ConversationService {
     return data.map(folder => ({
       id: folder.id,
       name: folder.name,
-      createdAt: new Date(folder.created_at),
+      timestamp: new Date(folder.created_at),
     }));
   }
 
@@ -87,8 +158,7 @@ export class ConversationService {
       id: data.id,
       title: data.title,
       messages: [],
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      timestamp: new Date(data.created_at),
       folderId: data.folder_id || undefined,
       type: (data.type as 'regular' | 'personality-quiz') || 'regular',
     };
@@ -172,7 +242,7 @@ export class ConversationService {
     return {
       id: data.id,
       name: data.name,
-      createdAt: new Date(data.created_at),
+      timestamp: new Date(data.created_at),
     };
   }
 
