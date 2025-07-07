@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Conversation, Folder, Message } from '@/types/chat';
 import { conversationService } from '@/services/conversationService';
@@ -51,7 +50,7 @@ export const useConversations = () => {
     return conversations.find(c => c.id === activeConversation);
   };
 
-  const createNewConversation = async (folderId?: string) => {
+  const createNewConversation = async (folderId?: string, type: 'regular' | 'personality-quiz' = 'regular') => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -62,7 +61,7 @@ export const useConversations = () => {
     }
 
     try {
-      const newConv = await conversationService.createConversation(folderId);
+      const newConv = await conversationService.createConversation(folderId, type);
       setConversations(prev => [newConv, ...prev]);
       setActiveConversation(newConv.id);
       return newConv;
