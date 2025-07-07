@@ -25,7 +25,7 @@ export class PersonalityService {
         favoriteColors: data.favorite_colors || [],
         hobbies: data.hobbies || [],
         learningStyle: data.learning_style || '',
-        personalityTraits: data.personality_traits || {},
+        personalityTraits: (data.personality_traits as Record<string, any>) || {},
         quizSummary: data.quiz_summary || '',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),

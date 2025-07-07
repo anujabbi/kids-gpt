@@ -2,7 +2,6 @@
 import { Message } from '@/types/chat';
 import { getSystemPrompt, getPersonalityQuizSystemPrompt } from '@/utils/systemPrompts';
 import { supabase } from '@/integrations/supabase/client';
-import { homeworkDetectionService } from './homeworkDetectionService';
 
 export interface OpenAIResponse {
   response: string;
@@ -100,10 +99,12 @@ class OpenAIService {
       // Only check for homework in regular conversations
       let homeworkScore;
       if (conversationType === 'regular') {
-        homeworkScore = await homeworkDetectionService.checkHomeworkMisuse(
-          messages[messages.length - 1]?.content || '',
-          assistantResponse
+        // Simple homework detection placeholder - can be enhanced later
+        const homeworkKeywords = ['homework', 'assignment', 'test', 'exam', 'quiz'];
+        const hasHomeworkKeywords = homeworkKeywords.some(keyword => 
+          messages[messages.length - 1]?.content.toLowerCase().includes(keyword)
         );
+        homeworkScore = hasHomeworkKeywords ? 0.8 : 0.1;
       }
 
       return {

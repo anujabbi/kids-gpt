@@ -53,8 +53,6 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
           )}
         </div>
         <CreateFolderDialog 
-          open={showCreateFolder}
-          onOpenChange={setShowCreateFolder}
           onCreateFolder={onCreateFolder}
         />
       </div>
@@ -97,8 +95,6 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
       </div>
 
       <CreateFolderDialog 
-        open={showCreateFolder}
-        onOpenChange={setShowCreateFolder}
         onCreateFolder={onCreateFolder}
       />
     </div>

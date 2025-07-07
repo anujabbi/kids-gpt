@@ -12,7 +12,7 @@ import ParentDashboard from "./pages/ParentDashboard";
 import ChildChatPage from "./pages/ChildChatPage";
 import PersonalizedPage from "./pages/PersonalizedPage";
 import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -46,7 +46,7 @@ function App() {
                 <Route 
                   path="/parent-dashboard" 
                   element={
-                    <ProtectedRoute requiredRole="parent">
+                    <ProtectedRoute requireRole="parent">
                       <ParentDashboard />
                     </ProtectedRoute>
                   } 
@@ -54,7 +54,7 @@ function App() {
                 <Route 
                   path="/child-chat" 
                   element={
-                    <ProtectedRoute requiredRole="parent">
+                    <ProtectedRoute requireRole="parent">
                       <ChildChatPage />
                     </ProtectedRoute>
                   } 
@@ -62,7 +62,7 @@ function App() {
                 <Route 
                   path="/my-page" 
                   element={
-                    <ProtectedRoute requiredRole="child">
+                    <ProtectedRoute requireRole="child">
                       <PersonalizedPage />
                     </ProtectedRoute>
                   } 

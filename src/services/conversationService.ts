@@ -229,7 +229,7 @@ export class ConversationService {
         title,
         folder_id: folderId,
         user_id: user.id,
-        type,
+        type: type as 'regular' | 'personality-quiz',
       };
 
       const { data, error } = await supabase
@@ -249,7 +249,7 @@ export class ConversationService {
         timestamp: new Date(data.created_at),
         messages: [],
         folderId: data.folder_id,
-        type: data.type,
+        type: data.type as 'regular' | 'personality-quiz',
       };
     } catch (error) {
       console.error('Failed to create conversation:', error);
