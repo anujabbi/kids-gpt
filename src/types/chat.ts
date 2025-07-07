@@ -25,6 +25,19 @@ export interface Message {
   homeworkMisuseScore?: number;
 }
 
+export interface PersonalityProfile {
+  id: string;
+  userId: string;
+  interests: string[];
+  favoriteColors: string[];
+  hobbies: string[];
+  learningStyle: string;
+  personalityTraits: Record<string, any>;
+  quizSummary: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Conversation {
   id: string;
   title: string;
@@ -32,6 +45,7 @@ export interface Conversation {
   messages: Message[];
   folderId?: string;
   userId?: string;
+  type?: 'regular' | 'personality-quiz';
   child?: {
     id: string;
     full_name: string;

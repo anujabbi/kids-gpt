@@ -1,95 +1,80 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import ParentDashboard from "./pages/ParentDashboard";
 import ChildChatPage from "./pages/ChildChatPage";
-import Auth from "./pages/Auth";
+import PersonalizedPage from "./pages/PersonalizedPage";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
+import "./App.css";
 
 const queryClient = new QueryClient();
 
-// Component to handle role-based redirects after login
-const RoleBasedRedirect = () => {
-  const { profile, loading } = useAuth();
-  
-  console.log('RoleBasedRedirect - Profile:', profile, 'Loading:', loading);
-  
-  if (loading) {
-    console.log('RoleBasedRedirect - Still loading, showing spinner');
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <div className="text-lg">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Redirect parents to dashboard, children to main chat
-  if (profile?.role === 'parent') {
-    console.log('RoleBasedRedirect - Redirecting parent to /parents');
-    return <Navigate to="/parents" replace />;
-  } else if (profile?.role === 'child') {
-    console.log('RoleBasedRedirect - Redirecting child to /chat');
-    return <Navigate to="/chat" replace />;
-  } else {
-    console.log('RoleBasedRedirect - No valid role, redirecting to auth');
-    return <Navigate to="/auth" replace />;
-  }
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <RoleBasedRedirect />
-                </ProtectedRoute>
-              } />
-              <Route path="/chat" element={
-                <ProtectedRoute requireRole="child">
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/parents" element={
-                <ProtectedRoute requireRole="parent">
-                  <ParentDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/child-chat/:childId" element={
-                <ProtectedRoute requireRole="parent">
-                  <ChildChatPage />
-                </ProtectedRoute>
-              } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route 
+                  path="/" 
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/settings" 
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/parent-dashboard" 
+                  element={
+                    <ProtectedRoute requiredRole="parent">
+                      <ParentDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/child-chat" 
+                  element={
+                    <ProtectedRoute requiredRole="parent">
+                      <ChildChatPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/my-page" 
+                  element={
+                    <ProtectedRoute requiredRole="child">
+                      <PersonalizedPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;

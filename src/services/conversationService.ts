@@ -178,6 +178,7 @@ export class ConversationService {
           title: conversation.title,
           folder_id: conversation.folderId,
           user_id: user.id,
+          type: conversation.type || 'regular',
           updated_at: new Date().toISOString(),
         });
 
@@ -216,17 +217,19 @@ export class ConversationService {
     }
   }
 
-  async createConversation(folderId?: string): Promise<Conversation> {
+  async createConversation(folderId?: string, type: 'regular' | 'personality-quiz' = 'regular'): Promise<Conversation> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        return this.createLocalConversation(folderId);
+        return this.createLocalConversation(folderId, type);
       }
 
+      const title = type === 'personality-quiz' ? 'Personality Quiz' : 'New conversation';
       const newConversation = {
-        title: "New conversation",
+        title,
         folder_id: folderId,
         user_id: user.id,
+        type,
       };
 
       const { data, error } = await supabase
@@ -237,8 +240,7 @@ export class ConversationService {
 
       if (error) {
         console.error('Failed to create conversation:', error);
-        // Fallback to local creation
-        return this.createLocalConversation(folderId);
+        return this.createLocalConversation(folderId, type);
       }
 
       return {
@@ -247,21 +249,24 @@ export class ConversationService {
         timestamp: new Date(data.created_at),
         messages: [],
         folderId: data.folder_id,
+        type: data.type,
       };
     } catch (error) {
       console.error('Failed to create conversation:', error);
-      return this.createLocalConversation(folderId);
+      return this.createLocalConversation(folderId, type);
     }
   }
 
-  private createLocalConversation(folderId?: string): Conversation {
+  private createLocalConversation(folderId?: string, type: 'regular' | 'personality-quiz' = 'regular'): Conversation {
     const id = Date.now().toString();
+    const title = type === 'personality-quiz' ? 'Personality Quiz' : 'New conversation';
     return {
       id,
-      title: "New conversation",
+      title,
       timestamp: new Date(),
       messages: [],
       folderId,
+      type,
     };
   }
 

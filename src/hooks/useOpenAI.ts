@@ -9,11 +9,11 @@ export const useOpenAI = () => {
   const [isTyping, setIsTyping] = useState(false);
   const { profile } = useAuth();
 
-  const generateResponse = async (messages: Message[]): Promise<OpenAIResponse | null> => {
+  const generateResponse = async (messages: Message[], conversationType?: 'regular' | 'personality-quiz'): Promise<OpenAIResponse | null> => {
     setIsTyping(true);
     
     try {
-      const result = await openAIService.generateResponse(messages, profile?.family_id || undefined);
+      const result = await openAIService.generateResponse(messages, profile?.family_id || undefined, conversationType);
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to get response. Please try again.";

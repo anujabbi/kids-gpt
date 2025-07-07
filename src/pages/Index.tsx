@@ -52,12 +52,19 @@ const Index = () => {
     createNewConversation(folderId);
   };
 
+  const handlePersonalityQuiz = async () => {
+    const quizConversation = await createNewConversation(undefined, 'personality-quiz');
+    if (quizConversation) {
+      setActiveConversation(quizConversation.id);
+    }
+  };
+
   const handleSendMessage = async (content: string, files?: FileAttachment[]) => {
     let currentConv = getCurrentConversation();
     
     if (!currentConv) {
       currentConv = await createNewConversation();
-      if (!currentConv) return; // Failed to create conversation
+      if (!currentConv) return;
     }
 
     const userMessage = createUserMessage(content, files);
@@ -69,7 +76,6 @@ const Index = () => {
     if (imageDetection.isImageRequest) {
       console.log('Detected image request, generating image with prompt:', imageDetection.extractedPrompt);
       
-      // Generate image instead of text response
       const imageResult = await generateImage({
         prompt: imageDetection.extractedPrompt,
         size: '1024x1024',
@@ -89,18 +95,25 @@ const Index = () => {
         };
         await addMessageToConversation(currentConv.id, assistantMessage);
       } else {
-        // Fallback to text response if image generation fails
         const fallbackMessage = createAssistantMessage("I'm sorry, I wasn't able to create an image right now. Let me help you with something else instead!");
         await addMessageToConversation(currentConv.id, fallbackMessage);
       }
     } else {
-      // Normal text response
       const allMessages = [...currentConv.messages, userMessage];
-      const result = await generateResponse(allMessages);
+      const result = await generateResponse(allMessages, currentConv.type);
       
       if (result) {
         const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
         await addMessageToConversation(currentConv.id, assistantMessage);
+        
+        // If this was a personality quiz conversation and it seems complete, extract personality data
+        if (currentConv.type === 'personality-quiz' && 
+            result.response.toLowerCase().includes('personality') && 
+            result.response.toLowerCase().includes('amazing and unique')) {
+          // Import personality service dynamically to avoid circular dependencies
+          const { personalityService } = await import('@/services/personalityService');
+          await personalityService.extractAndSaveFromQuizConversation([...allMessages, assistantMessage]);
+        }
       }
     }
   };
@@ -131,7 +144,6 @@ const Index = () => {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    // Handle coloring page special case with custom prompt
     if (suggestion === "🎨 Create coloring page") {
       const coloringPagePrompt = "Create a black-and-white line drawing for a printable coloring page. The drawing should be simple, bold, and kid-friendly, suitable for children. Avoid small, intricate details. The style should be fun and cartoonish, with clear outlines for easy coloring. Do not include any text, shading, or background clutter.";
       handleSendMessage(coloringPagePrompt);
@@ -180,7 +192,6 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <SidebarTrigger />
               
-              {/* Logo */}
               <img 
                 src="/app-icon.png" 
                 alt="KidsGPT Logo"
@@ -209,11 +220,29 @@ const Index = () => {
                     How can I help you today?
                   </h2>
                   <p 
-                    className="mb-8"
+                    className="mb-6"
                     style={{ color: currentTheme.colors.text.secondary }}
                   >
                     I'm here to help you learn, create, and have fun! What would you like to explore?
                   </p>
+                  
+                  {/* Personality Quiz Button */}
+                  <div className="mb-8">
+                    <Button
+                      onClick={handlePersonalityQuiz}
+                      size="lg"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                    >
+                      🌟 Personality Quiz
+                    </Button>
+                    <p 
+                      className="text-sm mt-2"
+                      style={{ color: currentTheme.colors.text.secondary }}
+                    >
+                      Take a fun quiz to get personalized recommendations!
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       "🦕 Cool dinosaur facts",
