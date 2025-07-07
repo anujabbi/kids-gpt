@@ -232,7 +232,7 @@ const Index = () => {
                     <Button
                       onClick={handlePersonalityQuiz}
                       size="lg"
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-12 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
                     >
                       🌟 Personalize
                     </Button>
