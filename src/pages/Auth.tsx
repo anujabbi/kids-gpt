@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Users, User } from 'lucide-react';
+import { Users, User, Mail } from 'lucide-react';
 
 const Auth = () => {
   const { user, profile, loading, signIn, signUp } = useAuth();
@@ -20,6 +20,8 @@ const Auth = () => {
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [familyCode, setFamilyCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
 
   console.log('Auth page state:', { user: !!user, profile: profile ? { role: profile.role } : null, loading });
 
@@ -97,16 +99,55 @@ const Auth = () => {
       } else {
         toast.error(error.message);
       }
+      setIsSubmitting(false);
     } else {
-      if (role === 'parent') {
-        toast.success('Parent account created successfully! You can now sign in.');
-      } else {
-        toast.success('Child account created successfully! You can now sign in.');
-      }
+      // Show email confirmation message
+      setSignupEmail(email);
+      setShowEmailConfirmation(true);
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
+
+  // Show email confirmation screen
+  if (showEmailConfirmation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <Mail className="w-6 h-6 text-primary" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-primary">Check Your Email</CardTitle>
+            <CardDescription>
+              We've sent a confirmation link to <strong>{signupEmail}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Please check your email and click the confirmation link to activate your account. 
+              You'll be redirected back to sign in once confirmed.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Don't see the email? Check your spam folder or{' '}
+              <button 
+                onClick={() => setShowEmailConfirmation(false)}
+                className="text-primary hover:underline"
+              >
+                try signing up again
+              </button>
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => setShowEmailConfirmation(false)}
+              className="w-full"
+            >
+              Back to Sign Up
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-4">
@@ -235,6 +276,9 @@ const Auth = () => {
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? 'Creating account...' : 'Sign Up'}
                 </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  By signing up, you'll receive a confirmation email that you'll need to verify before you can sign in.
+                </p>
               </form>
             </TabsContent>
           </Tabs>

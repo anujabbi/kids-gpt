@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -222,7 +223,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     console.log('Attempting to sign up with metadata:', metadata);
-    const redirectUrl = `${window.location.origin}/`;
+    // Use the current site URL for email confirmation redirect
+    const redirectUrl = `${window.location.origin}/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -236,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       console.error('Sign up error:', error);
     } else {
-      console.log('Sign up successful');
+      console.log('Sign up successful - confirmation email sent');
     }
     
     return { error };
