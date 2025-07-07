@@ -8,6 +8,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarContent } from "./sidebar/SidebarContent";
+import { UserProfileSection } from "./sidebar/UserProfileSection";
 import { AppSidebarProps } from "./sidebar/types";
 
 export function AppSidebar({
@@ -48,6 +49,10 @@ export function AppSidebar({
           onNewChat={onNewChat}
           onCreateFolder={onCreateFolder}
         />
+
+        <div className="px-4">
+          <UserProfileSection isCollapsed={isCollapsed} />
+        </div>
 
         <SidebarContent
           conversations={conversations}
