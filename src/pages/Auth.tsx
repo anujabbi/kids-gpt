@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -101,6 +100,10 @@ const Auth = () => {
       }
       setIsSubmitting(false);
     } else {
+      // Show success message with email confirmation instructions
+      const accountType = role === 'parent' ? 'Parent' : 'Child';
+      toast.success(`${accountType} account created successfully! Please check your email and click the confirmation link before signing in.`);
+      
       // Show email confirmation message
       setSignupEmail(email);
       setShowEmailConfirmation(true);
