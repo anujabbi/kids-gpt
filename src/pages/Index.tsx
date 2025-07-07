@@ -244,7 +244,7 @@ const Index = () => {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
                     {[
                       "🦕 Cool dinosaur facts",
                       "🎨 Draw a magical castle",
@@ -257,14 +257,14 @@ const Index = () => {
                         key={index}
                         variant="outline"
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="text-left justify-start h-auto p-4"
+                        className="text-left justify-start h-auto p-4 min-h-[60px] whitespace-normal text-wrap"
                         style={{ 
                           color: currentTheme.colors.text.primary,
                           borderColor: currentTheme.colors.border,
                           backgroundColor: currentTheme.colors.surface
                         }}
                       >
-                        {suggestion}
+                        <span className="block w-full">{suggestion}</span>
                       </Button>
                     ))}
                   </div>
