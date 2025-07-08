@@ -56,6 +56,29 @@ const Index = () => {
     const quizConversation = await createNewConversation(undefined, 'personality-quiz');
     if (quizConversation) {
       setActiveConversation(quizConversation.id);
+      
+      // Send all 5 personality quiz questions at once
+      const allQuestions = `Hello! I'm so excited to get to know you better! 🌟 I'd love to learn about what makes you unique and special. Please answer these 5 questions, and feel free to take your time with each one:
+
+**1. What are you interested in?** 🌟
+What topics, activities, or subjects make you excited to learn more? Tell me about all the things that spark your curiosity!
+
+**2. What are your hobbies?** 🎨
+What do you love to do in your free time? What activities make you happiest?
+
+**3. How do you think people would describe you?** 😊
+What kind of person are you? Are you funny, creative, helpful, adventurous, or something else?
+
+**4. What do you like to read about?** 📚
+What types of books, stories, or topics catch your attention when you're reading?
+
+**5. What is your dream job?** 🚀
+What would you love to do when you grow up? What sounds like the most amazing job to you?
+
+Please answer all these questions - I can't wait to learn about the amazing person you are! 💫`;
+      
+      const assistantMessage = createAssistantMessage(allQuestions);
+      await addMessageToConversation(quizConversation.id, assistantMessage);
     }
   };
 
