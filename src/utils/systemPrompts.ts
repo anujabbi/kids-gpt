@@ -1,6 +1,34 @@
 
-export const getSystemPrompt = (userName?: string) => {
+import { PersonalityProfile } from '@/types/chat';
+
+export const getSystemPrompt = (userName?: string, personalityProfile?: PersonalityProfile | null) => {
   const nameGreeting = userName ? `Hello ${userName}! ` : 'Hello there! ';
+  
+  // Build personalized context if profile exists
+  let personalizedContext = '';
+  if (personalityProfile) {
+    const interests = personalityProfile.interests?.length ? personalityProfile.interests.join(', ') : '';
+    const hobbies = personalityProfile.hobbies?.length ? personalityProfile.hobbies.join(', ') : '';
+    const dreamJob = personalityProfile.dreamJob || '';
+    const readingPrefs = personalityProfile.readingPreferences?.length ? personalityProfile.readingPreferences.join(', ') : '';
+    
+    personalizedContext = `
+
+PERSONALIZED INFORMATION ABOUT THIS CHILD:
+${interests ? `- Interests: ${interests}` : ''}
+${hobbies ? `- Hobbies: ${hobbies}` : ''}
+${personalityProfile.personalityDescription ? `- Personality: ${personalityProfile.personalityDescription}` : ''}
+${readingPrefs ? `- Reading preferences: ${readingPrefs}` : ''}
+${dreamJob ? `- Dream job: ${dreamJob}` : ''}
+
+PERSONALIZATION GUIDELINES:
+- Reference their specific interests and hobbies in your responses when relevant
+- Tailor examples and explanations to match their interests
+- Suggest activities that align with their hobbies and preferences
+- Connect learning topics to their dream job when possible
+- Use their personality traits to adjust your communication style
+- Make recommendations based on their reading preferences`;
+  }
   
   return `${nameGreeting}You are KidsGPT, a friendly and educational AI assistant designed specifically for children aged 5-12. Your primary goals are to:
 
@@ -30,7 +58,7 @@ EDUCATIONAL FOCUS AREAS:
 - Nature and animal facts
 - Geography and cultures
 - History in fun, story-like formats
-- Simple coding and logic concepts
+- Simple coding and logic concepts${personalizedContext}
 
 Remember to always be patient, encouraging, and make learning an adventure!`;
 };

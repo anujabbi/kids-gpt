@@ -1,27 +1,38 @@
 
 import { useState } from 'react';
+import { openAIService } from '@/services/openAIService';
 import { Message } from '@/types/chat';
-import { openAIService, OpenAIResponse } from '@/services/openAIService';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { personalityService } from '@/services/personalityService';
 
 export const useOpenAI = () => {
   const [isTyping, setIsTyping] = useState(false);
-  const { profile } = useAuth();
+  const { user } = useAuth();
 
-  const generateResponse = async (messages: Message[], conversationType?: 'regular' | 'personality-quiz'): Promise<OpenAIResponse | null> => {
+  const generateResponse = async (
+    messages: Message[], 
+    conversationType?: 'regular' | 'personality-quiz'
+  ) => {
+    if (!messages.length) return null;
+
     setIsTyping(true);
     
     try {
-      const result = await openAIService.generateResponse(messages, profile?.family_id || undefined, conversationType);
+      // Fetch personality profile if user exists and it's not a personality quiz
+      let personalityProfile = null;
+      if (user && conversationType !== 'personality-quiz') {
+        personalityProfile = await personalityService.getPersonalityProfile(user.id);
+      }
+
+      const result = await openAIService.generateResponse(
+        messages, 
+        conversationType,
+        personalityProfile
+      );
+      
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get response. Please try again.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      console.error('Failed to generate response:', error);
       return null;
     } finally {
       setIsTyping(false);

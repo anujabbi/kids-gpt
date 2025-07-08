@@ -1,74 +1,55 @@
 
-import { Message } from '@/types/chat';
+import { Message, PersonalityProfile } from '@/types/chat';
 import { getSystemPrompt, getPersonalityQuizSystemPrompt } from '@/utils/systemPrompts';
-import { supabase } from '@/integrations/supabase/client';
-
-export interface OpenAIResponse {
-  response: string;
-  homeworkScore?: number;
-}
+import { homeworkDetectionService } from './homeworkDetectionService';
+import { familyApiKeyService } from './familyApiKeyService';
 
 class OpenAIService {
-  private async getFamilyApiKey(familyId?: string): Promise<string | null> {
-    if (!familyId) return null;
-    
+  private async getApiKey(): Promise<string | null> {
     try {
-      const { data, error } = await supabase
-        .from('families')
-        .select('openai_api_key')
-        .eq('id', familyId)
-        .single();
-
-      if (error || !data?.openai_api_key) {
-        console.log('No family API key found, falling back to default');
-        return null;
+      const familyApiKey = await familyApiKeyService.getFamilyApiKey();
+      if (familyApiKey) {
+        return familyApiKey;
       }
-
-      return data.openai_api_key;
     } catch (error) {
-      console.error('Failed to fetch family API key:', error);
-      return null;
+      console.error('Failed to get family API key:', error);
     }
+    return null;
   }
 
   async generateResponse(
     messages: Message[], 
-    familyId?: string, 
-    conversationType: 'regular' | 'personality-quiz' = 'regular'
-  ): Promise<OpenAIResponse> {
+    conversationType: 'regular' | 'personality-quiz' = 'regular',
+    personalityProfile?: PersonalityProfile | null
+  ): Promise<{ response: string; homeworkScore?: number } | null> {
+    const apiKey = await this.getApiKey();
+    
+    if (!apiKey) {
+      console.error('No OpenAI API key available');
+      return {
+        response: "I'm sorry, but I need an OpenAI API key to help you. Please ask a parent to set up the API key in the settings."
+      };
+    }
+
     try {
-      // Get API key (family key takes precedence)
-      const familyApiKey = await this.getFamilyApiKey(familyId);
-      const apiKey = familyApiKey || import.meta.env.VITE_OPENAI_API_KEY;
-
-      if (!apiKey) {
-        throw new Error('OpenAI API key not configured. Please set up your API key in family settings.');
-      }
-
-      // Get user profile for personalized system prompt
-      const { data: { user } } = await supabase.auth.getUser();
-      let userName = '';
+      const lastMessage = messages[messages.length - 1];
       
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-        
-        userName = profile?.full_name || '';
+      // Check for homework misuse
+      const homeworkScore = await homeworkDetectionService.analyzeMessage(lastMessage.content);
+      
+      // Get appropriate system prompt
+      let systemPrompt: string;
+      if (conversationType === 'personality-quiz') {
+        systemPrompt = getPersonalityQuizSystemPrompt();
+      } else {
+        systemPrompt = getSystemPrompt(undefined, personalityProfile);
       }
 
-      // Choose system prompt based on conversation type
-      const systemPrompt = conversationType === 'personality-quiz' 
-        ? getPersonalityQuizSystemPrompt(userName)
-        : getSystemPrompt(userName);
-
-      // Convert messages to OpenAI format
+      // Prepare messages for OpenAI
       const openAIMessages = [
-        { role: 'system' as const, content: systemPrompt },
+        { role: 'system', content: systemPrompt },
         ...messages.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
+          role: msg.role === 'user' ? 'user' : 'assistant',
           content: msg.content
         }))
       ];
@@ -88,32 +69,21 @@ class OpenAIService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OpenAI API error:', errorText);
         throw new Error(`OpenAI API error: ${response.status}`);
       }
 
       const data = await response.json();
-      const assistantResponse = data.choices[0].message.content;
-
-      // Only check for homework in regular conversations
-      let homeworkScore;
-      if (conversationType === 'regular') {
-        // Simple homework detection placeholder - can be enhanced later
-        const homeworkKeywords = ['homework', 'assignment', 'test', 'exam', 'quiz'];
-        const hasHomeworkKeywords = homeworkKeywords.some(keyword => 
-          messages[messages.length - 1]?.content.toLowerCase().includes(keyword)
-        );
-        homeworkScore = hasHomeworkKeywords ? 0.8 : 0.1;
-      }
+      const aiResponse = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
 
       return {
-        response: assistantResponse,
-        homeworkScore,
+        response: aiResponse,
+        homeworkScore: homeworkScore
       };
     } catch (error) {
-      console.error('Failed to generate response:', error);
-      throw error;
+      console.error('OpenAI API error:', error);
+      return {
+        response: "I'm sorry, I'm having trouble right now. Please try again in a moment."
+      };
     }
   }
 }
