@@ -7,6 +7,7 @@ import { familyApiKeyService } from './familyApiKeyService';
 class OpenAIService {
   private async getApiKey(): Promise<string | null> {
     try {
+      // Try to get the family API key - this might not need parameters if it uses auth context
       const familyApiKey = await familyApiKeyService.getFamilyApiKey();
       if (familyApiKey) {
         return familyApiKey;
@@ -14,7 +15,10 @@ class OpenAIService {
     } catch (error) {
       console.error('Failed to get family API key:', error);
     }
-    return null;
+    
+    // Fallback to localStorage API key if family key not available
+    const localApiKey = localStorage.getItem('openai_api_key');
+    return localApiKey;
   }
 
   async generateResponse(
