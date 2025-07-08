@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -81,6 +80,10 @@ Please answer all these questions - I can't wait to learn about the amazing pers
       const assistantMessage = createAssistantMessage(allQuestions);
       await addMessageToConversation(quizConversation.id, assistantMessage);
     }
+  };
+
+  const handleHomeClick = () => {
+    navigate('/');
   };
 
   const handleSendMessage = async (content: string, files?: FileAttachment[]) => {
@@ -224,18 +227,23 @@ Please answer all these questions - I can't wait to learn about the amazing pers
             <div className="flex items-center gap-3">
               <SidebarTrigger />
               
-              <img 
-                src="/app-icon.png" 
-                alt="KidsGPT Logo"
-                className="w-8 h-8 rounded-md object-cover"
-              />
-              
-              <h1 
-                className="text-xl font-semibold"
-                style={{ color: currentTheme.colors.text.primary }}
+              <button 
+                onClick={handleHomeClick}
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
               >
-                KidsGPT
-              </h1>
+                <img 
+                  src="/app-icon.png" 
+                  alt="KidsGPT Logo"
+                  className="w-8 h-8 rounded-md object-cover"
+                />
+                
+                <h1 
+                  className="text-xl font-semibold"
+                  style={{ color: currentTheme.colors.text.primary }}
+                >
+                  KidsGPT
+                </h1>
+              </button>
             </div>
             <AppHeader />
           </header>
