@@ -27,6 +27,9 @@ export class PersonalityService {
         learningStyle: data.learning_style || '',
         personalityTraits: (data.personality_traits as Record<string, any>) || {},
         quizSummary: data.quiz_summary || '',
+        personalityDescription: data.personality_description || '',
+        readingPreferences: data.reading_preferences || [],
+        dreamJob: data.dream_job || '',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -51,6 +54,9 @@ export class PersonalityService {
           learning_style: profile.learningStyle,
           personality_traits: profile.personalityTraits,
           quiz_summary: profile.quizSummary,
+          personality_description: profile.personalityDescription,
+          reading_preferences: profile.readingPreferences,
+          dream_job: profile.dreamJob,
           updated_at: new Date().toISOString(),
         });
 
@@ -63,57 +69,114 @@ export class PersonalityService {
   }
 
   async extractAndSaveFromQuizConversation(messages: any[]): Promise<void> {
-    // Extract personality data from quiz conversation messages
+    console.log('Extracting personality data from quiz conversation...');
+    
+    // Initialize data structures
     const interests: string[] = [];
-    const favoriteColors: string[] = [];
     const hobbies: string[] = [];
-    let learningStyle = '';
-    const personalityTraits: Record<string, any> = {};
+    const readingPreferences: string[] = [];
+    let personalityDescription = '';
+    let dreamJob = '';
     let quizSummary = '';
 
     // Find the final summary message from the assistant
     const summaryMessage = messages
       .filter(msg => msg.role === 'assistant')
       .reverse()
-      .find(msg => msg.content.toLowerCase().includes('personality') || 
-                   msg.content.toLowerCase().includes('summary') ||
-                   msg.content.toLowerCase().includes('amazing and unique'));
+      .find(msg => 
+        msg.content.toLowerCase().includes('amazing and unique') ||
+        msg.content.toLowerCase().includes('based on your answers') ||
+        (msg.content.toLowerCase().includes('personality') && msg.content.length > 200)
+      );
 
     if (summaryMessage) {
       quizSummary = summaryMessage.content;
     }
 
-    // Simple extraction logic - in a real app, you might use more sophisticated NLP
-    messages.forEach(msg => {
-      if (msg.role === 'user') {
-        const content = msg.content.toLowerCase();
-        
-        // Extract colors
-        const colorWords = ['red', 'blue', 'green', 'yellow', 'purple', 'pink', 'orange', 'black', 'white', 'rainbow'];
-        colorWords.forEach(color => {
-          if (content.includes(color) && !favoriteColors.includes(color)) {
-            favoriteColors.push(color);
-          }
-        });
+    // Extract answers to the 5 specific questions by analyzing user responses
+    const userMessages = messages.filter(msg => msg.role === 'user');
+    
+    // Question 1: Interests - look for responses after "interested in" or "spark your curiosity"
+    const interestsAnswer = this.findAnswerAfterQuestion(messages, ['interested in', 'spark your curiosity', 'excited to learn']);
+    if (interestsAnswer) {
+      interests.push(...this.extractKeywords(interestsAnswer, [
+        'science', 'math', 'art', 'music', 'sports', 'reading', 'writing', 'animals', 'nature',
+        'space', 'dinosaurs', 'cooking', 'drawing', 'painting', 'dancing', 'singing', 'games',
+        'technology', 'computers', 'history', 'geography', 'languages', 'crafts', 'building'
+      ]));
+    }
 
-        // Extract common interests/hobbies
-        const interestWords = ['reading', 'drawing', 'painting', 'soccer', 'basketball', 'swimming', 'dancing', 'singing', 'music', 'art', 'science', 'math', 'games', 'video games', 'pets', 'animals'];
-        interestWords.forEach(interest => {
-          if (content.includes(interest) && !interests.includes(interest)) {
-            interests.push(interest);
-          }
-        });
-      }
+    // Question 2: Hobbies - look for responses after "hobbies" or "free time"
+    const hobbiesAnswer = this.findAnswerAfterQuestion(messages, ['hobbies', 'free time', 'love to do']);
+    if (hobbiesAnswer) {
+      hobbies.push(...this.extractKeywords(hobbiesAnswer, [
+        'reading', 'drawing', 'painting', 'playing', 'soccer', 'basketball', 'swimming', 'dancing',
+        'singing', 'music', 'cooking', 'baking', 'gardening', 'crafts', 'building', 'puzzles',
+        'video games', 'board games', 'collecting', 'hiking', 'biking', 'skateboarding'
+      ]));
+    }
+
+    // Question 3: Personality description - look for responses after "describe you" or "kind of person"
+    const personalityAnswer = this.findAnswerAfterQuestion(messages, ['describe you', 'kind of person', 'what are you like']);
+    if (personalityAnswer) {
+      personalityDescription = personalityAnswer;
+    }
+
+    // Question 4: Reading preferences - look for responses after "read about" or "books"
+    const readingAnswer = this.findAnswerAfterQuestion(messages, ['read about', 'types of books', 'stories']);
+    if (readingAnswer) {
+      readingPreferences.push(...this.extractKeywords(readingAnswer, [
+        'adventure', 'mystery', 'fantasy', 'science fiction', 'animals', 'nature', 'history',
+        'biography', 'comic books', 'graphic novels', 'poetry', 'fairy tales', 'humor', 'sports',
+        'science', 'art', 'music', 'cooking', 'travel', 'friendship', 'family'
+      ]));
+    }
+
+    // Question 5: Dream job - look for responses after "dream job" or "when you grow up"
+    const dreamJobAnswer = this.findAnswerAfterQuestion(messages, ['dream job', 'when you grow up', 'want to be']);
+    if (dreamJobAnswer) {
+      dreamJob = dreamJobAnswer;
+    }
+
+    console.log('Extracted personality data:', {
+      interests,
+      hobbies,
+      personalityDescription,
+      readingPreferences,
+      dreamJob,
+      quizSummary: quizSummary ? 'Found' : 'Not found'
     });
 
     await this.savePersonalityProfile({
       interests,
-      favoriteColors,
       hobbies,
-      learningStyle,
-      personalityTraits,
+      personalityDescription,
+      readingPreferences,
+      dreamJob,
       quizSummary,
     });
+  }
+
+  private findAnswerAfterQuestion(messages: any[], questionKeywords: string[]): string {
+    for (let i = 0; i < messages.length - 1; i++) {
+      const currentMessage = messages[i];
+      const nextMessage = messages[i + 1];
+      
+      if (currentMessage.role === 'assistant' && nextMessage.role === 'user') {
+        const questionText = currentMessage.content.toLowerCase();
+        const hasKeyword = questionKeywords.some(keyword => questionText.includes(keyword));
+        
+        if (hasKeyword) {
+          return nextMessage.content;
+        }
+      }
+    }
+    return '';
+  }
+
+  private extractKeywords(text: string, keywords: string[]): string[] {
+    const lowerText = text.toLowerCase();
+    return keywords.filter(keyword => lowerText.includes(keyword));
   }
 }
 

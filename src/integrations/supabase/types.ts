@@ -183,37 +183,46 @@ export type Database = {
       personality_profiles: {
         Row: {
           created_at: string
+          dream_job: string | null
           favorite_colors: string[] | null
           hobbies: string[] | null
           id: string
           interests: string[] | null
           learning_style: string | null
+          personality_description: string | null
           personality_traits: Json | null
           quiz_summary: string | null
+          reading_preferences: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          dream_job?: string | null
           favorite_colors?: string[] | null
           hobbies?: string[] | null
           id?: string
           interests?: string[] | null
           learning_style?: string | null
+          personality_description?: string | null
           personality_traits?: Json | null
           quiz_summary?: string | null
+          reading_preferences?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          dream_job?: string | null
           favorite_colors?: string[] | null
           hobbies?: string[] | null
           id?: string
           interests?: string[] | null
           learning_style?: string | null
+          personality_description?: string | null
           personality_traits?: Json | null
           quiz_summary?: string | null
+          reading_preferences?: string[] | null
           updated_at?: string
           user_id?: string
         }

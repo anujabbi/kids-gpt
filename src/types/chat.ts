@@ -1,11 +1,21 @@
 
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  attachments?: FileAttachment[];
+  generatedImage?: GeneratedImage;
+  homeworkMisuseScore?: number;
+}
+
 export interface FileAttachment {
   id: string;
   name: string;
-  type: string;
   size: number;
+  type: string;
   url: string;
-  previewUrl?: string;
+  uploadProgress?: number;
 }
 
 export interface GeneratedImage {
@@ -15,14 +25,22 @@ export interface GeneratedImage {
   timestamp: Date;
 }
 
-export interface Message {
+export interface Conversation {
   id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-  attachments?: FileAttachment[];
-  generatedImage?: GeneratedImage;
-  homeworkMisuseScore?: number;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  folderId?: string;
+  type?: 'regular' | 'personality-quiz';
+}
+
+export interface ConversationFolder {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: Date;
 }
 
 export interface PersonalityProfile {
@@ -34,28 +52,21 @@ export interface PersonalityProfile {
   learningStyle: string;
   personalityTraits: Record<string, any>;
   quizSummary: string;
+  personalityDescription: string;
+  readingPreferences: string[];
+  dreamJob: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface Conversation {
-  id: string;
-  title: string;
-  timestamp: Date;
-  messages: Message[];
-  folderId?: string;
-  userId?: string;
-  type?: 'regular' | 'personality-quiz';
-  child?: {
-    id: string;
-    full_name: string;
-    profile_image_type: string;
-    custom_profile_image_url?: string;
-  };
+export interface ImageGenerationRequest {
+  prompt: string;
+  size?: '1024x1024' | '1792x1024' | '1024x1792';
+  quality?: 'standard' | 'hd';
+  style?: 'vivid' | 'natural';
 }
 
-export interface Folder {
-  id: string;
-  name: string;
-  timestamp: Date;
+export interface ImageGenerationResult {
+  url: string;
+  prompt: string;
 }

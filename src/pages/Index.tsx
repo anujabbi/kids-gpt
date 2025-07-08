@@ -113,13 +113,21 @@ const Index = () => {
         const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
         await addMessageToConversation(currentConv.id, assistantMessage);
         
-        // If this was a personality quiz conversation and it seems complete, extract personality data
-        if (currentConv.type === 'personality-quiz' && 
-            result.response.toLowerCase().includes('personality') && 
-            result.response.toLowerCase().includes('amazing and unique')) {
-          // Import personality service dynamically to avoid circular dependencies
-          const { personalityService } = await import('@/services/personalityService');
-          await personalityService.extractAndSaveFromQuizConversation([...allMessages, assistantMessage]);
+        // Enhanced personality quiz completion detection
+        if (currentConv.type === 'personality-quiz') {
+          const response = result.response.toLowerCase();
+          const isQuizComplete = (
+            (response.includes('amazing and unique') && response.includes('based on your answers')) ||
+            (response.includes('personality') && response.includes('summary') && response.length > 200) ||
+            (response.includes('what makes you') && response.includes('special') && response.length > 150)
+          );
+          
+          if (isQuizComplete) {
+            console.log('Quiz appears to be complete, extracting personality data...');
+            // Import personality service dynamically to avoid circular dependencies
+            const { personalityService } = await import('@/services/personalityService');
+            await personalityService.extractAndSaveFromQuizConversation([...allMessages, assistantMessage]);
+          }
         }
       }
     }
