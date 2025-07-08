@@ -56,13 +56,6 @@ const Index = () => {
     const quizConversation = await createNewConversation(undefined, 'personality-quiz');
     if (quizConversation) {
       setActiveConversation(quizConversation.id);
-      
-      // Automatically send the initial quiz message to start the quiz
-      const initialQuizMessage = "Hi! I'd love to get to know you better so I can personalize your experience! Let's start with a fun question - what's your favorite color and why do you like it? 🌈";
-      
-      // Add the AI's initial message to start the quiz
-      const assistantMessage = createAssistantMessage(initialQuizMessage);
-      await addMessageToConversation(quizConversation.id, assistantMessage);
     }
   };
 
