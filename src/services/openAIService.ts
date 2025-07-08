@@ -1,7 +1,7 @@
 
 import { Message, PersonalityProfile } from '@/types/chat';
 import { getSystemPrompt, getPersonalityQuizSystemPrompt } from '@/utils/systemPrompts';
-import { homeworkDetectionService } from './homeworkDetectionService';
+import { analyzeHomeworkMisuse } from './homeworkDetectionService';
 import { familyApiKeyService } from './familyApiKeyService';
 
 class OpenAIService {
@@ -33,9 +33,6 @@ class OpenAIService {
 
     try {
       const lastMessage = messages[messages.length - 1];
-      
-      // Check for homework misuse
-      const homeworkScore = await homeworkDetectionService.analyzeMessage(lastMessage.content);
       
       // Get appropriate system prompt
       let systemPrompt: string;
@@ -74,6 +71,12 @@ class OpenAIService {
 
       const data = await response.json();
       const aiResponse = data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
+
+      // Check for homework misuse after getting the AI response
+      let homeworkScore: number | undefined;
+      if (conversationType === 'regular') {
+        homeworkScore = await analyzeHomeworkMisuse(lastMessage.content, aiResponse);
+      }
 
       return {
         response: aiResponse,
