@@ -1,3 +1,4 @@
+
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -257,24 +258,8 @@ Please answer all these questions - I can't wait to learn about the amazing pers
                     I'm here to help you learn, create, and have fun! What would you like to explore?
                   </p>
                   
-                  {/* Personality Quiz Button */}
-                  <div className="mb-8">
-                    <Button
-                      onClick={handlePersonalityQuiz}
-                      size="lg"
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-12 py-4 rounded-full text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
-                    >
-                      🌟 Personalize
-                    </Button>
-                    <p 
-                      className="text-sm mt-2"
-                      style={{ color: currentTheme.colors.text.secondary }}
-                    >
-                      Take a fun quiz to get personalized recommendations!
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
+                  {/* Suggestion buttons */}
+                  <div className="grid grid-cols-3 gap-3 mb-8">
                     {[
                       "🦕 Cool dinosaur facts",
                       "🎨 Draw a magical castle",
@@ -297,6 +282,23 @@ Please answer all these questions - I can't wait to learn about the amazing pers
                         <span className="block w-full">{suggestion}</span>
                       </Button>
                     ))}
+                  </div>
+
+                  {/* Personality Quiz Button - moved below and made smaller */}
+                  <div className="mt-6">
+                    <Button
+                      onClick={handlePersonalityQuiz}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium px-6 py-2 rounded-full text-sm shadow-md transform hover:scale-105 transition-all duration-200"
+                    >
+                      🌟 Personalize
+                    </Button>
+                    <p 
+                      className="text-xs mt-2"
+                      style={{ color: currentTheme.colors.text.secondary }}
+                    >
+                      Take a fun quiz to get personalized recommendations!
+                    </p>
                   </div>
                 </div>
               </ThemedComponent>
