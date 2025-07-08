@@ -16,6 +16,7 @@ export interface FileAttachment {
   type: string;
   url: string;
   uploadProgress?: number;
+  previewUrl?: string;
 }
 
 export interface GeneratedImage {
@@ -34,6 +35,7 @@ export interface Conversation {
   userId: string;
   folderId?: string;
   type?: 'regular' | 'personality-quiz';
+  timestamp: Date;
 }
 
 export interface ConversationFolder {
@@ -41,6 +43,13 @@ export interface ConversationFolder {
   name: string;
   userId: string;
   createdAt: Date;
+}
+
+// Re-export as Folder for backward compatibility
+export interface Folder {
+  id: string;
+  name: string;
+  timestamp: Date;
 }
 
 export interface PersonalityProfile {

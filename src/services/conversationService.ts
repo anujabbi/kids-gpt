@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Conversation, Folder, Message } from '@/types/chat';
 
@@ -33,9 +32,12 @@ export class ConversationService {
         generatedImage: msg.generated_image as any,
         homeworkMisuseScore: msg.homework_misuse_score,
       })) || [],
-      timestamp: new Date(conv.created_at),
+      createdAt: new Date(conv.created_at),
+      updatedAt: new Date(conv.updated_at),
+      userId: conv.user_id,
       folderId: conv.folder_id || undefined,
       type: (conv.type as 'regular' | 'personality-quiz') || 'regular',
+      timestamp: new Date(conv.created_at),
     }));
   }
 
@@ -98,10 +100,12 @@ export class ConversationService {
         generatedImage: msg.generated_image as any,
         homeworkMisuseScore: msg.homework_misuse_score,
       })) || [],
-      timestamp: new Date(conv.created_at),
+      createdAt: new Date(conv.created_at),
+      updatedAt: new Date(conv.updated_at),
+      userId: conv.user_id,
       folderId: conv.folder_id || undefined,
       type: (conv.type as 'regular' | 'personality-quiz') || 'regular',
-      userId: conv.user_id,
+      timestamp: new Date(conv.created_at),
     }));
 
     return { 
@@ -158,9 +162,12 @@ export class ConversationService {
       id: data.id,
       title: data.title,
       messages: [],
-      timestamp: new Date(data.created_at),
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+      userId: data.user_id,
       folderId: data.folder_id || undefined,
       type: (data.type as 'regular' | 'personality-quiz') || 'regular',
+      timestamp: new Date(data.created_at),
     };
   }
 
