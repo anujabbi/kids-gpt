@@ -21,7 +21,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div 
-      className={`flex gap-4 p-6`}
+      className="flex gap-4 p-6"
       style={{ 
         backgroundColor: isUser ? 'transparent' : currentTheme.colors.surface 
       }}
@@ -42,7 +42,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex-1 space-y-2">
+      <div className="flex-1 space-y-2 text-left">
         <div 
           className="text-sm font-medium"
           style={{ color: currentTheme.colors.text.primary }}
