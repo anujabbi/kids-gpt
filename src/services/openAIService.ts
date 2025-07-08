@@ -3,14 +3,26 @@ import { Message, PersonalityProfile } from '@/types/chat';
 import { getSystemPrompt, getPersonalityQuizSystemPrompt } from '@/utils/systemPrompts';
 import { analyzeHomeworkMisuse } from './homeworkDetectionService';
 import { familyApiKeyService } from './familyApiKeyService';
+import { supabase } from '@/integrations/supabase/client';
 
 class OpenAIService {
   private async getApiKey(): Promise<string | null> {
     try {
-      // Try to get the family API key - this might not need parameters if it uses auth context
-      const familyApiKey = await familyApiKeyService.getFamilyApiKey();
-      if (familyApiKey) {
-        return familyApiKey;
+      // Get current user's family_id from their profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('family_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.family_id) {
+          const familyApiKey = await familyApiKeyService.getFamilyApiKey(profile.family_id);
+          if (familyApiKey) {
+            return familyApiKey;
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to get family API key:', error);
