@@ -115,4 +115,4 @@ class OpenAIService {
   }
 }
 
-export const openAIService = new OpenAI Service();
+export const openAIService = new OpenAIService();
