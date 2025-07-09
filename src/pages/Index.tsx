@@ -17,6 +17,7 @@ import { createUserMessage, createAssistantMessage } from "@/utils/messageUtils"
 import { detectImageRequest } from "@/utils/imageDetectionUtils";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { generatePersonalizedSuggestions, getDefaultSuggestions } from "@/utils/personalizedSuggestions";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
