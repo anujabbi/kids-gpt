@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -16,6 +16,7 @@ import { useOpenAI } from "@/hooks/useOpenAI";
 import { createUserMessage, createAssistantMessage } from "@/utils/messageUtils";
 import { detectImageRequest } from "@/utils/imageDetectionUtils";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
+import { generatePersonalizedSuggestions, getDefaultSuggestions } from "@/utils/personalizedSuggestions";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -40,6 +41,10 @@ const Index = () => {
   const { generateResponse, isTyping } = useOpenAI();
   const { generateImage, isGenerating } = useImageGeneration();
 
+  // Add personality profile state
+  const [personalizedSuggestions, setPersonalizedSuggestions] = useState<string[]>([]);
+  const [hasPersonalityProfile, setHasPersonalityProfile] = useState(false);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -47,6 +52,25 @@ const Index = () => {
   useEffect(() => {
     scrollToBottom();
   }, [conversations, activeConversation]);
+
+  // Load personalized suggestions when component mounts
+  useEffect(() => {
+    const loadPersonalizedSuggestions = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { personalityService } = await import('@/services/personalityService');
+        const profile = await personalityService.getPersonalityProfile(user.id);
+        
+        if (profile && (profile.interests.length > 0 || profile.hobbies.length > 0 || profile.readingPreferences.length > 0 || profile.dreamJob)) {
+          const suggestions = generatePersonalizedSuggestions(profile);
+          setPersonalizedSuggestions(suggestions);
+          setHasPersonalityProfile(true);
+        }
+      }
+    };
+
+    loadPersonalizedSuggestions();
+  }, []);
 
   const handleNewChat = (folderId?: string) => {
     createNewConversation(folderId);
@@ -183,6 +207,7 @@ I'll ask you some fun questions to get to know the amazing person you are. After
   };
 
   const currentMessages = getCurrentConversation()?.messages || [];
+  const suggestionsToShow = hasPersonalityProfile ? personalizedSuggestions : getDefaultSuggestions();
 
   if (loading) {
     return (
@@ -261,16 +286,17 @@ I'll ask you some fun questions to get to know the amazing person you are. After
                     I'm here to help you learn, create, and have fun! What would you like to explore?
                   </p>
                   
+                  {hasPersonalityProfile && (
+                    <div className="mb-4">
+                      <span className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 border border-purple-200">
+                        ✨ Personalized suggestions just for you!
+                      </span>
+                    </div>
+                  )}
+                  
                   {/* Suggestion buttons */}
                   <div className="grid grid-cols-3 gap-3 mb-8">
-                    {[
-                      "🦕 Cool dinosaur facts",
-                      "🎨 Draw a magical castle",
-                      "🧮 Fun math games",
-                      "🧠 Fun quiz",
-                      "🌍 Learn about countries",
-                      "🎨 Create coloring page"
-                    ].map((suggestion, index) => (
+                    {suggestionsToShow.map((suggestion, index) => (
                       <Button
                         key={index}
                         variant="outline"
