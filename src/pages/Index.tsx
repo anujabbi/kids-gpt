@@ -57,27 +57,18 @@ const Index = () => {
     if (quizConversation) {
       setActiveConversation(quizConversation.id);
       
-      // Send all 5 personality quiz questions at once
-      const allQuestions = `Hello! I'm so excited to get to know you better! 🌟 I'd love to learn about what makes you unique and special. Please answer these 5 questions, and feel free to take your time with each one:
+      // Start with an engaging introduction and first question
+      const introMessage = `Hello! I'm so excited to learn about you! 🌟 
 
-**1. What are you interested in?** 🌟
-What topics, activities, or subjects make you excited to learn more? Tell me about all the things that spark your curiosity!
+I'll ask you some fun questions to get to know the amazing person you are. After each question, you can choose to answer another one or tell me you're ready to learn what makes you special!
 
-**2. What are your hobbies?** 🎨
-What do you love to do in your free time? What activities make you happiest?
+**Ready for your first question?** 
 
-**3. How do you think people would describe you?** 😊
-What kind of person are you? Are you funny, creative, helpful, adventurous, or something else?
+🎯 **Question 1:** What are you most interested in? What topics, activities, or subjects make you excited to learn more? Tell me about all the things that spark your curiosity!
 
-**4. What do you like to read about?** 📚
-What types of books, stories, or topics catch your attention when you're reading?
-
-**5. What is your dream job?** 🚀
-What would you love to do when you grow up? What sounds like the most amazing job to you?
-
-Please answer all these questions - I can't wait to learn about the amazing person you are! 💫`;
+*After you answer, just let me know if you'd like another question or if you're ready for me to tell you what makes you amazing!* ✨`;
       
-      const assistantMessage = createAssistantMessage(allQuestions);
+      const assistantMessage = createAssistantMessage(introMessage);
       await addMessageToConversation(quizConversation.id, assistantMessage);
     }
   };
@@ -133,20 +124,24 @@ Please answer all these questions - I can't wait to learn about the amazing pers
         const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
         await addMessageToConversation(currentConv.id, assistantMessage);
         
-        // Enhanced personality quiz completion detection
+        // Enhanced personality quiz completion detection for sequential quiz
         if (currentConv.type === 'personality-quiz') {
           const response = result.response.toLowerCase();
+          
+          // Check for quiz completion indicators
           const isQuizComplete = (
             (response.includes('amazing and unique') && response.includes('based on your answers')) ||
             (response.includes('personality') && response.includes('summary') && response.length > 200) ||
-            (response.includes('what makes you') && response.includes('special') && response.length > 150)
+            (response.includes('what makes you') && response.includes('special') && response.length > 150) ||
+            (response.includes('here\'s what i learned about you') && response.length > 100) ||
+            (response.includes('you are someone who') && response.includes('based on') && response.length > 150)
           );
           
           if (isQuizComplete) {
-            console.log('Quiz appears to be complete, extracting personality data...');
+            console.log('Sequential quiz appears to be complete, extracting personality data...');
             // Import personality service dynamically to avoid circular dependencies
             const { personalityService } = await import('@/services/personalityService');
-            await personalityService.extractAndSaveFromQuizConversation([...allMessages, assistantMessage]);
+            await personalityService.extractAndSaveFromSequentialQuiz([...allMessages, assistantMessage]);
           }
         }
       }

@@ -53,7 +53,9 @@ class OpenAIService {
       // Get appropriate system prompt
       let systemPrompt: string;
       if (conversationType === 'personality-quiz') {
-        systemPrompt = getPersonalityQuizSystemPrompt();
+        // For sequential quiz, we can try to determine question number from context
+        const quizQuestionNumber = this.estimateQuizProgress(messages);
+        systemPrompt = getPersonalityQuizSystemPrompt(undefined, quizQuestionNumber, 10);
       } else {
         systemPrompt = getSystemPrompt(undefined, personalityProfile);
       }
@@ -105,6 +107,12 @@ class OpenAIService {
       };
     }
   }
+
+  private estimateQuizProgress(messages: Message[]): number {
+    // Count user responses to estimate which question we're on
+    const userResponses = messages.filter(msg => msg.role === 'user').length;
+    return Math.min(userResponses + 1, 10); // Cap at 10 questions
+  }
 }
 
-export const openAIService = new OpenAIService();
+export const openAIService = new OpenAI Service();

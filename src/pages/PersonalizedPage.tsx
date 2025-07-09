@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PersonalityProfile } from '@/types/chat';
 import { personalityService } from '@/services/personalityService';
-import { Heart, Star, Palette, BookOpen, Trophy, Sparkles, Target, Users, Lightbulb, Rocket } from 'lucide-react';
+import { Heart, Star, Palette, BookOpen, Trophy, Sparkles, Target, Users, Lightbulb, Rocket, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const PersonalizedPage = () => {
@@ -17,21 +16,28 @@ const PersonalizedPage = () => {
   const navigate = useNavigate();
   const [personalityProfile, setPersonalityProfile] = useState<PersonalityProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadPersonalityProfile = async () => {
+    if (user) {
+      const profile = await personalityService.getPersonalityProfile(user.id);
+      setPersonalityProfile(profile);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const loadPersonalityProfile = async () => {
-      if (user) {
-        const profile = await personalityService.getPersonalityProfile(user.id);
-        setPersonalityProfile(profile);
-      }
-      setLoading(false);
-    };
-
     loadPersonalityProfile();
   }, [user]);
 
   const handleTakeQuiz = () => {
     navigate('/');
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadPersonalityProfile();
+    setRefreshing(false);
   };
 
   const getInterestActivities = (interests: string[]) => {
@@ -118,14 +124,14 @@ const PersonalizedPage = () => {
               className="text-lg mb-8"
               style={{ color: currentTheme.colors.text.secondary }}
             >
-              Take our fun personality quiz to unlock your personalized experience!
+              Take our fun personality quiz to unlock your personalized experience! I'll ask you questions one at a time, and you can stop whenever you're ready.
             </p>
             <Button 
               onClick={handleTakeQuiz}
               size="lg"
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-3 rounded-full"
             >
-              🌟 Take Personality Quiz
+              🌟 Start Personality Quiz
             </Button>
           </div>
 
@@ -187,11 +193,22 @@ const PersonalizedPage = () => {
             {userName}'s Personal Page
           </h1>
           <p 
-            className="text-lg"
+            className="text-lg mb-4"
             style={{ color: currentTheme.colors.text.secondary }}
           >
             Here's what makes you special! ✨
           </p>
+          
+          <Button 
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            disabled={refreshing}
+            className="mb-4"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Updating...' : 'Refresh Profile'}
+          </Button>
         </div>
 
         {personalityProfile.quizSummary && (
@@ -402,7 +419,7 @@ const PersonalizedPage = () => {
             onClick={handleTakeQuiz}
             variant="outline"
           >
-            🔄 Retake Personality Quiz
+            🔄 Take Quiz Again
           </Button>
         </div>
       </div>
