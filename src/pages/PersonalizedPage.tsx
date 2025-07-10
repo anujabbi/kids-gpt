@@ -40,6 +40,36 @@ const PersonalizedPage = () => {
     setRefreshing(false);
   };
 
+  const handleReprocessQuiz = async () => {
+    if (!user) return;
+    setRefreshing(true);
+    
+    try {
+      // Find the most recent personality quiz conversation
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('type', 'personality-quiz')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (conversations && conversations.length > 0) {
+        console.log('Reprocessing quiz conversation...');
+        await personalityService.reprocessExistingQuiz(conversations[0].id);
+        await loadPersonalityProfile();
+        console.log('Quiz reprocessed successfully!');
+      } else {
+        console.log('No quiz conversation found');
+      }
+    } catch (error) {
+      console.error('Failed to reprocess quiz:', error);
+    }
+    
+    setRefreshing(false);
+  };
+
   const getInterestActivities = (interests: string[]) => {
     const activities = [];
     if (interests.includes('science')) activities.push('🔬 Try virtual science experiments');
@@ -199,16 +229,26 @@ const PersonalizedPage = () => {
             Here's what makes you special! ✨
           </p>
           
-          <Button 
-            onClick={handleRefresh}
-            variant="outline"
-            size="sm"
-            disabled={refreshing}
-            className="mb-4"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Updating...' : 'Refresh Profile'}
-          </Button>
+          <div className="flex gap-2 justify-center">
+            <Button 
+              onClick={handleRefresh}
+              variant="outline"
+              size="sm"
+              disabled={refreshing}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Updating...' : 'Refresh Profile'}
+            </Button>
+            
+            <Button 
+              onClick={handleReprocessQuiz}
+              variant="outline"
+              size="sm"
+              disabled={refreshing}
+            >
+              🔧 Fix Profile
+            </Button>
+          </div>
         </div>
 
         {personalityProfile.quizSummary && (

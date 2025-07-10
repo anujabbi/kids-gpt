@@ -70,7 +70,11 @@ export class PersonalityService {
   }
 
   async extractAndSaveFromSequentialQuiz(messages: any[]): Promise<void> {
-    console.log('Extracting personality data from sequential quiz conversation...');
+    console.log('Extracting personality data from sequential quiz conversation...', {
+      messageCount: messages.length,
+      userMessages: messages.filter(msg => msg.role === 'user').length,
+      assistantMessages: messages.filter(msg => msg.role === 'assistant').length
+    });
     
     // Initialize data structures
     const interests: string[] = [];
@@ -96,6 +100,8 @@ export class PersonalityService {
         );
       });
 
+    console.log('Found summary message:', !!summaryMessage);
+
     if (summaryMessage) {
       quizSummary = summaryMessage.content;
     }
@@ -112,7 +118,7 @@ export class PersonalityService {
       
       // Find the assistant message that came before this user response
       const precedingAssistant = assistantMessages.find(msg => 
-        new Date(msg.timestamp) < new Date(userMessages[i].timestamp)
+        new Date(msg.created_at || msg.timestamp) < new Date(userMessages[i].created_at || userMessages[i].timestamp)
       );
       
       if (precedingAssistant) {
@@ -124,7 +130,8 @@ export class PersonalityService {
             'science', 'math', 'art', 'music', 'sports', 'reading', 'writing', 'animals', 'nature',
             'space', 'dinosaurs', 'cooking', 'drawing', 'painting', 'dancing', 'singing', 'games',
             'technology', 'computers', 'history', 'geography', 'languages', 'crafts', 'building',
-            'robots', 'coding', 'movies', 'books', 'stories', 'adventure', 'mystery'
+            'robots', 'coding', 'movies', 'books', 'stories', 'adventure', 'mystery', 'gardening',
+            'plants', 'flowers', 'garden'
           ]));
         }
         
@@ -192,6 +199,35 @@ export class PersonalityService {
 
   async extractAndSaveFromQuizConversation(messages: any[]): Promise<void> {
     return this.extractAndSaveFromSequentialQuiz(messages);
+  }
+
+  async reprocessExistingQuiz(conversationId: string): Promise<void> {
+    try {
+      console.log('Reprocessing quiz conversation:', conversationId);
+      
+      // Fetch conversation messages
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Failed to fetch conversation messages:', error);
+        return;
+      }
+
+      if (!messages || messages.length === 0) {
+        console.log('No messages found for conversation');
+        return;
+      }
+
+      console.log(`Found ${messages.length} messages, reprocessing...`);
+      await this.extractAndSaveFromSequentialQuiz(messages);
+      console.log('Quiz reprocessing complete');
+    } catch (error) {
+      console.error('Failed to reprocess quiz:', error);
+    }
   }
 
   private extractKeywords(text: string, keywords: string[]): string[] {
