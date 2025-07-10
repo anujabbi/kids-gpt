@@ -57,6 +57,8 @@ export class PersonalityService {
           reading_preferences: profile.readingPreferences,
           dream_job: profile.dreamJob,
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) {
