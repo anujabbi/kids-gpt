@@ -13,7 +13,8 @@ export class ConversationService {
         messages (*)
       `)
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: true, foreignTable: 'messages' });
 
     if (error) {
       console.error('Failed to load conversations:', error);
@@ -81,7 +82,8 @@ export class ConversationService {
         messages (*)
       `)
       .in('user_id', childIds)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: true, foreignTable: 'messages' });
 
     if (conversationsError) {
       console.error('Failed to load children conversations:', conversationsError);
