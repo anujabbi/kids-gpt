@@ -229,26 +229,6 @@ const PersonalizedPage = () => {
             Here's what makes you special! ✨
           </p>
           
-          <div className="flex gap-2 justify-center">
-            <Button 
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              disabled={refreshing}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Updating...' : 'Refresh Profile'}
-            </Button>
-            
-            <Button 
-              onClick={handleReprocessQuiz}
-              variant="outline"
-              size="sm"
-              disabled={refreshing}
-            >
-              🔧 Fix Profile
-            </Button>
-          </div>
         </div>
 
         {personalityProfile.quizSummary && (
