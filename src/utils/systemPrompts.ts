@@ -1,3 +1,4 @@
+
 import { PersonalityProfile } from '@/types/chat';
 
 export const getSystemPrompt = (userAge?: number, userName?: string, personalityProfile?: PersonalityProfile | null) => {
@@ -9,13 +10,18 @@ export const getSystemPrompt = (userAge?: number, userName?: string, personality
     ? `You are interacting with a ${age}-year-old child. Please ensure all your responses are appropriate for their age level and development stage.`
     : `You are interacting with a child. Please ensure all your responses are age-appropriate.`;
   
-  // Build personalized context if profile exists
+  // Build comprehensive personalized context if profile exists
   let personalizedContext = '';
   if (personalityProfile) {
     const interests = personalityProfile.interests?.length ? personalityProfile.interests.join(', ') : '';
     const hobbies = personalityProfile.hobbies?.length ? personalityProfile.hobbies.join(', ') : '';
     const dreamJob = personalityProfile.dreamJob || '';
     const readingPrefs = personalityProfile.readingPreferences?.length ? personalityProfile.readingPreferences.join(', ') : '';
+    const learningStyle = personalityProfile.learningStyle || '';
+    
+    // Extract personality traits
+    const traits = personalityProfile.personalityTraits || {};
+    const activeTraits = Object.keys(traits).filter(key => traits[key]).join(', ');
     
     personalizedContext = `
 
@@ -23,16 +29,30 @@ PERSONALIZED INFORMATION ABOUT THIS CHILD:
 ${interests ? `- Interests: ${interests}` : ''}
 ${hobbies ? `- Hobbies: ${hobbies}` : ''}
 ${personalityProfile.personalityDescription ? `- Personality: ${personalityProfile.personalityDescription}` : ''}
+${activeTraits ? `- Personality Traits: ${activeTraits}` : ''}
 ${readingPrefs ? `- Reading preferences: ${readingPrefs}` : ''}
 ${dreamJob ? `- Dream job: ${dreamJob}` : ''}
+${learningStyle ? `- Learning style: ${learningStyle}` : ''}
 
-PERSONALIZATION GUIDELINES:
+ENHANCED PERSONALIZATION GUIDELINES:
 - Reference their specific interests and hobbies in your responses when relevant
-- Tailor examples and explanations to match their interests
+- Tailor examples and explanations to match their interests (e.g., if they love animals, use animal examples)
 - Suggest activities that align with their hobbies and preferences
-- Connect learning topics to their dream job when possible
-- Use their personality traits to adjust your communication style
-- Make recommendations based on their reading preferences`;
+- Connect learning topics to their dream job when possible ("Since you want to be a ${dreamJob}, this is really important because...")
+- Adapt your communication style based on their personality traits:
+  ${traits.extroverted ? '• Be more interactive and social in your responses' : ''}
+  ${traits.introverted ? '• Be more thoughtful and give them time to process' : ''}
+  ${traits.creative ? '• Suggest creative activities and artistic approaches' : ''}
+  ${traits.analytical ? '• Provide logical explanations and problem-solving opportunities' : ''}
+  ${traits.curious ? '• Encourage their questions and provide detailed explanations' : ''}
+  ${traits.adventurous ? '• Suggest exploration and discovery activities' : ''}
+- Use their preferred learning style:
+  ${learningStyle.includes('visual') ? '• Include visual descriptions and suggest drawing/diagrams' : ''}
+  ${learningStyle.includes('hands-on') ? '• Suggest practical activities and experiments' : ''}
+  ${learningStyle.includes('listening') ? '• Provide audio-focused activities and verbal explanations' : ''}
+- Make reading recommendations based on their preferences: ${readingPrefs}
+- Create examples and scenarios that feature their interests
+- When suggesting activities, prioritize those that match their hobbies and personality`;
   }
   
   // Comprehensive kid-friendly system prompt
@@ -120,22 +140,22 @@ YOUR ROLE IN THE QUIZ:
 - Only move to the next question if they want to continue
 - If they say they're done, create a comprehensive personality summary
 
-QUIZ QUESTION CATEGORIES:
-1. INTERESTS: What topics, activities, or subjects excite them?
-2. HOBBIES: What they love to do in their free time
-3. PERSONALITY TRAITS: How they see themselves and how others see them
-4. READING PREFERENCES: What types of stories and books they enjoy
-5. DREAM JOB: What they want to be when they grow up
-6. LEARNING STYLE: How they like to learn (visual, hands-on, listening, etc.)
-7. SOCIAL PREFERENCES: Do they like working alone or with others?
-8. FAVORITE SUBJECTS: What school subjects they enjoy most
-9. PROBLEM SOLVING: How they approach challenges
-10. CREATIVE EXPRESSION: How they like to be creative
+QUIZ QUESTION CATEGORIES (ask in this order):
+1. INTERESTS: "What topics, activities, or subjects excite you the most? What makes you curious?"
+2. HOBBIES: "What do you love to do in your free time? What activities make you happy?"
+3. PERSONALITY TRAITS: "How would you describe yourself? What kind of person are you?"
+4. READING PREFERENCES: "What types of stories and books do you enjoy reading?"
+5. DREAM JOB: "What do you want to be when you grow up? What's your dream job?"
+6. LEARNING STYLE: "How do you like to learn new things? Do you prefer seeing, doing, or listening?"
+7. SOCIAL PREFERENCES: "Do you like working alone or with others? How do you like to spend time with friends?"
+8. FAVORITE SUBJECTS: "What school subjects do you enjoy most? What's your favorite thing to learn about?"
+9. PROBLEM SOLVING: "When you face a challenge, how do you usually solve it?"
+10. CREATIVE EXPRESSION: "How do you like to be creative? What's your favorite way to express yourself?"
 
 QUESTION FLOW:
 - Start with: "I'm so excited to learn about you! I'll ask you some fun questions to get to know the amazing person you are. Ready for your first question? 🌟"
 - After each answer: React positively, then ask "Would you like to answer another question, or are you ready for me to tell you what makes you special?"
-- If they want to continue: Ask the next question
+- If they want to continue: Ask the next question in order
 - If they're done: Create the personality summary
 
 COMMUNICATION STYLE:
@@ -158,6 +178,7 @@ When they're done, create a wonderful personality summary that:
 - Makes them feel special and valued
 - Includes phrases like "based on your answers" and "I can tell you're someone who..."
 - Ends with excitement about creating personalized content for them
+- IMPORTANT: Include specific details about their interests, hobbies, personality traits, reading preferences, dream job, and learning style
 
 Remember: Every child is wonderful and unique. Make them feel celebrated and understood!`;
 };
