@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PersonalityProfile } from '@/types/chat';
+import { openAIService } from '@/services/openAIService';
 
 export class PersonalityService {
   async getPersonalityProfile(userId: string): Promise<PersonalityProfile | null> {
@@ -70,256 +70,169 @@ export class PersonalityService {
     }
   }
 
-  async extractAndSaveFromSequentialQuiz(messages: any[]): Promise<void> {
-    console.log('=== ENHANCED PERSONALITY EXTRACTION ===');
-    console.log('Extracting personality data from sequential quiz conversation...', {
+  async extractPersonalityWithAI(messages: any[]): Promise<Partial<PersonalityProfile>> {
+    console.log('=== AI-POWERED PERSONALITY EXTRACTION ===');
+    console.log('Using OpenAI to extract personality data from conversation...', {
       messageCount: messages.length,
       userMessages: messages.filter(msg => msg.role === 'user').length,
       assistantMessages: messages.filter(msg => msg.role === 'assistant').length
     });
-    
-    // Initialize data structures
-    const interests: string[] = [];
-    const hobbies: string[] = [];
-    const readingPreferences: string[] = [];
-    let personalityDescription = '';
-    let dreamJob = '';
-    let quizSummary = '';
-    let learningStyle = '';
-    const personalityTraits: Record<string, any> = {};
 
-    // Find the final summary message from the assistant
+    try {
+      // Create the extraction prompt
+      const extractionPrompt = `You are analyzing a conversation between an AI and a child taking a personality quiz. Extract personality information and return it as valid JSON.
+
+REQUIRED JSON FORMAT:
+{
+  "interests": ["array of interests/topics the child is curious about"],
+  "hobbies": ["array of activities they enjoy doing"],
+  "learning_style": "how they prefer to learn (visual, hands-on, listening, etc.)",
+  "personality_traits": {
+    "extroverted": boolean,
+    "introverted": boolean,
+    "creative": boolean,
+    "analytical": boolean,
+    "adventurous": boolean,
+    "caring": boolean,
+    "curious": boolean,
+    "energetic": boolean
+  },
+  "dream_job": "their future career aspiration",
+  "reading_preferences": ["specific book series, authors, or genres they mentioned"],
+  "personality_description": "a brief description of their personality based on their responses",
+  "quiz_summary": "a summary of what you learned about this child"
+}
+
+EXTRACTION GUIDELINES:
+- Extract from both direct answers AND conversational context
+- Include specific titles, series names, or proper nouns when mentioned
+- For reading preferences, look for specific book series (like "Dog Man", "Wings of Fire"), authors, or detailed genre preferences
+- For dream jobs, look for any career aspirations, even if creative or unusual (like "rocketship pilot")
+- Use child-friendly language in all extracted data
+- If information is unclear, make reasonable interpretations based on context
+- Set personality traits to true only if there's clear evidence in the conversation
+- Include interests that show curiosity or excitement in their responses
+
+CONVERSATION TO ANALYZE:`;
+
+      // Format the conversation for analysis
+      const conversationText = messages.map(msg => 
+        `${msg.role.toUpperCase()}: ${msg.content}`
+      ).join('\n\n');
+
+      const fullPrompt = `${extractionPrompt}\n\n${conversationText}`;
+
+      // Use OpenAI to extract the data
+      const result = await openAIService.generateResponse([
+        { 
+          id: 'extraction-request',
+          role: 'user',
+          content: fullPrompt,
+          timestamp: new Date()
+        }
+      ], 'regular');
+
+      if (!result || !result.response) {
+        throw new Error('No response from OpenAI');
+      }
+
+      console.log('Raw OpenAI response:', result.response);
+
+      // Parse the JSON response
+      let extractedData;
+      try {
+        // Clean the response - remove any markdown formatting
+        let cleanResponse = result.response.trim();
+        if (cleanResponse.startsWith('```json')) {
+          cleanResponse = cleanResponse.replace(/```json\n?/, '').replace(/\n?```$/, '');
+        } else if (cleanResponse.startsWith('```')) {
+          cleanResponse = cleanResponse.replace(/```\n?/, '').replace(/\n?```$/, '');
+        }
+        
+        extractedData = JSON.parse(cleanResponse);
+      } catch (parseError) {
+        console.error('Failed to parse OpenAI response as JSON:', parseError);
+        console.error('Response was:', result.response);
+        throw new Error('OpenAI response was not valid JSON');
+      }
+
+      console.log('=== EXTRACTED PERSONALITY DATA ===');
+      console.log('Parsed data:', extractedData);
+
+      // Validate and clean the extracted data
+      const personalityProfile: Partial<PersonalityProfile> = {
+        interests: Array.isArray(extractedData.interests) ? extractedData.interests.filter(Boolean) : [],
+        hobbies: Array.isArray(extractedData.hobbies) ? extractedData.hobbies.filter(Boolean) : [],
+        learningStyle: extractedData.learning_style || '',
+        personalityTraits: extractedData.personality_traits || {},
+        dreamJob: extractedData.dream_job || '',
+        readingPreferences: Array.isArray(extractedData.reading_preferences) ? extractedData.reading_preferences.filter(Boolean) : [],
+        personalityDescription: extractedData.personality_description || '',
+        quizSummary: extractedData.quiz_summary || '',
+      };
+
+      console.log('Final cleaned personality profile:', personalityProfile);
+      return personalityProfile;
+
+    } catch (error) {
+      console.error('AI extraction failed:', error);
+      
+      // Fallback to basic extraction if AI fails
+      console.log('Falling back to basic extraction...');
+      return this.basicFallbackExtraction(messages);
+    }
+  }
+
+  private basicFallbackExtraction(messages: any[]): Partial<PersonalityProfile> {
+    console.log('Using basic fallback extraction');
+    
+    // Simple fallback - just extract user responses and create basic profile
+    const userResponses = messages.filter(msg => msg.role === 'user').map(msg => msg.content);
+    const combinedText = userResponses.join(' ').toLowerCase();
+    
+    // Find the final AI summary
     const summaryMessage = messages
       .filter(msg => msg.role === 'assistant')
       .reverse()
       .find(msg => {
         const content = msg.content.toLowerCase();
-        return (
-          content.includes('amazing and unique') ||
-          content.includes('based on your answers') ||
-          content.includes('here\'s what i learned about you') ||
-          (content.includes('personality') && content.length > 200) ||
-          (content.includes('you are someone who') && content.includes('based on') && content.length > 150)
-        );
+        return content.includes('amazing and unique') || 
+               content.includes('based on your answers') ||
+               content.length > 200;
       });
 
-    console.log('Found summary message:', !!summaryMessage);
-
-    if (summaryMessage) {
-      quizSummary = summaryMessage.content;
-      // Extract additional data from the summary
-      this.extractFromSummary(summaryMessage.content, {
-        interests, hobbies, readingPreferences, personalityTraits, learningStyle, dreamJob
-      });
-    }
-
-    // Process user responses with enhanced extraction
-    const userMessages = messages.filter(msg => msg.role === 'user');
-    const assistantMessages = messages.filter(msg => msg.role === 'assistant');
-    
-    console.log(`Processing ${userMessages.length} user responses and ${assistantMessages.length} assistant messages`);
-
-    // Enhanced question-by-question analysis
-    for (let i = 0; i < userMessages.length; i++) {
-      const userResponse = userMessages[i].content;
-      const questionNumber = i + 1;
-      
-      console.log(`Processing Question ${questionNumber}: "${userResponse}"`);
-      
-      // Find the assistant question that preceded this response
-      const precedingAssistant = this.findPrecedingQuestion(userMessages[i], assistantMessages);
-      
-      if (precedingAssistant) {
-        const questionContext = precedingAssistant.content.toLowerCase();
-        this.extractByQuestionPattern(questionNumber, questionContext, userResponse, {
-          interests, hobbies, readingPreferences, personalityDescription, dreamJob, learningStyle, personalityTraits
-        });
-      } else {
-        // Fallback: extract by question number or content pattern
-        this.extractByFallbackPattern(questionNumber, userResponse, {
-          interests, hobbies, readingPreferences, personalityDescription, dreamJob, learningStyle, personalityTraits
-        });
-      }
-    }
-
-    // Clean up and deduplicate arrays
-    const uniqueInterests = [...new Set(interests.filter(Boolean))];
-    const uniqueHobbies = [...new Set(hobbies.filter(Boolean))];
-    const uniqueReadingPrefs = [...new Set(readingPreferences.filter(Boolean))];
-
-    // Enhance personality description if needed
-    if (!personalityDescription && Object.keys(personalityTraits).length > 0) {
-      personalityDescription = this.generatePersonalityDescription(personalityTraits);
-    }
-
-    const extractedData = {
-      interests: uniqueInterests,
-      hobbies: uniqueHobbies,
-      personalityDescription: personalityDescription || '',
-      readingPreferences: uniqueReadingPrefs,
-      dreamJob: dreamJob || '',
-      learningStyle: learningStyle || '',
-      personalityTraits,
-      quizSummary,
+    return {
+      interests: [],
+      hobbies: [],
+      learningStyle: '',
+      personalityTraits: {},
+      dreamJob: '',
+      readingPreferences: [],
+      personalityDescription: combinedText.slice(0, 200),
+      quizSummary: summaryMessage?.content || '',
     };
-
-    console.log('=== EXTRACTION RESULTS ===');
-    console.log('Final extracted personality data:', extractedData);
-
-    await this.savePersonalityProfile(extractedData);
   }
 
-  private findPrecedingQuestion(userMessage: any, assistantMessages: any[]): any | null {
-    const userTimestamp = new Date(userMessage.created_at || userMessage.timestamp);
-    return assistantMessages.find(msg => {
-      const assistantTimestamp = new Date(msg.created_at || msg.timestamp);
-      return assistantTimestamp < userTimestamp;
+  async extractAndSaveFromSequentialQuiz(messages: any[]): Promise<void> {
+    console.log('=== STARTING AI-POWERED EXTRACTION ===');
+    console.log('Processing quiz conversation with AI extraction...', {
+      messageCount: messages.length
     });
-  }
-
-  private extractByQuestionPattern(
-    questionNumber: number, 
-    questionContext: string, 
-    userResponse: string,
-    data: any
-  ): void {
-    const response = userResponse.toLowerCase();
     
-    // Enhanced question pattern matching
-    if (questionNumber === 1 || questionContext.includes('interested in') || questionContext.includes('spark your curiosity')) {
-      data.interests.push(...this.extractWithEnhancedKeywords(response, this.getInterestKeywords()));
-    } else if (questionNumber === 2 || questionContext.includes('hobbies') || questionContext.includes('free time') || questionContext.includes('love to do')) {
-      data.hobbies.push(...this.extractWithEnhancedKeywords(response, this.getHobbyKeywords()));
-    } else if (questionNumber === 3 || questionContext.includes('describe you') || questionContext.includes('kind of person') || questionContext.includes('personality')) {
-      data.personalityDescription += (data.personalityDescription ? ' ' : '') + userResponse;
-      this.extractPersonalityTraits(userResponse, data.personalityTraits);
-    } else if (questionNumber === 4 || questionContext.includes('read about') || questionContext.includes('books') || questionContext.includes('stories')) {
-      data.readingPreferences.push(...this.extractWithEnhancedKeywords(response, this.getReadingKeywords()));
-    } else if (questionNumber === 5 || questionContext.includes('dream job') || questionContext.includes('when you grow up') || questionContext.includes('want to be')) {
-      if (!data.dreamJob) data.dreamJob = userResponse;
-    } else if (questionContext.includes('learn') && (questionContext.includes('how') || questionContext.includes('way') || questionContext.includes('style'))) {
-      data.learningStyle += (data.learningStyle ? ' ' : '') + userResponse;
+    try {
+      // Use AI to extract personality data
+      const extractedData = await this.extractPersonalityWithAI(messages);
+      
+      console.log('=== SAVING EXTRACTED DATA ===');
+      console.log('Data to save:', extractedData);
+      
+      // Save the extracted data
+      await this.savePersonalityProfile(extractedData);
+      
+      console.log('Personality extraction and save completed successfully');
+    } catch (error) {
+      console.error('Failed to extract and save personality data:', error);
     }
-  }
-
-  private extractByFallbackPattern(questionNumber: number, userResponse: string, data: any): void {
-    // Fallback extraction based on typical quiz order
-    switch (questionNumber) {
-      case 1:
-        data.interests.push(...this.extractWithEnhancedKeywords(userResponse.toLowerCase(), this.getInterestKeywords()));
-        break;
-      case 2:
-        data.hobbies.push(...this.extractWithEnhancedKeywords(userResponse.toLowerCase(), this.getHobbyKeywords()));
-        break;
-      case 3:
-        data.personalityDescription += (data.personalityDescription ? ' ' : '') + userResponse;
-        this.extractPersonalityTraits(userResponse, data.personalityTraits);
-        break;
-      case 4:
-        data.readingPreferences.push(...this.extractWithEnhancedKeywords(userResponse.toLowerCase(), this.getReadingKeywords()));
-        break;
-      case 5:
-        if (!data.dreamJob) data.dreamJob = userResponse;
-        break;
-      case 6:
-        data.learningStyle += (data.learningStyle ? ' ' : '') + userResponse;
-        break;
-    }
-  }
-
-  private extractFromSummary(summary: string, data: any): void {
-    const summaryLower = summary.toLowerCase();
-    
-    // Extract additional interests from summary
-    data.interests.push(...this.extractWithEnhancedKeywords(summaryLower, this.getInterestKeywords()));
-    
-    // Extract hobbies from summary
-    data.hobbies.push(...this.extractWithEnhancedKeywords(summaryLower, this.getHobbyKeywords()));
-    
-    // Extract reading preferences
-    data.readingPreferences.push(...this.extractWithEnhancedKeywords(summaryLower, this.getReadingKeywords()));
-    
-    // Extract learning style indicators
-    const learningPatterns = ['visual', 'hands-on', 'listening', 'reading', 'doing', 'watching', 'practicing'];
-    const foundLearningStyles = learningPatterns.filter(pattern => summaryLower.includes(pattern));
-    if (foundLearningStyles.length > 0) {
-      data.learningStyle = foundLearningStyles.join(', ');
-    }
-    
-    // Extract dream job if mentioned
-    const jobMatches = summary.match(/(?:want to be|dream.*?(?:job|career)|when.*grow up).*?([a-z]+(?:\s+[a-z]+)*)/gi);
-    if (jobMatches && !data.dreamJob) {
-      data.dreamJob = jobMatches[0];
-    }
-  }
-
-  private extractWithEnhancedKeywords(text: string, keywords: string[]): string[] {
-    const found: string[] = [];
-    for (const keyword of keywords) {
-      if (text.includes(keyword)) {
-        found.push(keyword);
-      }
-    }
-    return found;
-  }
-
-  private extractPersonalityTraits(response: string, traits: Record<string, any>): void {
-    const responseLower = response.toLowerCase();
-    
-    // Common personality trait patterns
-    const traitPatterns = {
-      extroverted: ['outgoing', 'social', 'talkative', 'friendly', 'love meeting people'],
-      introverted: ['quiet', 'shy', 'prefer alone', 'small groups', 'thoughtful'],
-      creative: ['creative', 'artistic', 'imaginative', 'love art', 'drawing', 'music'],
-      analytical: ['logical', 'like puzzles', 'math', 'science', 'problem solving'],
-      adventurous: ['adventurous', 'love exploring', 'trying new things', 'brave'],
-      caring: ['kind', 'helpful', 'caring', 'love animals', 'help others'],
-      curious: ['curious', 'ask questions', 'love learning', 'want to know'],
-      energetic: ['energetic', 'active', 'love sports', 'running', 'moving'],
-    };
-    
-    for (const [trait, patterns] of Object.entries(traitPatterns)) {
-      if (patterns.some(pattern => responseLower.includes(pattern))) {
-        traits[trait] = true;
-      }
-    }
-  }
-
-  private generatePersonalityDescription(traits: Record<string, any>): string {
-    const activeTraits = Object.keys(traits).filter(key => traits[key]);
-    if (activeTraits.length === 0) return '';
-    
-    return `Someone who is ${activeTraits.join(', ')}`;
-  }
-
-  private getInterestKeywords(): string[] {
-    return [
-      'science', 'math', 'art', 'music', 'sports', 'reading', 'writing', 'animals', 'nature',
-      'space', 'dinosaurs', 'cooking', 'drawing', 'painting', 'dancing', 'singing', 'games',
-      'technology', 'computers', 'history', 'geography', 'languages', 'crafts', 'building',
-      'robots', 'coding', 'movies', 'books', 'stories', 'adventure', 'mystery', 'gardening',
-      'plants', 'flowers', 'garden', 'ocean', 'sea', 'fish', 'birds', 'insects', 'weather',
-      'cars', 'trains', 'planes', 'rockets', 'magic', 'fantasy', 'superheroes'
-    ];
-  }
-
-  private getHobbyKeywords(): string[] {
-    return [
-      'reading', 'drawing', 'painting', 'playing', 'soccer', 'basketball', 'swimming', 'dancing',
-      'singing', 'music', 'cooking', 'baking', 'gardening', 'crafts', 'building', 'puzzles',
-      'video games', 'board games', 'collecting', 'hiking', 'biking', 'skateboarding', 'running',
-      'chess', 'lego', 'origami', 'photography', 'writing', 'journaling', 'yoga', 'martial arts',
-      'tennis', 'volleyball', 'baseball', 'football', 'climbing', 'skating', 'skiing'
-    ];
-  }
-
-  private getReadingKeywords(): string[] {
-    return [
-      'adventure', 'mystery', 'fantasy', 'science fiction', 'animals', 'nature', 'history',
-      'biography', 'comic books', 'graphic novels', 'poetry', 'fairy tales', 'humor', 'sports',
-      'science', 'art', 'music', 'cooking', 'travel', 'friendship', 'family', 'magic', 'dragons',
-      'princesses', 'knights', 'pirates', 'aliens', 'robots', 'dinosaurs', 'ocean', 'space'
-    ];
   }
 
   async extractAndSaveFromQuizConversation(messages: any[]): Promise<void> {
