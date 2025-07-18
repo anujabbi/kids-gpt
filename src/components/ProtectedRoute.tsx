@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,12 +46,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   if (requireRole && profile?.role !== requireRole) {
     console.log('ProtectedRoute: Role mismatch, user role:', profile?.role, 'required:', requireRole);
     if (profile?.role === 'parent') {
-      console.log('ProtectedRoute: Redirecting parent to /parents');
-      return <Navigate to="/parents" replace />;
+      console.log('ProtectedRoute: Redirecting parent to /parent-dashboard');
+      return <Navigate to="/parent-dashboard" replace />;
     }
     if (profile?.role === 'child') {
-      console.log('ProtectedRoute: Redirecting child to /chat');
-      return <Navigate to="/chat" replace />;
+      console.log('ProtectedRoute: Redirecting child to /');
+      return <Navigate to="/" replace />;
     }
     // If no valid role, redirect to auth
     console.log('ProtectedRoute: Invalid role, redirecting to auth');

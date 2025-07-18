@@ -27,8 +27,14 @@ const Auth = () => {
   // Redirect if already authenticated - check both user and loading state
   useEffect(() => {
     if (!loading && user && profile) {
-      console.log('User authenticated, redirecting to home');
-      navigate('/', { replace: true });
+      console.log('User authenticated, redirecting based on role:', profile.role);
+      // Redirect based on user role
+      if (profile.role === 'parent') {
+        navigate('/parent-dashboard', { replace: true });
+      } else {
+        // Children go to the default chat experience
+        navigate('/', { replace: true });
+      }
     }
   }, [user, profile, loading, navigate]);
 
