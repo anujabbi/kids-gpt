@@ -52,7 +52,7 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/child-chat" 
+                  path="/child-chat/:childId" 
                   element={
                     <ProtectedRoute requireRole="parent">
                       <ChildChatPage />
