@@ -50,6 +50,9 @@ class OpenAIService {
     try {
       const lastMessage = messages[messages.length - 1];
       
+      // Get user age from localStorage if available
+      const userAge = localStorage.getItem('user_age') ? parseInt(localStorage.getItem('user_age')!) : undefined;
+      
       // Get appropriate system prompt
       let systemPrompt: string;
       if (conversationType === 'personality-quiz') {
@@ -57,7 +60,7 @@ class OpenAIService {
         const quizQuestionNumber = this.estimateQuizProgress(messages);
         systemPrompt = getPersonalityQuizSystemPrompt(undefined, quizQuestionNumber, 10);
       } else {
-        systemPrompt = getSystemPrompt(undefined, personalityProfile);
+        systemPrompt = getSystemPrompt(userAge, undefined, personalityProfile);
       }
 
       // Prepare messages for OpenAI
