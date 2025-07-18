@@ -45,6 +45,7 @@ const Index = () => {
   // Add personality profile state
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState<string[]>([]);
   const [hasPersonalityProfile, setHasPersonalityProfile] = useState(false);
+  const [refreshingSuggestions, setRefreshingSuggestions] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,9 +55,9 @@ const Index = () => {
     scrollToBottom();
   }, [conversations, activeConversation]);
 
-  // Load personalized suggestions when component mounts
-  useEffect(() => {
-    const loadPersonalizedSuggestions = async () => {
+  // Extract reusable function for loading personalized suggestions
+  const loadPersonalizedSuggestions = async () => {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { personalityService } = await import('@/services/personalityService');
@@ -66,10 +67,28 @@ const Index = () => {
           const suggestions = generatePersonalizedSuggestions(profile);
           setPersonalizedSuggestions(suggestions);
           setHasPersonalityProfile(true);
+          console.log('Updated personalized suggestions:', suggestions);
+        } else {
+          setPersonalizedSuggestions([]);
+          setHasPersonalityProfile(false);
         }
       }
-    };
+    } catch (error) {
+      console.error('Failed to load personalized suggestions:', error);
+    }
+  };
 
+  // Refresh suggestions after a delay to ensure database is updated
+  const refreshPersonalizedSuggestions = async () => {
+    setRefreshingSuggestions(true);
+    // Small delay to ensure the database transaction has completed
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await loadPersonalizedSuggestions();
+    setRefreshingSuggestions(false);
+  };
+
+  // Load personalized suggestions when component mounts
+  useEffect(() => {
     loadPersonalizedSuggestions();
   }, []);
 
@@ -167,6 +186,10 @@ I'll ask you some fun questions to get to know the amazing person you are. After
             // Import personality service dynamically to avoid circular dependencies
             const { personalityService } = await import('@/services/personalityService');
             await personalityService.extractAndSaveFromSequentialQuiz([...allMessages, assistantMessage]);
+            
+            // Refresh personalized suggestions after quiz completion
+            console.log('Quiz completed, refreshing personalized suggestions...');
+            await refreshPersonalizedSuggestions();
           }
         }
       }
@@ -295,6 +318,16 @@ I'll ask you some fun questions to get to know the amazing person you are. After
                     </div>
                   )}
                   
+                  {/* Show loading state when refreshing suggestions */}
+                  {refreshingSuggestions && (
+                    <div className="mb-4">
+                      <span className="inline-flex items-center gap-2 text-sm font-medium px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 border border-blue-200">
+                        <div className="animate-spin rounded-full h-3 w-3 border border-blue-600 border-t-transparent"></div>
+                        Updating your suggestions...
+                      </span>
+                    </div>
+                  )}
+                  
                   {/* Suggestion buttons */}
                   <div className="grid grid-cols-3 gap-3 mb-8">
                     {suggestionsToShow.map((suggestion, index) => (
@@ -308,6 +341,7 @@ I'll ask you some fun questions to get to know the amazing person you are. After
                           borderColor: currentTheme.colors.border,
                           backgroundColor: currentTheme.colors.surface
                         }}
+                        disabled={refreshingSuggestions}
                       >
                         <span className="block w-full">{suggestion}</span>
                       </Button>
