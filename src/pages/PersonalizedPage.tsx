@@ -403,56 +403,6 @@ const PersonalizedPage = () => {
           </Card>
         )}
 
-        <Card style={{ backgroundColor: currentTheme.colors.surface }}>
-          <CardHeader>
-            <CardTitle style={{ color: currentTheme.colors.text.primary }}>
-              <Trophy className="w-5 h-5 inline mr-2" />
-              Your Personalized Learning Journey
-            </CardTitle>
-            <CardDescription style={{ color: currentTheme.colors.text.secondary }}>
-              Based on everything I've learned about you, here are some amazing ways to keep growing!
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-                <h4 className="font-semibold mb-2" style={{ color: currentTheme.colors.text.primary }}>
-                  🎯 Perfect Challenges
-                </h4>
-                <p style={{ color: currentTheme.colors.text.secondary }}>
-                  Ask me for quizzes and activities that match your interests and learning style!
-                </p>
-              </div>
-
-              <div className="p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-                <h4 className="font-semibold mb-2" style={{ color: currentTheme.colors.text.primary }}>
-                  📚 Story Time
-                </h4>
-                <p style={{ color: currentTheme.colors.text.secondary }}>
-                  I can create personalized stories featuring your favorite topics and interests!
-                </p>
-              </div>
-
-              <div className="p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-                <h4 className="font-semibold mb-2" style={{ color: currentTheme.colors.text.primary }}>
-                  🎨 Creative Projects
-                </h4>
-                <p style={{ color: currentTheme.colors.text.secondary }}>
-                  Let's work on art, writing, or building projects that match your personality!
-                </p>
-              </div>
-
-              <div className="p-4 rounded-lg" style={{ backgroundColor: currentTheme.colors.background }}>
-                <h4 className="font-semibold mb-2" style={{ color: currentTheme.colors.text.primary }}>
-                  🌟 Future Goals
-                </h4>
-                <p style={{ color: currentTheme.colors.text.secondary }}>
-                  I'll help you explore your dream career and learn skills to reach your goals!
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="text-center mt-8">
           <Button 
