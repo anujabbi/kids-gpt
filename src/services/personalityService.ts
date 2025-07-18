@@ -113,48 +113,12 @@ EXTRACTION GUIDELINES:
 - Set personality traits to true only if there's clear evidence in the conversation
 - Include interests that show curiosity or excitement in their responses
 
-CONVERSATION TO ANALYZE:`;
+CONVERSATION TO ANALYZE:
 
-      // Format the conversation for analysis
-      const conversationText = messages.map(msg => 
-        `${msg.role.toUpperCase()}: ${msg.content}`
-      ).join('\n\n');
+${messages.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n')}`;
 
-      const fullPrompt = `${extractionPrompt}\n\n${conversationText}`;
-
-      // Use OpenAI to extract the data
-      const result = await openAIService.generateResponse([
-        { 
-          id: 'extraction-request',
-          role: 'user',
-          content: fullPrompt,
-          timestamp: new Date()
-        }
-      ], 'regular');
-
-      if (!result || !result.response) {
-        throw new Error('No response from OpenAI');
-      }
-
-      console.log('Raw OpenAI response:', result.response);
-
-      // Parse the JSON response
-      let extractedData;
-      try {
-        // Clean the response - remove any markdown formatting
-        let cleanResponse = result.response.trim();
-        if (cleanResponse.startsWith('```json')) {
-          cleanResponse = cleanResponse.replace(/```json\n?/, '').replace(/\n?```$/, '');
-        } else if (cleanResponse.startsWith('```')) {
-          cleanResponse = cleanResponse.replace(/```\n?/, '').replace(/\n?```$/, '');
-        }
-        
-        extractedData = JSON.parse(cleanResponse);
-      } catch (parseError) {
-        console.error('Failed to parse OpenAI response as JSON:', parseError);
-        console.error('Response was:', result.response);
-        throw new Error('OpenAI response was not valid JSON');
-      }
+      // Use the new structured extraction method
+      const extractedData = await openAIService.extractStructuredData(extractionPrompt);
 
       console.log('=== EXTRACTED PERSONALITY DATA ===');
       console.log('Parsed data:', extractedData);

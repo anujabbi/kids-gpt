@@ -1,4 +1,3 @@
-
 import { Message, PersonalityProfile } from '@/types/chat';
 import { getSystemPrompt, getPersonalityQuizSystemPrompt } from '@/utils/systemPrompts';
 import { analyzeHomeworkMisuse } from './homeworkDetectionService';
@@ -31,6 +30,71 @@ class OpenAIService {
     // Fallback to localStorage API key if family key not available
     const localApiKey = localStorage.getItem('openai_api_key');
     return localApiKey;
+  }
+
+  async extractStructuredData(prompt: string): Promise<any | null> {
+    const apiKey = await this.getApiKey();
+    
+    if (!apiKey) {
+      console.error('No OpenAI API key available for structured data extraction');
+      throw new Error('No OpenAI API key available');
+    }
+
+    try {
+      console.log('Making structured data extraction request to OpenAI...');
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are a data extraction assistant. You must respond only with valid JSON data according to the requested format. Do not include any explanatory text, markdown formatting, or anything other than the raw JSON object.'
+            },
+            { 
+              role: 'user', 
+              content: prompt 
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.3,
+          response_format: { type: "json_object" }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const extractedContent = data.choices[0]?.message?.content;
+      
+      if (!extractedContent) {
+        throw new Error('No content received from OpenAI');
+      }
+
+      console.log('Raw OpenAI extraction response:', extractedContent);
+
+      // Parse the JSON response
+      try {
+        const parsedData = JSON.parse(extractedContent);
+        console.log('Successfully parsed structured data:', parsedData);
+        return parsedData;
+      } catch (parseError) {
+        console.error('Failed to parse OpenAI response as JSON:', parseError);
+        console.error('Response content was:', extractedContent);
+        throw new Error(`OpenAI response was not valid JSON: ${parseError.message}`);
+      }
+
+    } catch (error) {
+      console.error('Structured data extraction failed:', error);
+      throw error;
+    }
   }
 
   async generateResponse(
