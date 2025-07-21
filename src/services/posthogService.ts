@@ -1,15 +1,35 @@
 import posthog from 'posthog-js';
-
-// PostHog configuration
-const POSTHOG_API_KEY = 'phc_your_api_key_here'; // Replace with your actual PostHog API key
-const POSTHOG_HOST = 'https://app.posthog.com'; // Or your self-hosted instance
+import { supabase } from '@/integrations/supabase/client';
 
 let isInitialized = false;
 
-export const initializePostHog = () => {
+const getPostHogConfig = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('get-posthog-config');
+    
+    if (error) {
+      console.error('Error fetching PostHog config:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error invoking PostHog config function:', error);
+    return null;
+  }
+};
+
+export const initializePostHog = async () => {
   if (typeof window !== 'undefined' && !isInitialized) {
-    posthog.init(POSTHOG_API_KEY, {
-      api_host: POSTHOG_HOST,
+    const config = await getPostHogConfig();
+    
+    if (!config?.apiKey) {
+      console.warn('PostHog API key not available, analytics disabled');
+      return;
+    }
+
+    posthog.init(config.apiKey, {
+      api_host: config.host || 'https://app.posthog.com',
       // Enable session recording
       session_recording: {
         maskAllInputs: false,
