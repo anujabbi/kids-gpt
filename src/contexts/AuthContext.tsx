@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { analytics } from '@/services/posthogService';
 
 interface UserProfile {
   id: string;
@@ -69,6 +70,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Profile fetched successfully:', data);
       setProfile(data);
       
+      // Update PostHog user properties
+      if (data) {
+        analytics.setUserProperties({
+          role: data.role,
+          age: data.age,
+          family_id: data.family_id,
+          full_name: data.full_name,
+        });
+        
+        // Set group for family-based analytics
+        if (data.family_id) {
+          analytics.group('family', data.family_id);
+        }
+      }
+      
       // Store user age in localStorage for OpenAI service
       if (data && data.age !== null) {
         localStorage.setItem('user_age', data.age.toString());
@@ -132,6 +148,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(session.user);
           console.log('User found, fetching profile...');
           
+          // Track user identification
+          analytics.identify(session.user.id, {
+            email: session.user.email,
+          });
+          
           // Don't await profile fetch to prevent blocking auth
           fetchUserProfile(session.user.id).catch(error => {
             console.error('Profile fetch failed during init:', error);
@@ -160,6 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!mounted) return;
 
         if (event === 'SIGNED_OUT') {
+          analytics.track('user_signed_out');
+          analytics.reset();
           clearAuthState();
           setLoading(false);
           return;
@@ -172,6 +195,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (session?.user) {
             console.log('User authenticated, fetching profile...');
+            
+            // Track sign in event
+            if (event === 'SIGNED_IN') {
+              analytics.track('user_signed_in', {
+                user_id: session.user.id,
+                email: session.user.email,
+              });
+            }
+            
+            // Track user identification
+            analytics.identify(session.user.id, {
+              email: session.user.email,
+            });
             
             // Don't await profile fetch to prevent blocking auth
             fetchUserProfile(session.user.id).catch(error => {
@@ -239,6 +275,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Sign up error:', error);
     } else {
       console.log('Sign up successful - confirmation email sent');
+      analytics.track('user_signed_up', {
+        email,
+        metadata,
+      });
     }
     
     return { error };
