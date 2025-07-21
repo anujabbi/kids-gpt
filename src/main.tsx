@@ -3,7 +3,7 @@ import App from './App.tsx'
 import './index.css'
 import { initializePostHog } from './services/posthogService'
 
-// Initialize PostHog
-initializePostHog();
+// Initialize PostHog asynchronously
+initializePostHog().catch(console.error);
 
 createRoot(document.getElementById("root")!).render(<App />);
