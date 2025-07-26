@@ -71,6 +71,8 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                <Route path="/chat" element={<Navigate to="/" replace />} />
+                <Route path="/chats" element={<Navigate to="/" replace />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
