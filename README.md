@@ -1,4 +1,32 @@
-# Welcome to your KidsGPT project
+# KidsGPT: AI-powered Learning Platform for Children
+
+KidsGPT is a specialized AI assistant designed specifically for children aged 5-12, focusing on education, creativity, and safety. The platform provides personalized learning experiences while ensuring appropriate content for young users.
+
+## Key Features
+
+- **Child-Safe AI Chat**: Age-appropriate conversations with built-in content safety measures
+- **Personality Profile**: Custom learning experiences based on each child's interests, learning style, and preferences
+- **Parental Dashboard**: Monitor conversations and track learning patterns
+- **Homework Detection**: Guides children to think through problems rather than providing direct answers
+- **Image Generation**: Kid-friendly image creation based on prompts
+- **File Attachments**: Support for uploading and discussing various file types
+- **Theme Customization**: Multiple visual themes to personalize the experience
+
+## Technology Stack
+
+- **Frontend**: React, TypeScript, Tailwind CSS, Radix UI
+- **Backend**: Supabase (Authentication, Database, Storage)
+- **AI Integration**: OpenAI API
+- **Analytics**: PostHog
+- **Build Tools**: Vite, SWC
+
+## Architecture
+
+The application follows a component-based architecture with:
+- Context providers for global state management
+- Custom hooks for encapsulating business logic
+- Service modules for external API interactions
+- Type definitions for consistent data structures
 
 ## Project info
 
