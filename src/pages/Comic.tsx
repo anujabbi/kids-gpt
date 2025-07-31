@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { ComicStyleCard } from "@/components/ComicStyleCard";
 import { ComicPanel } from "@/components/ComicPanel";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +20,8 @@ export default function ComicPage() {
   const [selectedStyle, setSelectedStyle] = useState<ComicStyle | null>(null);
   const [comic, setComic] = useState<Comic | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStep, setGenerationStep] = useState("");
   const [editingPanelIndex, setEditingPanelIndex] = useState<number | null>(null);
 
   // Check if user is a child
@@ -72,19 +75,42 @@ export default function ComicPage() {
     }
 
     setIsGenerating(true);
+    setGenerationProgress(0);
+    setGenerationStep("Preparing your comic story...");
+    
     try {
       const request: ComicGenerationRequest = {
         storyIdea: storyIdea.trim(),
         comicStyle: selectedStyle,
       };
 
-      const newComic = await comicService.generateComic(request);
-      setComic(newComic);
+      setGenerationProgress(25);
+      setGenerationStep("Creating panel 1...");
       
-      toast({
-        title: "Comic Created!",
-        description: "Your comic strip has been generated successfully!",
-      });
+      // Simulate progress updates
+      setTimeout(() => {
+        setGenerationProgress(50);
+        setGenerationStep("Creating panel 2...");
+      }, 1000);
+      
+      setTimeout(() => {
+        setGenerationProgress(75);
+        setGenerationStep("Creating panel 3...");
+      }, 2000);
+
+      const newComic = await comicService.generateComic(request);
+      
+      setGenerationProgress(100);
+      setGenerationStep("Finishing up...");
+      
+      setTimeout(() => {
+        setComic(newComic);
+        toast({
+          title: "Comic Created!",
+          description: "Your comic strip has been generated successfully!",
+        });
+      }, 500);
+      
     } catch (error) {
       console.error('Failed to generate comic:', error);
       toast({
@@ -94,6 +120,8 @@ export default function ComicPage() {
       });
     } finally {
       setIsGenerating(false);
+      setGenerationProgress(0);
+      setGenerationStep("");
     }
   };
 
@@ -183,8 +211,8 @@ export default function ComicPage() {
                   value={storyIdea}
                   onChange={(e) => setStoryIdea(e.target.value)}
                   placeholder="A dinosaur becomes a chef, A superhero who loves donuts, A cat that can fly..."
-                  rows={3}
-                  className="text-lg"
+                  rows={5}
+                  className="text-lg min-h-[120px]"
                 />
               </CardContent>
             </Card>
@@ -194,7 +222,7 @@ export default function ComicPage() {
                 <CardTitle>Choose Your Comic Style</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-row gap-3 justify-center">
                   {(['cartoon', 'ghibli', 'superhero'] as ComicStyle[]).map((style) => (
                     <ComicStyleCard
                       key={style}
@@ -207,7 +235,7 @@ export default function ComicPage() {
               </CardContent>
             </Card>
 
-            <div className="text-center">
+            <div className="text-center space-y-4">
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating || !storyIdea.trim() || !selectedStyle}
@@ -226,6 +254,20 @@ export default function ComicPage() {
                   </>
                 )}
               </Button>
+              
+              {isGenerating && (
+                <Card className="max-w-md mx-auto">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-center">{generationStep}</p>
+                      <Progress value={generationProgress} className="w-full" />
+                      <p className="text-xs text-muted-foreground text-center">
+                        This may take a minute or two...
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         ) : (

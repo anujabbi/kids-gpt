@@ -13,17 +13,17 @@ export const ComicStyleCard = ({ style, selected, onSelect }: ComicStyleCardProp
 
   return (
     <Card 
-      className={`cursor-pointer transition-all duration-200 ${
+      className={`cursor-pointer transition-all duration-200 w-32 ${
         selected 
           ? 'ring-2 ring-primary bg-primary/5' 
           : 'hover:bg-muted/50'
       }`}
       onClick={() => onSelect(style)}
     >
-      <CardContent className="p-4 text-center">
-        <div className="text-4xl mb-2">{config.emoji}</div>
-        <h3 className="font-semibold text-lg mb-1">{config.name}</h3>
-        <p className="text-sm text-muted-foreground">{config.description}</p>
+      <CardContent className="p-3 text-center">
+        <div className="text-2xl mb-1">{config.emoji}</div>
+        <h3 className="font-medium text-sm mb-1">{config.name}</h3>
+        <p className="text-xs text-muted-foreground/80">{config.description}</p>
       </CardContent>
     </Card>
   );
