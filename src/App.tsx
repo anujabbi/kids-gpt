@@ -11,6 +11,8 @@ import Settings from "./pages/Settings";
 import ParentDashboard from "./pages/ParentDashboard";
 import ChildChatPage from "./pages/ChildChatPage";
 import PersonalizedPage from "./pages/PersonalizedPage";
+import Comic from "./pages/Comic";
+import PublishedComic from "./pages/PublishedComic";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import "./App.css";
@@ -70,6 +72,18 @@ function App() {
                       <PersonalizedPage />
                     </ProtectedRoute>
                   } 
+                />
+                <Route 
+                  path="/comic" 
+                  element={
+                    <ProtectedRoute>
+                      <Comic />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/publishedComic/:id" 
+                  element={<PublishedComic />} 
                 />
                 <Route path="/chat" element={<Navigate to="/" replace />} />
                 <Route path="/chats" element={<Navigate to="/" replace />} />
