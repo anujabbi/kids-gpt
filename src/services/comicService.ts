@@ -59,7 +59,7 @@ export class ComicService {
         }
 
         // Upload image to Supabase storage
-        const imageUrl = await this.uploadComicImage(generatedImage.url, user.id, i);
+        const imageUrl = await this.handleImageStorage(generatedImage.url, user.id, i);
 
         panels.push({
           id: `panel_${i}_${Date.now()}`,
@@ -143,7 +143,7 @@ export class ComicService {
     );
 
     // Upload new image
-    const imageUrl = await this.uploadComicImage(generatedImage.url, user.id, request.panelIndex);
+    const imageUrl = await this.handleImageStorage(generatedImage.url, user.id, request.panelIndex);
 
     // Update panel
     const updatedPanel: ComicPanel = {
@@ -222,30 +222,54 @@ export class ComicService {
     }
   }
 
+  private async handleImageStorage(imageUrl: string, userId: string, panelIndex: number): Promise<string> {
+    // For now, return the OpenAI URL directly since they're temporary but work for immediate display
+    // In production, you'd want to implement an edge function to proxy the image download
+    console.log('Using OpenAI image URL directly:', imageUrl);
+    return imageUrl;
+  }
+
   private async uploadComicImage(imageUrl: string, userId: string, panelIndex: number): Promise<string> {
-    // Download the image from the URL
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
+    try {
+      // Try to upload to Supabase storage
+      // Note: This may fail due to CORS restrictions on OpenAI URLs
+      const response = await fetch(imageUrl, { 
+        mode: 'cors',
+        headers: {
+          'Accept': 'image/*'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
 
-    // Create a unique filename
-    const filename = `${userId}/comic_${Date.now()}_panel_${panelIndex}.png`;
+      const blob = await response.blob();
 
-    // Upload to Supabase storage
-    const { data, error } = await supabase.storage
-      .from('comic-images')
-      .upload(filename, blob);
+      // Create a unique filename
+      const filename = `${userId}/comic_${Date.now()}_panel_${panelIndex}.png`;
 
-    if (error) {
-      console.error('Failed to upload comic image:', error);
-      throw new Error('Failed to upload comic image');
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('comic-images')
+        .upload(filename, blob);
+
+      if (error) {
+        console.error('Failed to upload comic image:', error);
+        throw new Error('Failed to upload comic image');
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('comic-images')
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload failed, using original URL:', error);
+      // Fallback to original URL if upload fails
+      return imageUrl;
     }
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('comic-images')
-      .getPublicUrl(data.path);
-
-    return publicUrl;
   }
 
   private mapDbComicToComic(dbComic: any): Comic {
