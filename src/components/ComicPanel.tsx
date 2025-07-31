@@ -37,48 +37,64 @@ export const ComicPanel = ({
   };
 
   return (
-    <Card className="relative overflow-hidden bg-background border-2 rounded-lg">
-      <CardContent className="p-0">
-        {/* Panel Header */}
-        <div className="bg-muted/50 px-4 py-2 flex justify-between items-center">
-          <span className="font-semibold text-sm">Panel {panelIndex + 1}</span>
-          {!isEditing && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onEdit}
-              className="h-8 w-8 p-0"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-
-        {/* Image */}
-        <div className="aspect-square bg-muted relative">
-          <img 
-            src={panel.imageUrl} 
-            alt={`Panel ${panelIndex + 1}`}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          {isRegenerating && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div className="text-white text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                <p className="text-sm">Regenerating...</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Caption */}
+    <Card className="relative overflow-hidden bg-background border rounded-md">
+      <CardContent className="p-1">
         {!isEditing ? (
-          <div className="p-4 bg-background">
-            <p className="text-sm text-center font-medium">{panel.caption}</p>
-          </div>
+          <>
+            {/* Edit Button Overlay */}
+            <div className="absolute top-2 right-2 z-10">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                className="h-6 w-6 p-0 bg-background/80 hover:bg-background"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            </div>
+
+            {/* Image */}
+            <div className="aspect-square bg-muted relative rounded">
+              <img 
+                src={panel.imageUrl} 
+                alt={`Panel ${panelIndex + 1}`}
+                className="w-full h-full object-cover rounded"
+                loading="lazy"
+              />
+              {isRegenerating && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+                  <div className="text-white text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                    <p className="text-sm">Regenerating...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
-          <div className="p-4 space-y-3">
+          <div className="space-y-3 p-3">
+            {/* Panel Header for editing */}
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-sm">Panel {panelIndex + 1}</span>
+            </div>
+
+            {/* Image */}
+            <div className="aspect-square bg-muted relative rounded">
+              <img 
+                src={panel.imageUrl} 
+                alt={`Panel ${panelIndex + 1}`}
+                className="w-full h-full object-cover rounded"
+                loading="lazy"
+              />
+              {isRegenerating && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+                  <div className="text-white text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                    <p className="text-sm">Regenerating...</p>
+                  </div>
+                </div>
+              )}
+            </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Image Prompt</label>
               <Textarea

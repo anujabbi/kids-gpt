@@ -279,7 +279,7 @@ export default function ComicPage() {
             </div>
 
             {/* Comic Panels */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="flex flex-col md:flex-row gap-2 mb-8 max-w-3xl mx-auto">
               {comic.panels.map((panel, index) => (
                 <ComicPanel
                   key={panel.id}
