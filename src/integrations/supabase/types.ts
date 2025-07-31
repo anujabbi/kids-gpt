@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      comics: {
+        Row: {
+          comic_style: string
+          created_at: string
+          generation_id: string | null
+          id: string
+          is_public: boolean
+          panels: Json
+          story_idea: string
+          title: string
+          updated_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          comic_style: string
+          created_at?: string
+          generation_id?: string | null
+          id?: string
+          is_public?: boolean
+          panels?: Json
+          story_idea: string
+          title: string
+          updated_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          comic_style?: string
+          created_at?: string
+          generation_id?: string | null
+          id?: string
+          is_public?: boolean
+          panels?: Json
+          story_idea?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       conversation_folders: {
         Row: {
           created_at: string
