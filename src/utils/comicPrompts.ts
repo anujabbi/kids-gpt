@@ -44,46 +44,23 @@ export function generateProfessionalImagePrompt(
 ): string {
   const styleConfig = COMIC_STYLES[style];
   
-  // Base professional comic specifications
-  const professionalSpecs = `Create a professional comic panel illustration following industry standards:
-- Single scene only - do not include multiple scenes or split compositions
-- Comic book art style with clear line work and proper visual hierarchy
-- Professional composition with proper focal points and visual flow
-- High contrast for readability with comic book color palette
-- Safe areas for text (avoid edges, 16px margins for important elements)
-- Bold, clear line weights (2-4px for main elements)
-- Consistent lighting and perspective
-- One unified scene per panel - Panel ${panelNumber} of 3 in a cohesive comic strip`;
-
-  // Panel type specific instructions
-  const panelInstructions = getPanelTypeInstructions(panelType);
+  // Keep it concise to stay under 4000 character limit
+  const basePrompt = `Comic panel ${panelNumber}/3: ${styleConfig.promptTemplate} ${imagePrompt}`;
   
-  // Style-specific enhancement
-  const styleEnhancement = `${styleConfig.promptTemplate}`;
+  // Add character descriptions (truncated if too long)
+  const characters = characterDescriptions 
+    ? ` Characters: ${characterDescriptions.substring(0, 500)}` 
+    : '';
   
-  // Character consistency
-  const characterConsistency = characterDescriptions 
-    ? `Character visual consistency: ${characterDescriptions}`
-    : 'Ensure character design consistency if characters appear';
-
   // Add dialogue if provided
-  const dialogueInstruction = dialogue 
-    ? `IMPORTANT: Include a white speech bubble with black text that says exactly: "${dialogue}". The speech bubble must be clearly visible, well-positioned, and the text must be readable. Comic book style speech bubble with tail pointing to the speaker.`
+  const dialogueText = dialogue 
+    ? ` Include speech bubble: "${dialogue}"` 
     : '';
 
-  return `${professionalSpecs}
-
-${panelInstructions}
-
-${styleEnhancement}
-
-Scene Description: ${imagePrompt}
-
-${dialogueInstruction}
-
-${characterConsistency}
-
-Professional comic book illustration, high quality, detailed, engaging composition.`;
+  const finalPrompt = basePrompt + characters + dialogueText;
+  
+  // Ensure we stay under the limit
+  return finalPrompt.length > 3800 ? finalPrompt.substring(0, 3800) + '...' : finalPrompt;
 }
 
 function getPanelTypeInstructions(panelType: string): string {
