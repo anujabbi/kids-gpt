@@ -4,6 +4,7 @@ import { generateProfessionalImagePrompt, enhancePromptWithCharacterConsistency,
 import { storyPlanningService } from './storyPlanningService';
 import { imageGenerationService } from './imageGenerationService';
 
+// Comic Service - Professional comic generation with story planning
 export class ComicService {
   async generateComic(request: ComicGenerationRequest): Promise<Comic> {
     const { data: { user } } = await supabase.auth.getUser();
