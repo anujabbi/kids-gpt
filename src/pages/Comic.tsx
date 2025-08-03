@@ -12,7 +12,7 @@ import { storyPlanningService } from "@/services/storyPlanningService";
 import { imageGenerationService } from "@/services/imageGenerationService";
 import { generateProfessionalImagePrompt } from "@/utils/comicPrompts";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Share, RotateCcw, Sparkles, Play } from "lucide-react";
+import { Loader2, Share, RotateCcw, Sparkles, Play, Edit2, Check, X } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 
 export default function ComicPage() {
@@ -23,6 +23,8 @@ export default function ComicPage() {
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [comicPanels, setComicPanels] = useState<ComicPanelType[]>([]);
   const [generatingPanels, setGeneratingPanels] = useState<boolean[]>([false, false, false]);
+  const [editingCharacter, setEditingCharacter] = useState<number | null>(null);
+  const [editedCharacter, setEditedCharacter] = useState<{ description: string; visualDescription: string } | null>(null);
 
   // Check if user is a child
   const isChild = profile?.role === 'child';
@@ -179,6 +181,44 @@ export default function ComicPage() {
     setStoryPlan(null);
     setComicPanels([]);
     setGeneratingPanels([false, false, false]);
+  };
+
+  const handleEditCharacter = (index: number) => {
+    const character = storyPlan?.characters[index];
+    if (character) {
+      setEditingCharacter(index);
+      setEditedCharacter({
+        description: character.description,
+        visualDescription: character.visualDescription
+      });
+    }
+  };
+
+  const handleSaveCharacter = (index: number) => {
+    if (!storyPlan || !editedCharacter) return;
+
+    const updatedStoryPlan = {
+      ...storyPlan,
+      characters: storyPlan.characters.map((char, i) => 
+        i === index 
+          ? { ...char, description: editedCharacter.description, visualDescription: editedCharacter.visualDescription }
+          : char
+      )
+    };
+    
+    setStoryPlan(updatedStoryPlan);
+    setEditingCharacter(null);
+    setEditedCharacter(null);
+    
+    toast({
+      title: "Character Updated!",
+      description: "Character details have been saved successfully.",
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCharacter(null);
+    setEditedCharacter(null);
   };
 
   const handleShare = () => {
@@ -361,13 +401,73 @@ export default function ComicPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {storyPlan.characters.map((character, index) => (
-                      <div key={index} className="border rounded-lg p-3 space-y-2">
-                        <h4 className="font-semibold text-primary">{character.name}</h4>
-                        <p className="text-sm text-muted-foreground">{character.description}</p>
-                        <div className="text-xs">
-                          <strong>Appearance:</strong>
-                          <p className="text-muted-foreground">{character.visualDescription}</p>
+                      <div key={index} className="border rounded-lg p-3 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-semibold text-primary">{character.name}</h4>
+                          {editingCharacter !== index && (
+                            <Button
+                              onClick={() => handleEditCharacter(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
+
+                        {editingCharacter === index ? (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-xs font-medium block mb-1">Personality & Traits:</label>
+                              <Textarea
+                                value={editedCharacter?.description || ''}
+                                onChange={(e) => setEditedCharacter(prev => prev ? {...prev, description: e.target.value} : null)}
+                                className="text-sm min-h-[80px]"
+                                placeholder="Detailed personality, traits, mannerisms..."
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium block mb-1">Physical Appearance:</label>
+                              <Textarea
+                                value={editedCharacter?.visualDescription || ''}
+                                onChange={(e) => setEditedCharacter(prev => prev ? {...prev, visualDescription: e.target.value} : null)}
+                                className="text-sm min-h-[100px]"
+                                placeholder="Detailed physical description for consistency..."
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => handleSaveCharacter(index)}
+                                size="sm"
+                                className="h-7"
+                              >
+                                <Check className="h-3 w-3 mr-1" />
+                                Save
+                              </Button>
+                              <Button
+                                onClick={handleCancelEdit}
+                                size="sm"
+                                variant="outline"
+                                className="h-7"
+                              >
+                                <X className="h-3 w-3 mr-1" />
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div>
+                              <strong className="text-xs">Personality:</strong>
+                              <p className="text-sm text-muted-foreground">{character.description}</p>
+                            </div>
+                            <div>
+                              <strong className="text-xs">Appearance:</strong>
+                              <p className="text-xs text-muted-foreground leading-relaxed">{character.visualDescription}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </CardContent>

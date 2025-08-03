@@ -28,8 +28,8 @@ Respond with a JSON object containing:
   "characters": [
     {
       "name": "Character name",
-      "description": "Brief personality description",
-      "visualDescription": "Detailed physical appearance description for consistent visual generation (clothing, colors, features, size, etc.)"
+      "description": "Detailed personality, traits, mannerisms, voice, age, role in story, quirks, and how they interact with others (3-4 sentences)",
+      "visualDescription": "Comprehensive physical appearance: body type, height, facial features, hair (color, style, length), clothing style and colors, accessories, distinctive markings, posture, expressions, and any unique physical traits. Be very specific about colors, textures, and visual details for consistency (4-5 sentences)"
     }
   ],
   "panels": [
