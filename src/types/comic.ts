@@ -1,6 +1,12 @@
 export type PanelType = 'establishing_shot' | 'close_up' | 'medium_shot';
 export type ComicStyle = 'cartoon' | 'ghibli' | 'superhero';
 
+export interface ComicCharacter {
+  name: string;
+  description: string;
+  visualDescription: string;
+}
+
 export interface ComicPanel {
   id: string;
   imageUrl: string;
@@ -27,6 +33,7 @@ export interface Comic {
 
 export interface StoryPlan {
   title: string;
+  characters: ComicCharacter[];
   panels: {
     panel: number;
     image_prompt: string;

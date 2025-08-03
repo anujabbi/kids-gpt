@@ -39,7 +39,7 @@ export function generateProfessionalImagePrompt(
   panelType: string,
   style: ComicStyle,
   panelNumber: number,
-  characterDescription?: string,
+  characterDescriptions?: string,
   dialogue?: string
 ): string {
   const styleConfig = COMIC_STYLES[style];
@@ -62,8 +62,8 @@ export function generateProfessionalImagePrompt(
   const styleEnhancement = `${styleConfig.promptTemplate}`;
   
   // Character consistency
-  const characterConsistency = characterDescription 
-    ? `Maintain visual consistency with this character description: ${characterDescription}`
+  const characterConsistency = characterDescriptions 
+    ? `Character visual consistency: ${characterDescriptions}`
     : 'Ensure character design consistency if characters appear';
 
   // Add dialogue if provided

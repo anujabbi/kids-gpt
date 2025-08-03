@@ -123,12 +123,16 @@ export default function ComicPage() {
     try {
       const panelPlan = storyPlan.panels[panelIndex];
       
+      const characterDescriptions = storyPlan.characters
+        .map(char => `${char.name}: ${char.visualDescription}`)
+        .join('. ');
+      
       const enhancedPrompt = generateProfessionalImagePrompt(
         panelPlan.image_prompt,
         panelPlan.panel_type,
         selectedStyle,
         panelIndex + 1,
-        panelIndex > 0 ? "Maintain character consistency from previous panels" : undefined,
+        characterDescriptions,
         panelPlan.dialogue
       );
 
@@ -263,86 +267,112 @@ export default function ComicPage() {
           </div>
         ) : (
           // Story Plan & Comic Display
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div className="flex gap-8">
+              {/* Main Comic Content */}
+              <div className="flex-1 space-y-8">
+                {/* Comic Panels */}
+                <div className="flex flex-col gap-6 max-w-lg mx-auto">
 
-            {/* Comic Panels */}
-            <div className="flex flex-col gap-6 max-w-lg mx-auto">
-              {comicPanels.map((panel, index) => (
-                <Card key={panel.id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-semibold">Panel {index + 1}</h3>
-                      <Button
-                        onClick={() => handleGeneratePanel(index)}
-                        disabled={generatingPanels[index]}
-                        size="sm"
-                        variant={panel.imageUrl ? "outline" : "default"}
-                      >
-                        {generatingPanels[index] ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-4 w-4 mr-2" />
-                            Generate
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                  {comicPanels.map((panel, index) => (
+                    <Card key={panel.id} className="overflow-hidden">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-semibold">Panel {index + 1}</h3>
+                          <Button
+                            onClick={() => handleGeneratePanel(index)}
+                            disabled={generatingPanels[index]}
+                            size="sm"
+                            variant={panel.imageUrl ? "outline" : "default"}
+                          >
+                            {generatingPanels[index] ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-4 w-4 mr-2" />
+                                Generate
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {/* Panel Image */}
+                        <div className="aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                          {panel.imageUrl ? (
+                            <img 
+                              src={panel.imageUrl} 
+                              alt={`Panel ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-center text-muted-foreground">
+                              <Play className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                              <p>Click Generate to create this panel</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Panel Info */}
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <strong>Image Prompt:</strong>
+                            <p className="text-muted-foreground">{panel.prompt}</p>
+                          </div>
+                          {panel.dialogue && (
+                            <div>
+                              <strong>Dialogue:</strong>
+                              <p className="text-primary font-medium">💬 "{panel.dialogue}"</p>
+                            </div>
+                          )}
+                          {panel.caption && (
+                            <div>
+                              <strong>Caption:</strong>
+                              <p className="italic">📝 {panel.caption}</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button onClick={handleShare} variant="default" size="lg">
+                    <Share className="h-5 w-5 mr-2" />
+                    Share Comic Story
+                  </Button>
+                  <Button onClick={handleStartOver} variant="outline" size="lg">
+                    <RotateCcw className="h-5 w-5 mr-2" />
+                    Start Over
+                  </Button>
+                </div>
+              </div>
+
+              {/* Characters Sidebar */}
+              <div className="w-80 space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Characters</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    {/* Panel Image */}
-                    <div className="aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                      {panel.imageUrl ? (
-                        <img 
-                          src={panel.imageUrl} 
-                          alt={`Panel ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-center text-muted-foreground">
-                          <Play className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                          <p>Click Generate to create this panel</p>
+                  <CardContent className="space-y-4">
+                    {storyPlan.characters.map((character, index) => (
+                      <div key={index} className="border rounded-lg p-3 space-y-2">
+                        <h4 className="font-semibold text-primary">{character.name}</h4>
+                        <p className="text-sm text-muted-foreground">{character.description}</p>
+                        <div className="text-xs">
+                          <strong>Appearance:</strong>
+                          <p className="text-muted-foreground">{character.visualDescription}</p>
                         </div>
-                      )}
-                    </div>
-                    
-                    {/* Panel Info */}
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <strong>Image Prompt:</strong>
-                        <p className="text-muted-foreground">{panel.prompt}</p>
                       </div>
-                      {panel.dialogue && (
-                        <div>
-                          <strong>Dialogue:</strong>
-                          <p className="text-primary font-medium">💬 "{panel.dialogue}"</p>
-                        </div>
-                      )}
-                      {panel.caption && (
-                        <div>
-                          <strong>Caption:</strong>
-                          <p className="italic">📝 {panel.caption}</p>
-                        </div>
-                      )}
-                    </div>
+                    ))}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={handleShare} variant="default" size="lg">
-                <Share className="h-5 w-5 mr-2" />
-                Share Comic Story
-              </Button>
-              <Button onClick={handleStartOver} variant="outline" size="lg">
-                <RotateCcw className="h-5 w-5 mr-2" />
-                Start Over
-              </Button>
+              </div>
             </div>
           </div>
         )}

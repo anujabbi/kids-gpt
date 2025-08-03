@@ -25,6 +25,13 @@ Follow comic industry best practices:
 Respond with a JSON object containing:
 {
   "title": "Professional comic title (max 50 characters)",
+  "characters": [
+    {
+      "name": "Character name",
+      "description": "Brief personality description",
+      "visualDescription": "Detailed physical appearance description for consistent visual generation (clothing, colors, features, size, etc.)"
+    }
+  ],
   "panels": [
     {
       "panel": 1,
