@@ -25,6 +25,7 @@ export default function ComicPage() {
   const [generatingPanels, setGeneratingPanels] = useState<boolean[]>([false, false, false]);
   const [editingCharacter, setEditingCharacter] = useState<number | null>(null);
   const [editedCharacter, setEditedCharacter] = useState<{ description: string; visualDescription: string } | null>(null);
+  const [editingPanel, setEditingPanel] = useState<number | null>(null);
 
   // Check if user is a child
   const isChild = profile?.role === 'child';
@@ -115,65 +116,6 @@ export default function ComicPage() {
     }
   };
 
-  const handleGeneratePanel = async (panelIndex: number) => {
-    if (!storyPlan || !selectedStyle || !profile?.family_id) return;
-
-    const newGeneratingPanels = [...generatingPanels];
-    newGeneratingPanels[panelIndex] = true;
-    setGeneratingPanels(newGeneratingPanels);
-
-    try {
-      const panelPlan = storyPlan.panels[panelIndex];
-      
-      const characterDescriptions = storyPlan.characters
-        .map(char => `${char.name}: ${char.visualDescription}`)
-        .join('. ');
-      
-      const enhancedPrompt = generateProfessionalImagePrompt(
-        panelPlan.image_prompt,
-        panelPlan.panel_type,
-        selectedStyle,
-        panelIndex + 1,
-        characterDescriptions,
-        panelPlan.dialogue
-      );
-
-      const generatedImage = await imageGenerationService.generateImage(
-        {
-          prompt: enhancedPrompt,
-          size: '1024x1024',
-          quality: 'standard',
-          style: 'vivid'
-        },
-        profile.family_id
-      );
-
-      // Update the panel with the generated image
-      const updatedPanels = [...comicPanels];
-      updatedPanels[panelIndex] = {
-        ...updatedPanels[panelIndex],
-        imageUrl: generatedImage.url
-      };
-      setComicPanels(updatedPanels);
-      
-      toast({
-        title: "Panel Generated!",
-        description: `Panel ${panelIndex + 1} has been created successfully!`,
-      });
-      
-    } catch (error) {
-      console.error(`Failed to generate panel ${panelIndex + 1}:`, error);
-      toast({
-        title: "Generation Failed",
-        description: `Failed to generate panel ${panelIndex + 1}. Please try again.`,
-        variant: "destructive",
-      });
-    } finally {
-      const newGeneratingPanels = [...generatingPanels];
-      newGeneratingPanels[panelIndex] = false;
-      setGeneratingPanels(newGeneratingPanels);
-    }
-  };
 
   const handleStartOver = () => {
     setStoryIdea("");
@@ -219,6 +161,93 @@ export default function ComicPage() {
   const handleCancelEdit = () => {
     setEditingCharacter(null);
     setEditedCharacter(null);
+  };
+
+  const handleEditPanel = (panelIndex: number) => {
+    setEditingPanel(panelIndex);
+  };
+
+  const handleSavePanel = async (panelIndex: number, prompt: string, caption: string) => {
+    if (!storyPlan || !selectedStyle || !profile?.family_id) return;
+
+    const newGeneratingPanels = [...generatingPanels];
+    newGeneratingPanels[panelIndex] = true;
+    setGeneratingPanels(newGeneratingPanels);
+
+    try {
+      const characterDescriptions = storyPlan.characters
+        .map(char => `${char.name}: ${char.visualDescription}`)
+        .join('. ');
+      
+      const enhancedPrompt = generateProfessionalImagePrompt(
+        prompt,
+        comicPanels[panelIndex].panelType,
+        selectedStyle,
+        panelIndex + 1,
+        characterDescriptions,
+        comicPanels[panelIndex].dialogue
+      );
+
+      const generatedImage = await imageGenerationService.generateImage(
+        {
+          prompt: enhancedPrompt,
+          size: '1024x1024',
+          quality: 'standard',
+          style: 'vivid'
+        },
+        profile.family_id
+      );
+
+      // Update the panel with the new prompt, caption and generated image
+      const updatedPanels = [...comicPanels];
+      updatedPanels[panelIndex] = {
+        ...updatedPanels[panelIndex],
+        imageUrl: generatedImage.url,
+        prompt,
+        caption
+      };
+      setComicPanels(updatedPanels);
+      setEditingPanel(null);
+      
+      toast({
+        title: "Panel Regenerated!",
+        description: `Panel ${panelIndex + 1} has been updated successfully!`,
+      });
+      
+    } catch (error) {
+      console.error(`Failed to regenerate panel ${panelIndex + 1}:`, error);
+      toast({
+        title: "Regeneration Failed",
+        description: `Failed to regenerate panel ${panelIndex + 1}. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      const newGeneratingPanels = [...generatingPanels];
+      newGeneratingPanels[panelIndex] = false;
+      setGeneratingPanels(newGeneratingPanels);
+    }
+  };
+
+  const handleCancelPanelEdit = () => {
+    setEditingPanel(null);
+  };
+
+  const getExactPrompt = (panelIndex: number) => {
+    if (!storyPlan || !selectedStyle) return '';
+    
+    const panel = comicPanels[panelIndex];
+    const characterDescriptions = storyPlan.characters
+      .map(char => `${char.name}: ${char.visualDescription}`)
+      .join('. ');
+    
+    return generateProfessionalImagePrompt(
+      panel.prompt,
+      panel.panelType,
+      selectedStyle,
+      panelIndex + 1,
+      characterDescriptions,
+      panel.dialogue
+    );
   };
 
   const handleShare = () => {
@@ -313,70 +342,20 @@ export default function ComicPage() {
               <div className="flex-1 space-y-8">
                 {/* Comic Panels */}
                 <div className="flex flex-col gap-6 max-w-lg mx-auto">
-
                   {comicPanels.map((panel, index) => (
-                    <Card key={panel.id} className="overflow-hidden">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-semibold">Panel {index + 1}</h3>
-                          <Button
-                            onClick={() => handleGeneratePanel(index)}
-                            disabled={generatingPanels[index]}
-                            size="sm"
-                            variant={panel.imageUrl ? "outline" : "default"}
-                          >
-                            {generatingPanels[index] ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <Play className="h-4 w-4 mr-2" />
-                                Generate
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {/* Panel Image */}
-                        <div className="aspect-square bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                          {panel.imageUrl ? (
-                            <img 
-                              src={panel.imageUrl} 
-                              alt={`Panel ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="text-center text-muted-foreground">
-                              <Play className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                              <p>Click Generate to create this panel</p>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Panel Info */}
-                        <div className="space-y-2 text-sm">
-                          <div>
-                            <strong>Image Prompt:</strong>
-                            <p className="text-muted-foreground">{panel.prompt}</p>
-                          </div>
-                          {panel.dialogue && (
-                            <div>
-                              <strong>Dialogue:</strong>
-                              <p className="text-primary font-medium">💬 "{panel.dialogue}"</p>
-                            </div>
-                          )}
-                          {panel.caption && (
-                            <div>
-                              <strong>Caption:</strong>
-                              <p className="italic">📝 {panel.caption}</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <ComicPanel
+                      key={panel.id}
+                      panel={{
+                        ...panel,
+                        prompt: getExactPrompt(index)
+                      }}
+                      panelIndex={index}
+                      isEditing={editingPanel === index}
+                      onEdit={() => handleEditPanel(index)}
+                      onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)}
+                      onCancel={handleCancelPanelEdit}
+                      isGenerating={generatingPanels[index]}
+                    />
                   ))}
                 </div>
 
