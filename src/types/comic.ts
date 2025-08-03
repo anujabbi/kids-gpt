@@ -5,6 +5,7 @@ export interface ComicPanel {
   id: string;
   imageUrl: string;
   prompt: string;
+  dialogue?: string;
   caption: string;
   panelType: PanelType;
   generationId?: string;
@@ -29,6 +30,7 @@ export interface StoryPlan {
   panels: {
     panel: number;
     image_prompt: string;
+    dialogue?: string;
     caption: string;
     panel_type: PanelType;
   }[];

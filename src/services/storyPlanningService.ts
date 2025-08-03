@@ -5,18 +5,21 @@ export class StoryPlanningService {
   async generateStoryPlan(storyIdea: string, comicStyle: ComicStyle): Promise<StoryPlan | null> {
     const styleContext = this.getStyleContext(comicStyle);
     
-    const prompt = `Create a professional 3-panel vertical comic strip about: ${storyIdea}.
+    const prompt = `Create a hilarious and engaging 3-panel vertical comic strip about: ${storyIdea}.
 
 ${styleContext}
 
 Follow comic industry best practices:
-- Panel 1: Setup/introduction
-- Panel 2: Development/conflict  
-- Panel 3: Punchline/resolution
+- Panel 1: Setup/introduction - establish characters and situation
+- Panel 2: Development/conflict - build tension or introduce problem
+- Panel 3: Punchline/resolution - deliver the funny payoff
 - Use proper comic typography and speech bubble conventions
-- Keep captions concise (max 20 words)
-- Ensure visual continuity between panels
-- Make it engaging and age-appropriate for children
+- Include funny dialogues and character interactions in each panel
+- Make it genuinely funny and engaging for children
+- Keep dialogues snappy and entertaining (max 15 words per speech bubble)
+- Ensure visual continuity between panels with consistent characters
+- Characters should have expressive faces and body language
+- Include humor that kids will understand and laugh at
 
 Respond with a JSON object containing:
 {
@@ -24,26 +27,29 @@ Respond with a JSON object containing:
   "panels": [
     {
       "panel": 1,
-      "image_prompt": "Detailed prompt for professional comic illustration with proper composition, clear focal points, and comic art style",
-      "caption": "Speech or caption text following comic conventions",
+      "image_prompt": "Detailed prompt for professional comic illustration with proper composition, clear focal points, and comic art style. Include character expressions and setting details",
+      "dialogue": "Funny dialogue or speech bubble text (max 15 words)",
+      "caption": "Optional narration or sound effects if needed",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 2, 
-      "image_prompt": "Second panel prompt maintaining visual continuity with panel 1",
-      "caption": "Development dialogue or narration",
+      "image_prompt": "Second panel prompt maintaining visual continuity with panel 1, showing character reactions and developing the situation",
+      "dialogue": "Continuation dialogue that builds the comedy (max 15 words)",
+      "caption": "Optional narration or sound effects",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 3,
-      "image_prompt": "Final panel prompt delivering the punchline or resolution", 
-      "caption": "Punchline or concluding text",
+      "image_prompt": "Final panel prompt delivering the visual punchline with exaggerated character expressions and reactions", 
+      "dialogue": "Punchline dialogue that delivers the funny payoff (max 15 words)",
+      "caption": "Optional narration or sound effects for comic effect",
       "panel_type": "establishing_shot|close_up|medium_shot"
     }
   ]
 }
 
-Make it engaging and professional. Each panel should have proper visual hierarchy and clear storytelling purpose.
+Make it hilarious and engaging for children. Each panel should have proper visual hierarchy, clear storytelling purpose, and genuine humor. Focus on physical comedy, silly situations, unexpected twists, and character reactions that kids will find funny.
 
 DO NOT OUTPUT ANYTHING OTHER THAN VALID JSON.`;
 
