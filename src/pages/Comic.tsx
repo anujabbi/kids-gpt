@@ -127,8 +127,9 @@ export default function ComicPage() {
         panelPlan.image_prompt,
         panelPlan.panel_type,
         selectedStyle,
-        panelPlan.panel,
-        panelIndex > 0 ? "Maintain character consistency from previous panels" : undefined
+        panelIndex + 1,
+        panelIndex > 0 ? "Maintain character consistency from previous panels" : undefined,
+        panelPlan.dialogue
       );
 
       const generatedImage = await imageGenerationService.generateImage(

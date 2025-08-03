@@ -39,7 +39,8 @@ export function generateProfessionalImagePrompt(
   panelType: string,
   style: ComicStyle,
   panelNumber: number,
-  characterDescription?: string
+  characterDescription?: string,
+  dialogue?: string
 ): string {
   const styleConfig = COMIC_STYLES[style];
   
@@ -64,6 +65,11 @@ export function generateProfessionalImagePrompt(
     ? `Maintain visual consistency with this character description: ${characterDescription}`
     : 'Ensure character design consistency if characters appear';
 
+  // Add dialogue if provided
+  const dialogueInstruction = dialogue 
+    ? `Include a speech bubble with the text: "${dialogue}". The speech bubble should be comic book style with clear, readable text and proper placement that doesn't obscure important visual elements.`
+    : '';
+
   return `${professionalSpecs}
 
 ${panelInstructions}
@@ -71,6 +77,8 @@ ${panelInstructions}
 ${styleEnhancement}
 
 Scene Description: ${imagePrompt}
+
+${dialogueInstruction}
 
 ${characterConsistency}
 
