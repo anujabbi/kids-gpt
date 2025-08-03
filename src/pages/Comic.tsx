@@ -263,29 +263,6 @@ export default function ComicPage() {
         ) : (
           // Story Plan & Comic Display
           <div className="max-w-4xl mx-auto space-y-8">
-            {/* Story Plan Display */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center text-2xl">{storyPlan.title}</CardTitle>
-                <p className="text-center text-muted-foreground">"{storyIdea}"</p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {storyPlan.panels.map((panelPlan, index) => (
-                    <div key={index} className="border rounded-lg p-4 space-y-2">
-                      <h4 className="font-semibold">Panel {index + 1} ({panelPlan.panel_type.replace('_', ' ')})</h4>
-                      <p className="text-sm text-muted-foreground">{panelPlan.image_prompt}</p>
-                      {panelPlan.dialogue && (
-                        <p className="text-sm font-medium text-primary">💬 "{panelPlan.dialogue}"</p>
-                      )}
-                      {panelPlan.caption && (
-                        <p className="text-sm italic">📝 {panelPlan.caption}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Comic Panels */}
             <div className="flex flex-col gap-6 max-w-lg mx-auto">
