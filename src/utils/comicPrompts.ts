@@ -46,13 +46,14 @@ export function generateProfessionalImagePrompt(
   
   // Base professional comic specifications
   const professionalSpecs = `Create a professional comic panel illustration following industry standards:
+- Single scene only - do not include multiple scenes or split compositions
 - Comic book art style with clear line work and proper visual hierarchy
 - Professional composition with proper focal points and visual flow
 - High contrast for readability with comic book color palette
 - Safe areas for text (avoid edges, 16px margins for important elements)
 - Bold, clear line weights (2-4px for main elements)
 - Consistent lighting and perspective
-- Panel ${panelNumber} of 3 in a cohesive comic strip`;
+- One unified scene per panel - Panel ${panelNumber} of 3 in a cohesive comic strip`;
 
   // Panel type specific instructions
   const panelInstructions = getPanelTypeInstructions(panelType);
