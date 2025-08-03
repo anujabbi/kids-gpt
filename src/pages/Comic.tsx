@@ -23,6 +23,8 @@ export default function ComicPage() {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState("");
   const [editingPanelIndex, setEditingPanelIndex] = useState<number | null>(null);
+  const [generatingPanels, setGeneratingPanels] = useState<boolean[]>([false, false, false]);
+  const [panelImages, setPanelImages] = useState<(string | null)[]>([null, null, null]);
 
   // Check if user is a child
   const isChild = profile?.role === 'child';
@@ -78,38 +80,62 @@ export default function ComicPage() {
     setGenerationProgress(0);
     setGenerationStep("Preparing your comic story...");
     
+    // Initialize empty comic structure immediately
+    const tempComic: Comic = {
+      id: 'generating',
+      title: storyIdea.slice(0, 30) + (storyIdea.length > 30 ? '...' : ''),
+      storyIdea: storyIdea.trim(),
+      comicStyle: selectedStyle,
+      panels: [
+        { id: 'panel1', imageUrl: '', prompt: '', caption: 'Panel 1' },
+        { id: 'panel2', imageUrl: '', prompt: '', caption: 'Panel 2' },
+        { id: 'panel3', imageUrl: '', prompt: '', caption: 'Panel 3' }
+      ],
+      userId: '',
+      isPublic: false,
+      viewCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    setComic(tempComic);
+    setGeneratingPanels([true, true, true]);
+    setPanelImages([null, null, null]);
+    
     try {
       const request: ComicGenerationRequest = {
         storyIdea: storyIdea.trim(),
         comicStyle: selectedStyle,
       };
 
-      setGenerationProgress(25);
+      setGenerationProgress(10);
       setGenerationStep("Creating panel 1...");
+      setGeneratingPanels([true, false, false]);
       
-      // Simulate progress updates
+      // Simulate progressive generation
       setTimeout(() => {
-        setGenerationProgress(50);
+        setGenerationProgress(35);
         setGenerationStep("Creating panel 2...");
+        setGeneratingPanels([false, true, false]);
       }, 1000);
       
       setTimeout(() => {
-        setGenerationProgress(75);
+        setGenerationProgress(65);
         setGenerationStep("Creating panel 3...");
+        setGeneratingPanels([false, false, true]);
       }, 2000);
-
+      
       const newComic = await comicService.generateComic(request);
       
       setGenerationProgress(100);
-      setGenerationStep("Finishing up...");
+      setGenerationStep("Complete!");
+      setComic(newComic);
+      setGeneratingPanels([false, false, false]);
       
-      setTimeout(() => {
-        setComic(newComic);
-        toast({
-          title: "Comic Created!",
-          description: "Your comic strip has been generated successfully!",
-        });
-      }, 500);
+      toast({
+        title: "Comic Created!",
+        description: "Your comic strip has been generated successfully!",
+      });
       
     } catch (error) {
       console.error('Failed to generate comic:', error);
@@ -118,10 +144,13 @@ export default function ComicPage() {
         description: error instanceof Error ? error.message : "Failed to generate comic. Please try again.",
         variant: "destructive",
       });
+      setComic(null);
     } finally {
       setIsGenerating(false);
       setGenerationProgress(0);
       setGenerationStep("");
+      setGeneratingPanels([false, false, false]);
+      setPanelImages([null, null, null]);
     }
   };
 
@@ -278,6 +307,21 @@ export default function ComicPage() {
               <p className="text-muted-foreground">"{comic.storyIdea}"</p>
             </div>
 
+            {/* Progress indicator when generating */}
+            {isGenerating && (
+              <Card className="max-w-md mx-auto mb-6">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-center">{generationStep}</p>
+                    <Progress value={generationProgress} className="w-full" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      This may take a minute or two...
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Comic Panels */}
             <div className="flex flex-col gap-2 mb-8 max-w-lg mx-auto">
               {comic.panels.map((panel, index) => (
@@ -289,6 +333,7 @@ export default function ComicPage() {
                   onEdit={() => handlePanelEdit(index)}
                   onSave={(prompt, caption) => handlePanelSave(index, prompt, caption)}
                   onCancel={() => setEditingPanelIndex(null)}
+                  isGenerating={generatingPanels[index]}
                 />
               ))}
             </div>

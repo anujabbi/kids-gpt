@@ -13,6 +13,7 @@ interface ComicPanelProps {
   onEdit: () => void;
   onSave: (prompt: string, caption: string) => Promise<void>;
   onCancel: () => void;
+  isGenerating?: boolean;
 }
 
 export const ComicPanel = ({ 
@@ -21,7 +22,8 @@ export const ComicPanel = ({
   isEditing, 
   onEdit, 
   onSave, 
-  onCancel 
+  onCancel,
+  isGenerating = false
 }: ComicPanelProps) => {
   const [editPrompt, setEditPrompt] = useState(panel.prompt);
   const [editCaption, setEditCaption] = useState(panel.caption);
@@ -55,17 +57,26 @@ export const ComicPanel = ({
 
             {/* Image */}
             <div className="aspect-square bg-muted relative rounded">
-              <img 
-                src={panel.imageUrl} 
-                alt={`Panel ${panelIndex + 1}`}
-                className="w-full h-full object-cover rounded"
-                loading="lazy"
-              />
-              {isRegenerating && (
+              {panel.imageUrl ? (
+                <img 
+                  src={panel.imageUrl} 
+                  alt={`Panel ${panelIndex + 1}`}
+                  className="w-full h-full object-cover rounded"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center rounded bg-muted/50">
+                  <div className="text-muted-foreground text-center">
+                    <div className="text-lg font-semibold mb-1">Panel {panelIndex + 1}</div>
+                    <div className="text-sm">Waiting to generate...</div>
+                  </div>
+                </div>
+              )}
+              {(isRegenerating || isGenerating) && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
                   <div className="text-white text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                    <p className="text-sm">Regenerating...</p>
+                    <p className="text-sm">{isGenerating ? 'Generating...' : 'Regenerating...'}</p>
                   </div>
                 </div>
               )}
