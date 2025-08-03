@@ -68,7 +68,7 @@ export function generateProfessionalImagePrompt(
 
   // Add dialogue if provided
   const dialogueInstruction = dialogue 
-    ? `Include a speech bubble with the text: "${dialogue}". The speech bubble should be comic book style with clear, readable text and proper placement that doesn't obscure important visual elements.`
+    ? `IMPORTANT: Include a white speech bubble with black text that says exactly: "${dialogue}". The speech bubble must be clearly visible, well-positioned, and the text must be readable. Comic book style speech bubble with tail pointing to the speaker.`
     : '';
 
   return `${professionalSpecs}

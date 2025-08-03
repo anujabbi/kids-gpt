@@ -20,6 +20,7 @@ Follow comic industry best practices:
 - Ensure visual continuity between panels with consistent characters
 - Characters should have expressive faces and body language
 - Include humor that kids will understand and laugh at
+- When dialogue exists, specify exactly who is speaking (e.g., "The dinosaur chef says:", "Captain Donut exclaims:")
 
 Respond with a JSON object containing:
 {
@@ -28,21 +29,21 @@ Respond with a JSON object containing:
     {
       "panel": 1,
       "image_prompt": "Detailed prompt for professional comic illustration with proper composition, clear focal points, and comic art style. Include character expressions and setting details",
-      "dialogue": "Funny dialogue or speech bubble text (max 15 words)",
+      "dialogue": "Character name says: 'Funny dialogue or speech bubble text' (max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects if needed",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 2, 
       "image_prompt": "Second panel prompt maintaining visual continuity with panel 1, showing character reactions and developing the situation",
-      "dialogue": "Continuation dialogue that builds the comedy (max 15 words)",
+      "dialogue": "Character name says: 'Continuation dialogue that builds the comedy' (max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 3,
       "image_prompt": "Final panel prompt delivering the visual punchline with exaggerated character expressions and reactions", 
-      "dialogue": "Punchline dialogue that delivers the funny payoff (max 15 words)",
+      "dialogue": "Character name says: 'Punchline dialogue that delivers the funny payoff' (max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects for comic effect",
       "panel_type": "establishing_shot|close_up|medium_shot"
     }
