@@ -1,6 +1,5 @@
 // Comic Strip Generation Prompt Templates
-
-export type ComicStyle = 'cartoon' | 'ghibli' | 'superhero';
+import { ComicStyle } from '@/types/comic';
 
 export interface ComicStyleConfig {
   name: string;
@@ -35,24 +34,60 @@ export interface PanelPrompt {
   caption: string;
 }
 
-export function generateComicPrompts(storyIdea: string, style: ComicStyle): PanelPrompt[] {
+export function generateProfessionalImagePrompt(
+  imagePrompt: string, 
+  panelType: string,
+  style: ComicStyle,
+  panelNumber: number,
+  characterDescription?: string
+): string {
   const styleConfig = COMIC_STYLES[style];
-  const basePrompt = styleConfig.promptTemplate;
+  
+  // Base professional comic specifications
+  const professionalSpecs = `Create a professional comic panel illustration following industry standards:
+- Comic book art style with clear line work and proper visual hierarchy
+- Professional composition with proper focal points and visual flow
+- High contrast for readability with comic book color palette
+- Safe areas for text (avoid edges, 16px margins for important elements)
+- Bold, clear line weights (2-4px for main elements)
+- Consistent lighting and perspective
+- Panel ${panelNumber} of 3 in a cohesive comic strip`;
 
-  return [
-    {
-      prompt: `${basePrompt} Panel 1 of a 3-panel comic: Setting up the story - ${storyIdea}. Show the main character(s) in their initial situation or environment.`,
-      caption: 'Once upon a time...'
-    },
-    {
-      prompt: `${basePrompt} Panel 2 of a 3-panel comic: The middle/action - ${storyIdea}. Show the main event or conflict happening with the same character(s) from panel 1.`,
-      caption: 'Then something happened...'
-    },
-    {
-      prompt: `${basePrompt} Panel 3 of a 3-panel comic: The resolution/ending - ${storyIdea}. Show how things end or the outcome with the same character(s) from panels 1 and 2.`,
-      caption: 'And in the end...'
-    }
-  ];
+  // Panel type specific instructions
+  const panelInstructions = getPanelTypeInstructions(panelType);
+  
+  // Style-specific enhancement
+  const styleEnhancement = `${styleConfig.promptTemplate}`;
+  
+  // Character consistency
+  const characterConsistency = characterDescription 
+    ? `Maintain visual consistency with this character description: ${characterDescription}`
+    : 'Ensure character design consistency if characters appear';
+
+  return `${professionalSpecs}
+
+${panelInstructions}
+
+${styleEnhancement}
+
+Scene Description: ${imagePrompt}
+
+${characterConsistency}
+
+Professional comic book illustration, high quality, detailed, engaging composition.`;
+}
+
+function getPanelTypeInstructions(panelType: string): string {
+  switch (panelType) {
+    case 'establishing_shot':
+      return 'Wide establishing shot showing the scene and environment, setting the context and mood.';
+    case 'close_up':
+      return 'Close-up shot focusing on character expressions, emotions, or important details.';
+    case 'medium_shot':
+      return 'Medium shot showing characters and their immediate surroundings, balancing character and environment.';
+    default:
+      return 'Well-composed shot with proper framing and clear storytelling purpose.';
+  }
 }
 
 export function enhancePromptWithCharacterConsistency(

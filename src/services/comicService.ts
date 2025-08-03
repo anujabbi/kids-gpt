@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Comic, ComicPanel, ComicGenerationRequest, PanelEditRequest } from '@/types/comic';
-import { generateComicPrompts, enhancePromptWithCharacterConsistency, extractCharacterDescription, ComicStyle } from '@/utils/comicPrompts';
+import { Comic, ComicPanel, ComicGenerationRequest, PanelEditRequest, ComicStyle, PanelType } from '@/types/comic';
+import { generateProfessionalImagePrompt, enhancePromptWithCharacterConsistency, extractCharacterDescription } from '@/utils/comicPrompts';
+import { storyPlanningService } from './storyPlanningService';
 import { imageGenerationService } from './imageGenerationService';
 
 export class ComicService {
@@ -19,25 +20,28 @@ export class ComicService {
       throw new Error('Only children can create comics');
     }
 
-    // Generate panel prompts
-    const panelPrompts = generateComicPrompts(request.storyIdea, request.comicStyle);
+    // Generate story plan using AI
+    const storyPlan = await storyPlanningService.generateStoryPlan(request.storyIdea, request.comicStyle);
+    if (!storyPlan) {
+      throw new Error('Failed to generate story plan');
+    }
+
     const panels: ComicPanel[] = [];
     let characterDescription = '';
-    let mainGenerationId = '';
+    let mainGenerationId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Generate images for each panel
-    for (let i = 0; i < panelPrompts.length; i++) {
-      const panelPrompt = panelPrompts[i];
-      let enhancedPrompt = panelPrompt.prompt;
-
-      // For panels 2 and 3, use character consistency
-      if (i > 0 && characterDescription) {
-        enhancedPrompt = enhancePromptWithCharacterConsistency(
-          panelPrompt.prompt,
-          characterDescription,
-          mainGenerationId
-        );
-      }
+    // Generate images for each panel using the story plan
+    for (let i = 0; i < storyPlan.panels.length; i++) {
+      const panelPlan = storyPlan.panels[i];
+      
+      // Generate professional image prompt
+      const enhancedPrompt = generateProfessionalImagePrompt(
+        panelPlan.image_prompt,
+        panelPlan.panel_type,
+        request.comicStyle,
+        panelPlan.panel,
+        i > 0 ? characterDescription : undefined
+      );
 
       try {
         const generatedImage = await imageGenerationService.generateImage(
@@ -52,10 +56,7 @@ export class ComicService {
 
         // Extract character description from first panel
         if (i === 0) {
-          characterDescription = extractCharacterDescription(enhancedPrompt);
-          // Note: OpenAI's actual generation ID would be extracted from the response
-          // For now, we'll use a placeholder
-          mainGenerationId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          characterDescription = extractCharacterDescription(panelPlan.image_prompt);
         }
 
         // Upload image to Supabase storage
@@ -65,7 +66,8 @@ export class ComicService {
           id: `panel_${i}_${Date.now()}`,
           imageUrl,
           prompt: enhancedPrompt,
-          caption: panelPrompt.caption,
+          caption: panelPlan.caption,
+          panelType: panelPlan.panel_type,
           generationId: i === 0 ? mainGenerationId : undefined
         });
       } catch (error) {
@@ -75,7 +77,7 @@ export class ComicService {
     }
 
     // Save comic to database
-    const title = `${request.storyIdea.slice(0, 50)}${request.storyIdea.length > 50 ? '...' : ''}`;
+    const title = storyPlan.title || `${request.storyIdea.slice(0, 50)}${request.storyIdea.length > 50 ? '...' : ''}`;
     
     const { data: comic, error } = await supabase
       .from('comics')

@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ComicStyleCard } from "@/components/ComicStyleCard";
 import { ComicPanel } from "@/components/ComicPanel";
 import { useAuth } from "@/contexts/AuthContext";
-import { ComicStyle } from "@/utils/comicPrompts";
+import { ComicStyle } from "@/types/comic";
 import { Comic, ComicGenerationRequest, PanelEditRequest } from "@/types/comic";
 import { comicService } from "@/services/comicService";
 import { toast } from "@/hooks/use-toast";
@@ -87,9 +87,9 @@ export default function ComicPage() {
       storyIdea: storyIdea.trim(),
       comicStyle: selectedStyle,
       panels: [
-        { id: 'panel1', imageUrl: '', prompt: '', caption: 'Panel 1' },
-        { id: 'panel2', imageUrl: '', prompt: '', caption: 'Panel 2' },
-        { id: 'panel3', imageUrl: '', prompt: '', caption: 'Panel 3' }
+        { id: 'panel1', imageUrl: '', prompt: '', caption: 'Panel 1', panelType: 'establishing_shot' as const },
+        { id: 'panel2', imageUrl: '', prompt: '', caption: 'Panel 2', panelType: 'medium_shot' as const },
+        { id: 'panel3', imageUrl: '', prompt: '', caption: 'Panel 3', panelType: 'close_up' as const }
       ],
       userId: '',
       isPublic: false,

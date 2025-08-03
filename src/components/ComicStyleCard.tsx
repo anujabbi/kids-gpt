@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ComicStyle, COMIC_STYLES } from "@/utils/comicPrompts";
+import { COMIC_STYLES } from "@/utils/comicPrompts";
+import { ComicStyle } from "@/types/comic";
 
 interface ComicStyleCardProps {
   style: ComicStyle;
