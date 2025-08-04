@@ -3,10 +3,10 @@ import { familyApiKeyService } from './familyApiKeyService';
 
 export interface ImageGenerationParams {
   prompt: string;
-  size?: '1024x1024' | '1536x1024' | '1024x1536' | 'auto';
-  quality?: 'high' | 'medium' | 'low' | 'auto';
-  referenced_image_ids?: string[];
-  output_format?: 'png' | 'jpeg' | 'webp';
+  size?: '1024x1024' | '1792x1024' | '1024x1792';
+  quality?: 'standard' | 'hd';
+  style?: 'vivid' | 'natural';
+  referenced_image_ids?: string[]; // Note: Not supported by dall-e-3
 }
 
 export interface GeneratedImage {
@@ -47,16 +47,15 @@ export class ImageGenerationService {
     
     try {
       const requestBody: any = {
-        model: "gpt-image-1",
+        model: "dall-e-3",
         prompt: enhancedPrompt,
+        n: 1,
         size: params.size || '1024x1024',
-        quality: params.quality || 'auto',
-        output_format: params.output_format || 'png',
+        quality: params.quality || 'standard',
+        style: params.style || 'vivid',
       };
 
-      if (params.referenced_image_ids && params.referenced_image_ids.length > 0) {
-        requestBody.referenced_image_ids = params.referenced_image_ids;
-      }
+      // Note: referenced_image_ids not supported by dall-e-3
 
       const response = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
