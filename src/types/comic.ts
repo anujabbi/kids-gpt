@@ -5,6 +5,8 @@ export interface ComicCharacter {
   name: string;
   description: string;
   visualDescription: string;
+  generatedImageUrl?: string;
+  generationId?: string;
 }
 
 export interface ComicPanel {
@@ -15,6 +17,7 @@ export interface ComicPanel {
   caption: string;
   panelType: PanelType;
   generationId?: string;
+  referencedImageIds?: string[];
 }
 
 export interface Comic {

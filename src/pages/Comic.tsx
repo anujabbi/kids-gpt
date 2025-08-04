@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { ComicStyleCard } from "@/components/ComicStyleCard";
 import { ComicPanel } from "@/components/ComicPanel";
+import { CharacterGenerationSection } from "@/components/CharacterGenerationSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { ComicStyle, StoryPlan, ComicPanel as ComicPanelType } from "@/types/comic";
+import { ComicStyle, StoryPlan, ComicPanel as ComicPanelType, ComicCharacter } from "@/types/comic";
 import { storyPlanningService } from "@/services/storyPlanningService";
-import { imageGenerationService } from "@/services/imageGenerationService";
-import { generateProfessionalImagePrompt } from "@/utils/comicPrompts";
+import { useComicPanelGeneration } from "@/hooks/useComicPanelGeneration";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Share, RotateCcw, Sparkles, Play, Edit2, Check, X } from "lucide-react";
+import { Loader2, Share, RotateCcw, Sparkles, Wand2, ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 
 export default function ComicPage() {
@@ -22,10 +20,11 @@ export default function ComicPage() {
   const [storyPlan, setStoryPlan] = useState<StoryPlan | null>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [comicPanels, setComicPanels] = useState<ComicPanelType[]>([]);
-  const [generatingPanels, setGeneratingPanels] = useState<boolean[]>([false, false, false]);
-  const [editingCharacter, setEditingCharacter] = useState<number | null>(null);
-  const [editedCharacter, setEditedCharacter] = useState<{ description: string; visualDescription: string } | null>(null);
+  const [characters, setCharacters] = useState<ComicCharacter[]>([]);
   const [editingPanel, setEditingPanel] = useState<number | null>(null);
+  const [generationPhase, setGenerationPhase] = useState<'story' | 'characters' | 'panels' | 'complete'>('story');
+  
+  const { generatePanelWithReferences, generateAllPanels, isGenerating: isGeneratingPanels } = useComicPanelGeneration();
 
   // Check if user is a child
   const isChild = profile?.role === 'child';
@@ -86,6 +85,7 @@ export default function ComicPage() {
       }
       
       setStoryPlan(plan);
+      setCharacters(plan.characters);
       
       // Initialize empty comic panels based on the story plan
       const initialPanels: ComicPanelType[] = plan.panels.map((panelPlan, index) => ({
@@ -98,10 +98,11 @@ export default function ComicPage() {
       }));
       
       setComicPanels(initialPanels);
+      setGenerationPhase('characters');
       
       toast({
         title: "Story Plan Created!",
-        description: "Your funny comic story is ready. Now generate each panel!",
+        description: "Now let's generate character images for consistency!",
       });
       
     } catch (error) {
@@ -116,51 +117,40 @@ export default function ComicPage() {
     }
   };
 
-
   const handleStartOver = () => {
     setStoryIdea("");
     setSelectedStyle(null);
     setStoryPlan(null);
     setComicPanels([]);
-    setGeneratingPanels([false, false, false]);
+    setCharacters([]);
+    setGenerationPhase('story');
+    setEditingPanel(null);
   };
 
-  const handleEditCharacter = (index: number) => {
-    const character = storyPlan?.characters[index];
-    if (character) {
-      setEditingCharacter(index);
-      setEditedCharacter({
-        description: character.description,
-        visualDescription: character.visualDescription
+  const handleCharactersUpdate = (updatedCharacters: ComicCharacter[]) => {
+    setCharacters(updatedCharacters);
+  };
+
+  const handleGenerateComicPanels = async () => {
+    if (!selectedStyle || characters.length === 0) return;
+
+    try {
+      const generatedPanels = await generateAllPanels(comicPanels, characters, selectedStyle);
+      setComicPanels(generatedPanels);
+      setGenerationPhase('complete');
+      
+      toast({
+        title: "Comic Complete!",
+        description: "Your comic strip has been generated with character consistency!",
+      });
+    } catch (error) {
+      console.error('Failed to generate comic panels:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate comic panels. Please try again.",
+        variant: "destructive",
       });
     }
-  };
-
-  const handleSaveCharacter = (index: number) => {
-    if (!storyPlan || !editedCharacter) return;
-
-    const updatedStoryPlan = {
-      ...storyPlan,
-      characters: storyPlan.characters.map((char, i) => 
-        i === index 
-          ? { ...char, description: editedCharacter.description, visualDescription: editedCharacter.visualDescription }
-          : char
-      )
-    };
-    
-    setStoryPlan(updatedStoryPlan);
-    setEditingCharacter(null);
-    setEditedCharacter(null);
-    
-    toast({
-      title: "Character Updated!",
-      description: "Character details have been saved successfully.",
-    });
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCharacter(null);
-    setEditedCharacter(null);
   };
 
   const handleEditPanel = (panelIndex: number) => {
@@ -168,52 +158,39 @@ export default function ComicPage() {
   };
 
   const handleSavePanel = async (panelIndex: number, prompt: string, caption: string) => {
-    if (!storyPlan || !selectedStyle || !profile?.family_id) return;
-
-    const newGeneratingPanels = [...generatingPanels];
-    newGeneratingPanels[panelIndex] = true;
-    setGeneratingPanels(newGeneratingPanels);
+    if (!selectedStyle || characters.length === 0) return;
 
     try {
-      const characterDescriptions = storyPlan.characters
-        .map(char => `${char.name}: ${char.visualDescription}`)
-        .join('. ');
+      // Get previous panel generation ID for reference
+      const previousPanelGenerationId = panelIndex > 0 ? comicPanels[panelIndex - 1].generationId : undefined;
       
-      const enhancedPrompt = generateProfessionalImagePrompt(
-        prompt,
-        comicPanels[panelIndex].panelType,
-        selectedStyle,
-        panelIndex + 1,
-        characterDescriptions,
-        comicPanels[panelIndex].dialogue
-      );
-
-      const generatedImage = await imageGenerationService.generateImage(
-        {
-          prompt: enhancedPrompt,
-          size: '1024x1024',
-          quality: 'standard',
-          style: 'vivid'
-        },
-        profile.family_id
-      );
-
-      // Update the panel with the new prompt, caption and generated image
-      const updatedPanels = [...comicPanels];
-      updatedPanels[panelIndex] = {
-        ...updatedPanels[panelIndex],
-        imageUrl: generatedImage.url,
+      // Update panel data
+      const updatedPanel = {
+        ...comicPanels[panelIndex],
         prompt,
         caption
       };
-      setComicPanels(updatedPanels);
-      setEditingPanel(null);
-      
-      toast({
-        title: "Panel Regenerated!",
-        description: `Panel ${panelIndex + 1} has been updated successfully!`,
-      });
-      
+
+      // Generate with references
+      const generatedPanel = await generatePanelWithReferences(
+        updatedPanel,
+        panelIndex,
+        characters,
+        selectedStyle,
+        previousPanelGenerationId
+      );
+
+      if (generatedPanel) {
+        const updatedPanels = [...comicPanels];
+        updatedPanels[panelIndex] = generatedPanel;
+        setComicPanels(updatedPanels);
+        setEditingPanel(null);
+        
+        toast({
+          title: "Panel Regenerated!",
+          description: `Panel ${panelIndex + 1} has been updated with character consistency!`,
+        });
+      }
     } catch (error) {
       console.error(`Failed to regenerate panel ${panelIndex + 1}:`, error);
       toast({
@@ -221,10 +198,6 @@ export default function ComicPage() {
         description: `Failed to regenerate panel ${panelIndex + 1}. Please try again.`,
         variant: "destructive",
       });
-    } finally {
-      const newGeneratingPanels = [...generatingPanels];
-      newGeneratingPanels[panelIndex] = false;
-      setGeneratingPanels(newGeneratingPanels);
     }
   };
 
@@ -232,26 +205,7 @@ export default function ComicPage() {
     setEditingPanel(null);
   };
 
-  const getExactPrompt = (panelIndex: number) => {
-    if (!storyPlan || !selectedStyle) return '';
-    
-    const panel = comicPanels[panelIndex];
-    const characterDescriptions = storyPlan.characters
-      .map(char => `${char.name}: ${char.visualDescription}`)
-      .join('. ');
-    
-    return generateProfessionalImagePrompt(
-      panel.prompt,
-      panel.panelType,
-      selectedStyle,
-      panelIndex + 1,
-      characterDescriptions,
-      panel.dialogue
-    );
-  };
-
   const handleShare = () => {
-    // For now, just copy the story idea
     navigator.clipboard.writeText(`Check out my comic: "${storyPlan?.title}" - ${storyIdea}`).then(() => {
       toast({
         title: "Story Copied!",
@@ -259,6 +213,9 @@ export default function ComicPage() {
       });
     });
   };
+
+  const hasGeneratedCharacters = characters.some(char => char.generatedImageUrl);
+  const allPanelsGenerated = comicPanels.every(panel => panel.imageUrl);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -270,11 +227,11 @@ export default function ComicPage() {
             Comic Strip Generator
           </h1>
           <p className="text-muted-foreground text-lg">
-            Create amazing 3-panel comics with AI!
+            Create amazing 3-panel comics with consistent characters using AI!
           </p>
         </div>
 
-        {!storyPlan ? (
+        {generationPhase === 'story' ? (
           // Input Section
           <div className="max-w-2xl mx-auto space-y-6">
             <Card>
@@ -335,122 +292,112 @@ export default function ComicPage() {
             </div>
           </div>
         ) : (
-          // Story Plan & Comic Display
+          // Comic Generation Workflow
           <div className="max-w-6xl mx-auto space-y-8">
             <div className="flex gap-8">
               {/* Main Comic Content */}
               <div className="flex-1 space-y-8">
+                {/* Generation Progress */}
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Generation Progress</h3>
+                      <span className="text-sm text-muted-foreground">
+                        {generationPhase === 'characters' && 'Step 1: Generate Characters'}
+                        {generationPhase === 'panels' && 'Step 2: Generate Comic Panels'}
+                        {generationPhase === 'complete' && 'Complete!'}
+                      </span>
+                    </div>
+                    
+                    {generationPhase === 'characters' && (
+                      <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          Generate character images first to ensure consistency across all panels.
+                        </p>
+                        <Button
+                          onClick={() => setGenerationPhase('panels')}
+                          disabled={!hasGeneratedCharacters}
+                          className="flex items-center gap-2"
+                        >
+                          {hasGeneratedCharacters ? (
+                            <>
+                              <ArrowRight className="h-4 w-4" />
+                              Generate Comic Panels
+                            </>
+                          ) : (
+                            'Generate characters first'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+
+                    {generationPhase === 'panels' && (
+                      <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          Now generate all comic panels using character references for consistency.
+                        </p>
+                        <Button
+                          onClick={handleGenerateComicPanels}
+                          disabled={isGeneratingPanels}
+                          className="flex items-center gap-2"
+                        >
+                          {isGeneratingPanels ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Generating Panels...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="h-4 w-4" />
+                              Generate All Panels
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Comic Panels */}
-                <div className="flex flex-col gap-6 max-w-lg mx-auto">
-                  {comicPanels.map((panel, index) => (
-                    <ComicPanel
-                      key={panel.id}
-                      panel={{
-                        ...panel,
-                        prompt: getExactPrompt(index)
-                      }}
-                      panelIndex={index}
-                      isEditing={editingPanel === index}
-                      onEdit={() => handleEditPanel(index)}
-                      onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)}
-                      onCancel={handleCancelPanelEdit}
-                      isGenerating={generatingPanels[index]}
-                    />
-                  ))}
-                </div>
+                {generationPhase === 'complete' && (
+                  <div className="flex flex-col gap-6 max-w-lg mx-auto">
+                    {comicPanels.map((panel, index) => (
+                      <ComicPanel
+                        key={panel.id}
+                        panel={panel}
+                        panelIndex={index}
+                        isEditing={editingPanel === index}
+                        onEdit={() => handleEditPanel(index)}
+                        onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)}
+                        onCancel={handleCancelPanelEdit}
+                        isGenerating={false}
+                      />
+                    ))}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button onClick={handleShare} variant="default" size="lg">
-                    <Share className="h-5 w-5 mr-2" />
-                    Share Comic Story
-                  </Button>
-                  <Button onClick={handleStartOver} variant="outline" size="lg">
-                    <RotateCcw className="h-5 w-5 mr-2" />
-                    Start Over
-                  </Button>
-                </div>
+                {generationPhase === 'complete' && (
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button onClick={handleShare} variant="default" size="lg">
+                      <Share className="h-5 w-5 mr-2" />
+                      Share Comic Story
+                    </Button>
+                    <Button onClick={handleStartOver} variant="outline" size="lg">
+                      <RotateCcw className="h-5 w-5 mr-2" />
+                      Start Over
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Characters Sidebar */}
-              <div className="w-80 space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Characters</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {storyPlan.characters.map((character, index) => (
-                      <div key={index} className="border rounded-lg p-3 space-y-3">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-semibold text-primary">{character.name}</h4>
-                          {editingCharacter !== index && (
-                            <Button
-                              onClick={() => handleEditCharacter(index)}
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 w-6 p-0"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-
-                        {editingCharacter === index ? (
-                          <div className="space-y-3">
-                            <div>
-                              <label className="text-xs font-medium block mb-1">Personality & Traits:</label>
-                              <Textarea
-                                value={editedCharacter?.description || ''}
-                                onChange={(e) => setEditedCharacter(prev => prev ? {...prev, description: e.target.value} : null)}
-                                className="text-sm min-h-[80px]"
-                                placeholder="Detailed personality, traits, mannerisms..."
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium block mb-1">Physical Appearance:</label>
-                              <Textarea
-                                value={editedCharacter?.visualDescription || ''}
-                                onChange={(e) => setEditedCharacter(prev => prev ? {...prev, visualDescription: e.target.value} : null)}
-                                className="text-sm min-h-[100px]"
-                                placeholder="Detailed physical description for consistency..."
-                              />
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => handleSaveCharacter(index)}
-                                size="sm"
-                                className="h-7"
-                              >
-                                <Check className="h-3 w-3 mr-1" />
-                                Save
-                              </Button>
-                              <Button
-                                onClick={handleCancelEdit}
-                                size="sm"
-                                variant="outline"
-                                className="h-7"
-                              >
-                                <X className="h-3 w-3 mr-1" />
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            <div>
-                              <strong className="text-xs">Personality:</strong>
-                              <p className="text-sm text-muted-foreground">{character.description}</p>
-                            </div>
-                            <div>
-                              <strong className="text-xs">Appearance:</strong>
-                              <p className="text-xs text-muted-foreground leading-relaxed">{character.visualDescription}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+              <div className="w-80">
+                <CharacterGenerationSection
+                  characters={characters}
+                  onCharactersUpdate={handleCharactersUpdate}
+                  isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'}
+                />
               </div>
             </div>
           </div>
