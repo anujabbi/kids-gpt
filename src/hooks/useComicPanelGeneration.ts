@@ -54,8 +54,7 @@ export const useComicPanelGeneration = () => {
           prompt: enhancedPrompt,
           size: '1024x1024',
           quality: 'hd',
-          style: 'vivid',
-          referenced_image_ids: referencedImageIds.length > 0 ? referencedImageIds : undefined
+          style: 'vivid'
         },
         profile?.family_id || undefined
       );
