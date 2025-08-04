@@ -78,23 +78,18 @@ export class ImageGenerationService {
         throw new Error("No image data received from OpenAI");
       }
 
-      // gpt-image-1 returns base64 data, not URL
-      const base64 = imageData.b64_json;
-      const generationId = imageData.revised_prompt_id || data.id;
+      // dall-e-3 returns URL, not base64
+      const imageUrl = data.data[0]?.url;
       
-      if (!base64) {
-        throw new Error("No image data received from OpenAI");
+      if (!imageUrl) {
+        throw new Error("No image URL received from OpenAI");
       }
-
-      // Convert base64 to data URL
-      const imageUrl = `data:image/${params.output_format || 'png'};base64,${base64}`;
 
       return {
         url: imageUrl,
         prompt: enhancedPrompt,
         timestamp: new Date(),
-        generationId,
-        base64,
+        generationId: data.data[0]?.revised_prompt || undefined,
       };
     } catch (error) {
       console.error("Image Generation Error:", error);

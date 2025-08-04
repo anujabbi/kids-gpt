@@ -141,7 +141,7 @@ I'll ask you some fun questions to get to know the amazing person you are. After
       const imageResult = await generateImage({
         prompt: imageDetection.extractedPrompt,
         size: '1024x1024',
-        quality: 'auto'
+        quality: 'standard'
       });
       
       if (imageResult) {
