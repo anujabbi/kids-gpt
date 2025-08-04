@@ -6,7 +6,7 @@ export interface ImageGenerationParams {
   size?: '1024x1024' | '1792x1024' | '1024x1792';
   quality?: 'standard' | 'hd';
   style?: 'vivid' | 'natural';
-  referenced_image_ids?: string[]; // Note: Not supported by dall-e-3
+  referenced_image_ids?: string[];
 }
 
 export interface GeneratedImage {
@@ -55,7 +55,9 @@ export class ImageGenerationService {
         style: params.style || 'vivid',
       };
 
-      // Note: referenced_image_ids not supported by dall-e-3
+      if (params.referenced_image_ids && params.referenced_image_ids.length > 0) {
+        requestBody.referenced_image_ids = params.referenced_image_ids;
+      }
 
       const response = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
