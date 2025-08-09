@@ -1,5 +1,5 @@
 
-import { Settings, UserCog, LogOut, BookOpen } from "lucide-react";
+import { Settings, UserCog, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,19 +30,6 @@ export function AppHeader() {
 
   return (
     <div className="flex justify-end gap-2 p-4">
-      <Button
-        onClick={() => navigate('/comic')}
-        size="icon"
-        variant="ghost"
-        className="h-10 w-10"
-        style={{
-          color: currentTheme.colors.text.secondary,
-          backgroundColor: 'transparent'
-        }}
-        title="Comic Generator"
-      >
-        <BookOpen className="h-5 w-5" />
-      </Button>
       <Button
         onClick={() => navigate('/parents')}
         size="icon"

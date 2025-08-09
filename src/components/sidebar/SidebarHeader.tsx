@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, FolderPlus, User } from "lucide-react";
+import { Plus, FolderPlus, User, BookOpen } from "lucide-react";
 import { CreateFolderDialog } from "./CreateFolderDialog";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +22,10 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
     navigate('/my-page');
   };
 
+  const handleComicClick = () => {
+    navigate('/comic');
+  };
+
   if (isCollapsed) {
     return (
       <div className="p-4 border-b">
@@ -40,6 +44,14 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
             className="w-full"
           >
             <FolderPlus className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={handleComicClick}
+            size="sm"
+            variant="secondary"
+            className="w-full"
+          >
+            <BookOpen className="h-4 w-4" />
           </Button>
           {profile?.role === 'child' && (
             <Button
@@ -81,6 +93,16 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
         >
           <FolderPlus className="mr-2 h-4 w-4" />
           New Folder
+        </Button>
+
+        <Button
+          onClick={handleComicClick}
+          variant="secondary"
+          className="w-full justify-start"
+          size="sm"
+        >
+          <BookOpen className="mr-2 h-4 w-4" />
+          New Comic Strip
         </Button>
 
         {profile?.role === 'child' && (
