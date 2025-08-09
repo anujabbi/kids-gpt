@@ -38,20 +38,19 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
             <Plus className="h-4 w-4" />
           </Button>
           <Button
+            onClick={handleComicClick}
+            size="sm"
+            className="w-full"
+          >
+            <BookOpen className="h-4 w-4" />
+          </Button>
+          <Button
             onClick={() => setShowCreateFolder(true)}
             size="sm"
             variant="outline"
             className="w-full"
           >
             <FolderPlus className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={handleComicClick}
-            size="sm"
-            variant="secondary"
-            className="w-full"
-          >
-            <BookOpen className="h-4 w-4" />
           </Button>
           {profile?.role === 'child' && (
             <Button
@@ -86,6 +85,15 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
         </Button>
         
         <Button
+          onClick={handleComicClick}
+          className="w-full justify-start"
+          size="sm"
+        >
+          <BookOpen className="mr-2 h-4 w-4" />
+          New Comic Strip
+        </Button>
+
+        <Button
           onClick={() => setShowCreateFolder(true)}
           variant="outline"
           className="w-full justify-start"
@@ -93,16 +101,6 @@ export function SidebarHeader({ isCollapsed, isParentView, onNewChat, onCreateFo
         >
           <FolderPlus className="mr-2 h-4 w-4" />
           New Folder
-        </Button>
-
-        <Button
-          onClick={handleComicClick}
-          variant="secondary"
-          className="w-full justify-start"
-          size="sm"
-        >
-          <BookOpen className="mr-2 h-4 w-4" />
-          New Comic Strip
         </Button>
 
         {profile?.role === 'child' && (
