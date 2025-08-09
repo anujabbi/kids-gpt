@@ -142,7 +142,7 @@ export function CharacterGenerationSection({
                   <img
                     src={character.generatedImageUrl}
                     alt={character.name}
-                    className="w-full h-32 object-cover rounded-md border"
+                    className="w-full max-h-40 object-contain rounded-md border bg-white/50 dark:bg-gray-800/50"
                   />
                   {character.generationId && (
                     <p className="text-xs text-muted-foreground mt-1">
