@@ -362,31 +362,10 @@ export default function ComicPage() {
                     )}
 
                     {generationPhase === 'panels' && (
-                      <div className="text-center space-y-6">
-                        <div className="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6">
-                          <div className="text-lg text-purple-700 dark:text-purple-300 mb-4 font-medium">
-                            🎬 Awesome! Now let's create all your comic panels with your characters!
-                          </div>
+                      <div className="text-center space-y-4 p-6">
+                        <div className="text-sm text-muted-foreground">
+                          Characters created successfully! ✨
                         </div>
-                        <Button
-                          onClick={handleGenerateComicPanels}
-                          disabled={isGeneratingPanels}
-                          size="lg"
-                          className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50"
-                        >
-                          {isGeneratingPanels ? (
-                            <div className="flex items-center gap-3">
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                              <span>Making your comic... ✨</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <div className="text-2xl">🪄</div>
-                              <span>Create All Panels!</span>
-                              <div className="text-2xl">🎨</div>
-                            </div>
-                          )}
-                        </Button>
                       </div>
                     )}
                   </CardContent>
@@ -472,6 +451,34 @@ export default function ComicPage() {
                         onCharactersUpdate={handleCharactersUpdate}
                         isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'}
                       />
+                      {generationPhase === 'panels' && (
+                        <div className="text-center space-y-4 mt-6">
+                          <div className="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-4">
+                            <div className="text-sm text-purple-700 dark:text-purple-300 font-medium">
+                              🎬 Ready to create your comic panels!
+                            </div>
+                          </div>
+                          <Button
+                            onClick={handleGenerateComicPanels}
+                            disabled={isGeneratingPanels}
+                            size="lg"
+                            className="w-full px-6 py-3 text-base font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50"
+                          >
+                            {isGeneratingPanels ? (
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <span>Creating... ✨</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <div className="text-xl">🪄</div>
+                                <span>Create All Panels!</span>
+                                <div className="text-xl">🎨</div>
+                              </div>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
