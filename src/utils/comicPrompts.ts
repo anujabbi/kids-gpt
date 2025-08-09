@@ -26,6 +26,12 @@ export const COMIC_STYLES: Record<ComicStyle, ComicStyleConfig> = {
     description: 'Bold, graphic-novel style with dramatic flair',
     emoji: '🦸',
     promptTemplate: 'Create a bold, dynamic comic book style illustration with dramatic poses, strong contrasts, and heroic proportions. Use vibrant colors and action-oriented composition.'
+  },
+  simple: {
+    name: 'Simple Handdrawn',
+    description: 'Clean, minimalist line art style',
+    emoji: '✏️',
+    promptTemplate: 'Create a simple, clean hand-drawn illustration with minimal lines and basic shapes. The style should be like a child\'s drawing - simple, innocent, and charming with basic colors.'
   }
 };
 

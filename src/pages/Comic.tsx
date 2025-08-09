@@ -257,8 +257,8 @@ export default function ComicPage() {
                 <CardTitle>Choose Your Comic Style</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-row gap-3 justify-center">
-                  {(['cartoon', 'ghibli', 'superhero'] as ComicStyle[]).map((style) => (
+                <div className="flex flex-row gap-2 justify-center">
+                  {(['cartoon', 'ghibli', 'superhero', 'simple'] as ComicStyle[]).map((style) => (
                     <ComicStyleCard
                       key={style}
                       style={style}
