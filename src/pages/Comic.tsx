@@ -218,53 +218,66 @@ export default function ComicPage() {
   const allPanelsGenerated = comicPanels.every(panel => panel.imageUrl);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950 dark:via-blue-950 dark:to-pink-950">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-2">
-            Comic Strip Generator
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Create amazing 3-panel comics with consistent characters using AI!
+      <div className="container mx-auto px-4 py-6">
+        <div className="text-center mb-10 animate-fade-in">
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <div className="text-6xl animate-bounce">🎨</div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent">
+              Comic Creator
+            </h1>
+            <div className="text-6xl animate-bounce" style={{ animationDelay: '0.2s' }}>✨</div>
+          </div>
+          <p className="text-xl text-purple-700 dark:text-purple-300 font-medium">
+            Make your own awesome comic strips! 🦸‍♀️📚
           </p>
         </div>
 
         {generationPhase === 'story' ? (
           // Input Section
-          <div className="max-w-2xl mx-auto space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  What's your comic about?
+          <div className="max-w-3xl mx-auto space-y-8 animate-scale-in">
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white/90 to-purple-50/90 dark:from-gray-800/90 dark:to-purple-900/90 backdrop-blur-sm">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-purple-700 dark:text-purple-300">
+                  <div className="text-3xl">💭</div>
+                  <span className="font-bold">What's your story idea?</span>
+                  <div className="text-3xl">🚀</div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  value={storyIdea}
-                  onChange={(e) => setStoryIdea(e.target.value)}
-                  placeholder="A dinosaur becomes a chef, A superhero who loves donuts, A cat that can fly..."
-                  rows={5}
-                  className="text-lg min-h-[120px]"
-                />
+              <CardContent className="space-y-6">
+                <div className="relative">
+                  <Textarea
+                    value={storyIdea}
+                    onChange={(e) => setStoryIdea(e.target.value)}
+                    placeholder="A dinosaur becomes a chef 🦕👨‍🍳&#10;A superhero who loves donuts 🦸‍♂️🍩&#10;A cat that can fly 🐱✈️&#10;&#10;Tell me your amazing story idea!"
+                    rows={6}
+                    className="text-lg min-h-[160px] border-2 border-purple-200 dark:border-purple-700 focus:border-purple-400 dark:focus:border-purple-500 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm resize-none"
+                  />
+                  <div className="absolute -top-2 -right-2 text-2xl animate-pulse">🌟</div>
+                </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Choose Your Comic Style</CardTitle>
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white/90 to-pink-50/90 dark:from-gray-800/90 dark:to-pink-900/90 backdrop-blur-sm">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="flex items-center justify-center gap-3 text-2xl text-pink-700 dark:text-pink-300">
+                  <div className="text-3xl">🎨</div>
+                  <span className="font-bold">Pick your art style!</span>
+                  <div className="text-3xl">🖌️</div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-row gap-2 justify-center">
+                <div className="flex flex-row gap-4 justify-center flex-wrap">
                   {(['cartoon', 'ghibli', 'superhero', 'simple'] as ComicStyle[]).map((style) => (
-                    <ComicStyleCard
-                      key={style}
-                      style={style}
-                      selected={selectedStyle === style}
-                      onSelect={setSelectedStyle}
-                    />
+                    <div key={style} className="hover-scale">
+                      <ComicStyleCard
+                        style={style}
+                        selected={selectedStyle === style}
+                        onSelect={setSelectedStyle}
+                      />
+                    </div>
                   ))}
                 </div>
               </CardContent>
@@ -275,82 +288,103 @@ export default function ComicPage() {
                 onClick={handleGenerateStoryPlan}
                 disabled={isGeneratingPlan || !storyIdea.trim() || !selectedStyle}
                 size="lg"
-                className="px-8"
+                className="px-12 py-4 text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-2xl shadow-2xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {isGeneratingPlan ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    Creating Story Plan...
-                  </>
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span>Creating your story... ✨</span>
+                  </div>
                 ) : (
-                  <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Create Story Plan
-                  </>
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">🎭</div>
+                    <span>Make My Comic!</span>
+                    <div className="text-2xl">🎉</div>
+                  </div>
                 )}
               </Button>
             </div>
           </div>
         ) : (
           // Comic Generation Workflow
-          <div className="max-w-6xl mx-auto space-y-8">
-            <div className="flex gap-8">
+          <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
+            <div className="flex gap-8 max-lg:flex-col">
               {/* Main Comic Content */}
               <div className="flex-1 space-y-8">
                 {/* Generation Progress */}
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Generation Progress</h3>
-                      <span className="text-sm text-muted-foreground">
-                        {generationPhase === 'characters' && 'Step 1: Generate Characters'}
-                        {generationPhase === 'panels' && 'Step 2: Generate Comic Panels'}
-                        {generationPhase === 'complete' && 'Complete!'}
-                      </span>
+                <Card className="border-0 shadow-2xl bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950">
+                  <CardContent className="p-8">
+                    <div className="text-center mb-6">
+                      <div className="flex items-center justify-center gap-4 mb-4">
+                        <div className="text-4xl">
+                          {generationPhase === 'characters' && '👥'}
+                          {generationPhase === 'panels' && '🖼️'}
+                          {generationPhase === 'complete' && '🎉'}
+                        </div>
+                        <h3 className="text-2xl font-bold text-green-700 dark:text-green-300">
+                          {generationPhase === 'characters' && 'Step 1: Create Your Characters!'}
+                          {generationPhase === 'panels' && 'Step 2: Make Your Comic Panels!'}
+                          {generationPhase === 'complete' && 'Your Comic is Ready!'}
+                        </h3>
+                      </div>
                     </div>
                     
                     {generationPhase === 'characters' && (
-                      <div className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                          Generate character images first to ensure consistency across all panels.
-                        </p>
+                      <div className="text-center space-y-6">
+                        <div className="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6">
+                          <div className="text-lg text-blue-700 dark:text-blue-300 mb-4 font-medium">
+                            🎭 First, let's create your characters so they look the same in every panel!
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Look at the Characters section on the right to generate your character images →
+                          </div>
+                        </div>
                         <Button
                           onClick={() => setGenerationPhase('panels')}
                           disabled={!hasGeneratedCharacters}
-                          className="flex items-center gap-2"
+                          size="lg"
+                          className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50"
                         >
                           {hasGeneratedCharacters ? (
-                            <>
-                              <ArrowRight className="h-4 w-4" />
-                              Generate Comic Panels
-                            </>
+                            <div className="flex items-center gap-3">
+                              <div className="text-xl">🎨</div>
+                              <span>Now Make Comic Panels!</span>
+                              <ArrowRight className="h-5 w-5" />
+                            </div>
                           ) : (
-                            'Generate characters first'
+                            <div className="flex items-center gap-2">
+                              <div className="text-xl">⏳</div>
+                              <span>Create characters first</span>
+                            </div>
                           )}
                         </Button>
                       </div>
                     )}
 
                     {generationPhase === 'panels' && (
-                      <div className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                          Now generate all comic panels using character references for consistency.
-                        </p>
+                      <div className="text-center space-y-6">
+                        <div className="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6">
+                          <div className="text-lg text-purple-700 dark:text-purple-300 mb-4 font-medium">
+                            🎬 Awesome! Now let's create all your comic panels with your characters!
+                          </div>
+                        </div>
                         <Button
                           onClick={handleGenerateComicPanels}
                           disabled={isGeneratingPanels}
-                          className="flex items-center gap-2"
+                          size="lg"
+                          className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50"
                         >
                           {isGeneratingPanels ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Generating Panels...
-                            </>
+                            <div className="flex items-center gap-3">
+                              <Loader2 className="h-6 w-6 animate-spin" />
+                              <span>Making your comic... ✨</span>
+                            </div>
                           ) : (
-                            <>
-                              <Wand2 className="h-4 w-4" />
-                              Generate All Panels
-                            </>
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">🪄</div>
+                              <span>Create All Panels!</span>
+                              <div className="text-2xl">🎨</div>
+                            </div>
                           )}
                         </Button>
                       </div>
@@ -360,44 +394,87 @@ export default function ComicPage() {
 
                 {/* Comic Panels */}
                 {generationPhase === 'complete' && (
-                  <div className="flex flex-col gap-6 max-w-lg mx-auto">
-                    {comicPanels.map((panel, index) => (
-                      <ComicPanel
-                        key={panel.id}
-                        panel={panel}
-                        panelIndex={index}
-                        isEditing={editingPanel === index}
-                        onEdit={() => handleEditPanel(index)}
-                        onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)}
-                        onCancel={handleCancelPanelEdit}
-                        isGenerating={false}
-                      />
-                    ))}
+                  <div className="space-y-8">
+                    <Card className="border-0 shadow-2xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950">
+                      <CardContent className="p-8 text-center">
+                        <div className="text-6xl mb-4">🎉</div>
+                        <h2 className="text-3xl font-bold text-orange-700 dark:text-orange-300 mb-2">
+                          Your Comic is Ready!
+                        </h2>
+                        <p className="text-lg text-orange-600 dark:text-orange-400">
+                          Look how awesome your comic turned out! 🌟
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <div className="flex flex-col gap-8 max-w-2xl mx-auto">
+                      {comicPanels.map((panel, index) => (
+                        <div key={panel.id} className="transform hover:scale-105 transition-all duration-300">
+                          <ComicPanel
+                            panel={panel}
+                            panelIndex={index}
+                            isEditing={editingPanel === index}
+                            onEdit={() => handleEditPanel(index)}
+                            onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)}
+                            onCancel={handleCancelPanelEdit}
+                            isGenerating={false}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {/* Action Buttons */}
                 {generationPhase === 'complete' && (
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button onClick={handleShare} variant="default" size="lg">
-                      <Share className="h-5 w-5 mr-2" />
-                      Share Comic Story
+                  <div className="flex flex-col sm:flex-row gap-6 justify-center items-center py-8">
+                    <Button 
+                      onClick={handleShare} 
+                      size="lg"
+                      className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-xl">📤</div>
+                        <span>Share My Comic!</span>
+                        <Share className="h-5 w-5" />
+                      </div>
                     </Button>
-                    <Button onClick={handleStartOver} variant="outline" size="lg">
-                      <RotateCcw className="h-5 w-5 mr-2" />
-                      Start Over
+                    <Button 
+                      onClick={handleStartOver} 
+                      variant="outline" 
+                      size="lg"
+                      className="px-8 py-4 text-lg font-bold border-2 border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-600 dark:text-orange-400 dark:hover:bg-orange-950 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-xl">🔄</div>
+                        <span>Make Another Comic!</span>
+                        <RotateCcw className="h-5 w-5" />
+                      </div>
                     </Button>
                   </div>
                 )}
               </div>
 
               {/* Characters Sidebar */}
-              <div className="w-80">
-                <CharacterGenerationSection
-                  characters={characters}
-                  onCharactersUpdate={handleCharactersUpdate}
-                  isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'}
-                />
+              <div className="w-80 max-lg:w-full">
+                <div className="sticky top-4">
+                  <Card className="border-0 shadow-2xl bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950 dark:to-purple-950">
+                    <CardHeader className="text-center pb-2">
+                      <CardTitle className="flex items-center justify-center gap-3 text-xl text-pink-700 dark:text-pink-300">
+                        <div className="text-2xl">👥</div>
+                        <span>Your Characters</span>
+                        <div className="text-2xl">✨</div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CharacterGenerationSection
+                        characters={characters}
+                        onCharactersUpdate={handleCharactersUpdate}
+                        isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>
