@@ -84,6 +84,22 @@ export const ComicPanel = ({
                   </div>
                 )}
               </div>
+
+              {/* Dialogue Section */}
+              {panel.dialogue && (
+                <div className="bg-muted/30 rounded-lg p-3 border-l-4 border-primary">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">Dialogue:</div>
+                  <div className="text-sm italic">{panel.dialogue}</div>
+                </div>
+              )}
+
+              {/* Caption Section */}
+              {panel.caption && (
+                <div className="bg-muted/20 rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">Caption:</div>
+                  <div className="text-sm">{panel.caption}</div>
+                </div>
+              )}
             </div>
           </>
         ) : (

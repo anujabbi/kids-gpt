@@ -40,21 +40,21 @@ Respond with a JSON object containing:
     {
       "panel": 1,
       "image_prompt": "DETAILED establishing shot showing [EXACT CHARACTER DESCRIPTIONS] in [SPECIFIC SETTING WITH ENVIRONMENTAL DETAILS]. Include precise character positioning, facial expressions, and complete scene context. Describe lighting, background elements, props, and atmosphere in detail for consistency.",
-      "dialogue": "Character name says: 'Funny dialogue or speech bubble text' (max 15 words, specify who speaks)",
+      "dialogue": "Character name says: 'Funny dialogue or speech bubble text' (REQUIRED - max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects if needed",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 2, 
       "image_prompt": "CONTINUE THE EXACT SAME SCENE with the [SAME CHARACTER DESCRIPTIONS] in the [SAME SETTING]. Show character reactions and situation development while maintaining identical character appearance and environmental details from panel 1. Include precise positioning changes and expressions.",
-      "dialogue": "Character name says: 'Continuation dialogue that builds the comedy' (max 15 words, specify who speaks)",
+      "dialogue": "Character name says: 'Continuation dialogue that builds the comedy' (REQUIRED - max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 3,
       "image_prompt": "CONCLUDE THE SAME SCENE with the [SAME CHARACTER DESCRIPTIONS] in the [SAME SETTING]. Deliver visual punchline with exaggerated expressions while maintaining complete character and environmental consistency from previous panels. Include final positioning and comedic visual elements.", 
-      "dialogue": "Character name says: 'Punchline dialogue that delivers the funny payoff' (max 15 words, specify who speaks)",
+      "dialogue": "Character name says: 'Punchline dialogue that delivers the funny payoff' (REQUIRED - max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects for comic effect",
       "panel_type": "establishing_shot|close_up|medium_shot"
     }
