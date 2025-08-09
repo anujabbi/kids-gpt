@@ -9,16 +9,20 @@ export class StoryPlanningService {
 
 ${styleContext}
 
+CRITICAL REQUIREMENTS FOR CHARACTER AND SETTING CONSISTENCY:
+- ALL panels must feature the EXACT SAME characters with identical visual appearance
+- ALL panels must take place in the SAME setting/location with consistent environmental details
+- Panel 1: Setup scene - establish the characters, setting, and initial situation in detail
+- Panel 2: Development - continue the SAME scene with the SAME characters, showing progression/conflict
+- Panel 3: Punchline - conclude the SAME scene with the SAME characters delivering the funny payoff
+
 Follow comic industry best practices:
-- Panel 1: Setup/introduction - establish characters and situation
-- Panel 2: Development/conflict - build tension or introduce problem
-- Panel 3: Punchline/resolution - deliver the funny payoff
 - Use proper comic typography and speech bubble conventions
 - Include funny dialogues and character interactions in each panel
 - Make it genuinely funny and engaging for children
 - Keep dialogues snappy and entertaining (max 15 words per speech bubble)
-- Ensure visual continuity between panels with consistent characters
-- Characters should have expressive faces and body language
+- Ensure absolute visual continuity between panels with identical characters and settings
+- Characters should have expressive faces and body language that evolve across panels
 - Include humor that kids will understand and laugh at
 - When dialogue exists, specify exactly who is speaking (e.g., "The dinosaur chef says:", "Captain Donut exclaims:")
 
@@ -29,27 +33,27 @@ Respond with a JSON object containing:
     {
       "name": "Character name",
       "description": "Detailed personality, traits, mannerisms, voice, age, role in story, quirks, and how they interact with others (3-4 sentences)",
-      "visualDescription": "Comprehensive physical appearance: body type, height, facial features, hair (color, style, length), clothing style and colors, accessories, distinctive markings, posture, expressions, and any unique physical traits. Be very specific about colors, textures, and visual details for consistency (4-5 sentences)"
+      "visualDescription": "EXTREMELY DETAILED physical appearance for consistency: exact body type and size, precise height, specific facial features (eye color, nose shape, mouth), exact hair (color, style, length, texture), complete clothing description (colors, patterns, accessories), distinctive markings or features, typical posture and expressions. Be hyper-specific about every visual detail to ensure identical appearance across all panels (6-7 sentences)"
     }
   ],
   "panels": [
     {
       "panel": 1,
-      "image_prompt": "Detailed prompt for professional comic illustration with proper composition, clear focal points, and comic art style. Include character expressions and setting details",
+      "image_prompt": "DETAILED establishing shot showing [EXACT CHARACTER DESCRIPTIONS] in [SPECIFIC SETTING WITH ENVIRONMENTAL DETAILS]. Include precise character positioning, facial expressions, and complete scene context. Describe lighting, background elements, props, and atmosphere in detail for consistency.",
       "dialogue": "Character name says: 'Funny dialogue or speech bubble text' (max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects if needed",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 2, 
-      "image_prompt": "Second panel prompt maintaining visual continuity with panel 1, showing character reactions and developing the situation",
+      "image_prompt": "CONTINUE THE EXACT SAME SCENE with the [SAME CHARACTER DESCRIPTIONS] in the [SAME SETTING]. Show character reactions and situation development while maintaining identical character appearance and environmental details from panel 1. Include precise positioning changes and expressions.",
       "dialogue": "Character name says: 'Continuation dialogue that builds the comedy' (max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects",
       "panel_type": "establishing_shot|close_up|medium_shot"
     },
     {
       "panel": 3,
-      "image_prompt": "Final panel prompt delivering the visual punchline with exaggerated character expressions and reactions", 
+      "image_prompt": "CONCLUDE THE SAME SCENE with the [SAME CHARACTER DESCRIPTIONS] in the [SAME SETTING]. Deliver visual punchline with exaggerated expressions while maintaining complete character and environmental consistency from previous panels. Include final positioning and comedic visual elements.", 
       "dialogue": "Character name says: 'Punchline dialogue that delivers the funny payoff' (max 15 words, specify who speaks)",
       "caption": "Optional narration or sound effects for comic effect",
       "panel_type": "establishing_shot|close_up|medium_shot"

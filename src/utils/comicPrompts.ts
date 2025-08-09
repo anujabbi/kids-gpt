@@ -49,23 +49,39 @@ export function generateProfessionalImagePrompt(
   dialogue?: string
 ): string {
   const styleConfig = COMIC_STYLES[style];
+  const panelTypeInstr = getPanelTypeInstructions(panelType);
   
-  // Keep it concise to stay under 4000 character limit
-  const basePrompt = `Comic panel ${panelNumber}/3: ${styleConfig.promptTemplate} ${imagePrompt}`;
+  // Build comprehensive prompt with character and setting details
+  let basePrompt = `Comic panel ${panelNumber}/3: ${styleConfig.promptTemplate}
   
-  // Add character descriptions (truncated if too long)
-  const characters = characterDescriptions 
-    ? ` Characters: ${characterDescriptions.substring(0, 500)}` 
-    : '';
+Panel Type: ${panelTypeInstr}
   
-  // Add dialogue if provided
-  const dialogueText = dialogue 
-    ? ` Include speech bubble: "${dialogue}"` 
-    : '';
+Scene: ${imagePrompt}`;
+  
+  // Add detailed character descriptions for consistency
+  if (characterDescriptions) {
+    basePrompt += `
 
-  const finalPrompt = basePrompt + characters + dialogueText;
+CHARACTER CONSISTENCY REQUIREMENTS:
+${characterDescriptions.substring(0, 800)}
+Ensure these characters appear EXACTLY as described with identical visual features, clothing, and proportions.`;
+  }
   
-  // Ensure we stay under the limit
+  // Add dialogue with proper formatting
+  if (dialogue) {
+    basePrompt += `
+
+DIALOGUE: Include speech bubble with text: "${dialogue}"`;
+  }
+  
+  // Add continuity instructions
+  basePrompt += `
+
+CRITICAL: Maintain complete visual consistency with previous panels - same characters, same setting, same lighting, same style. Only expressions and positioning should change to show story progression.`;
+
+  const finalPrompt = basePrompt;
+  
+  // Ensure we stay under the limit while preserving important details
   return finalPrompt.length > 3800 ? finalPrompt.substring(0, 3800) + '...' : finalPrompt;
 }
 
