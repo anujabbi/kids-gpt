@@ -131,32 +131,13 @@ export default function ComicPage() {
   const handleCharactersUpdate = (updatedCharacters: ComicCharacter[]) => {
     setCharacters(updatedCharacters);
   };
-  const handleGenerateComicPanels = async () => {
-    console.log('handleGenerateComicPanels called!');
-    console.log('selectedStyle:', selectedStyle);
-    console.log('characters:', characters);
-    console.log('comicPanels:', comicPanels);
-    if (!selectedStyle || characters.length === 0) {
-      console.log('Aborting: missing selectedStyle or no characters');
-      return;
-    }
-    console.log('Starting comic panel generation...');
-    try {
-      const generatedPanels = await generateAllPanels(comicPanels, characters, selectedStyle);
-      setComicPanels(generatedPanels);
-      setGenerationPhase('complete');
-      toast({
-        title: "Comic Complete!",
-        description: "Your comic strip has been generated with character consistency!"
-      });
-    } catch (error) {
-      console.error('Failed to generate comic panels:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate comic panels. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const handleCreateComicPanels = () => {
+    console.log('handleCreateComicPanels called - moving to panels phase');
+    setGenerationPhase('panels');
+    toast({
+      title: "Comic Panels Created!",
+      description: "Edit each panel and generate them individually!"
+    });
   };
   const handleEditPanel = (panelIndex: number) => {
     setEditingPanel(panelIndex);
@@ -313,7 +294,7 @@ export default function ComicPage() {
                             Look at the Characters section on the right to generate your character images →
                           </div>
                         </div>
-                        <Button onClick={() => setGenerationPhase('panels')} disabled={!hasGeneratedCharacters} size="lg" className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50">
+                        <Button onClick={handleCreateComicPanels} disabled={!hasGeneratedCharacters} size="lg" className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50">
                           {hasGeneratedCharacters ? <div className="flex items-center gap-3">
                               <div className="text-xl">🎨</div>
                               <span>Now Make Comic Panels!</span>
@@ -325,17 +306,22 @@ export default function ComicPage() {
                         </Button>
                       </div>}
 
-                    {generationPhase === 'panels' && <div className="text-center space-y-4 p-6">
-                        <div className="text-sm text-muted-foreground">
-                          Characters created successfully! ✨
+                    {generationPhase === 'panels' && <div className="text-center space-y-6">
+                        <div className="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-6">
+                          <div className="text-lg text-blue-700 dark:text-blue-300 mb-4 font-medium">
+                            🎨 Your comic panels are ready to edit and generate!
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Edit any panel text below, then click "Generate Panel" for each one
+                          </div>
                         </div>
                       </div>}
                   </CardContent>
                 </Card>
 
                 {/* Comic Panels */}
-                {generationPhase === 'complete' && <div className="space-y-8">
-                    <Card className="border-0 shadow-2xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950">
+                {(generationPhase === 'panels' || generationPhase === 'complete') && <div className="space-y-8">
+                    {generationPhase === 'complete' && <Card className="border-0 shadow-2xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-orange-950">
                       <CardContent className="p-8 text-center">
                         <div className="text-6xl mb-4">🎉</div>
                         <h2 className="text-3xl font-bold text-orange-700 dark:text-orange-300 mb-2">
@@ -345,11 +331,11 @@ export default function ComicPage() {
                           Look how awesome your comic turned out! 🌟
                         </p>
                       </CardContent>
-                    </Card>
+                    </Card>}
                     
                     <div className="flex flex-col gap-8 max-w-2xl mx-auto">
                       {comicPanels.map((panel, index) => <div key={panel.id} className="transform hover:scale-105 transition-all duration-300">
-                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)} onCancel={handleCancelPanelEdit} isGenerating={false} />
+                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)} onCancel={handleCancelPanelEdit} isGenerating={isGeneratingPanels} />
                         </div>)}
                     </div>
                   </div>}
@@ -386,23 +372,6 @@ export default function ComicPage() {
                     </CardHeader>
                     <CardContent>
                       <CharacterGenerationSection characters={characters} onCharactersUpdate={handleCharactersUpdate} isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'} />
-                      {generationPhase === 'panels' && <div className="text-center space-y-4 mt-6">
-                          <div className="bg-white/60 dark:bg-gray-800/60 rounded-2xl p-4">
-                            <div className="text-sm text-purple-700 dark:text-purple-300 font-medium">
-                              🎬 Ready to create your comic panels!
-                            </div>
-                          </div>
-                          <Button onClick={handleGenerateComicPanels} disabled={isGeneratingPanels} size="lg" className="w-full px-6 py-3 text-base font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 rounded-2xl shadow-xl transform transition-all duration-200 hover:scale-105 disabled:opacity-50">
-                            {isGeneratingPanels ? <div className="flex items-center gap-2">
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                <span>Creating... ✨</span>
-                              </div> : <div className="flex items-center gap-2">
-                                <div className="text-xl">🪄</div>
-                                <span>Create All Panels!</span>
-                                <div className="text-xl">🎨</div>
-                              </div>}
-                          </Button>
-                        </div>}
                     </CardContent>
                   </Card>
                 </div>
