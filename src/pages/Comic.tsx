@@ -49,7 +49,7 @@ export default function ComicPage() {
   }
   if (!isChild) {
     return <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-6 left-4 z-10">
           <Button onClick={() => navigate('/')} variant="ghost" size="sm" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -209,7 +209,7 @@ export default function ComicPage() {
   const hasGeneratedCharacters = characters.some(char => char.generatedImageUrl);
   const allPanelsGenerated = comicPanels.every(panel => panel.imageUrl);
   return <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950 dark:via-blue-950 dark:to-pink-950">
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-6 left-4 z-10">
         <Button onClick={() => navigate('/')} variant="ghost" size="sm" className="flex items-center gap-2 backdrop-blur-sm bg-transparent rounded text-left text-base">
           <ArrowLeft className="h-4 w-4" />
           Back
