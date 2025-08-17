@@ -138,7 +138,17 @@ export default function ComicPage() {
   };
 
   const handleGenerateComicPanels = async () => {
-    if (!selectedStyle || characters.length === 0) return;
+    console.log('handleGenerateComicPanels called!');
+    console.log('selectedStyle:', selectedStyle);
+    console.log('characters:', characters);
+    console.log('comicPanels:', comicPanels);
+    
+    if (!selectedStyle || characters.length === 0) {
+      console.log('Aborting: missing selectedStyle or no characters');
+      return;
+    }
+
+    console.log('Starting comic panel generation...');
 
     try {
       const generatedPanels = await generateAllPanels(comicPanels, characters, selectedStyle);

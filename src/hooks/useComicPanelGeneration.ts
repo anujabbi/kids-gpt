@@ -16,6 +16,7 @@ export const useComicPanelGeneration = () => {
     comicStyle: string,
     previousPanelGenerationId?: string
   ): Promise<ComicPanel | null> => {
+    console.log('generatePanelWithReferences called for panel', panelIndex);
     setIsGenerating(true);
     
     try {
