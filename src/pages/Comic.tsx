@@ -10,11 +10,12 @@ import { ComicStyle, StoryPlan, ComicPanel as ComicPanelType, ComicCharacter } f
 import { storyPlanningService } from "@/services/storyPlanningService";
 import { useComicPanelGeneration } from "@/hooks/useComicPanelGeneration";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Share, RotateCcw, Sparkles, Wand2, ArrowRight } from "lucide-react";
-import { AppHeader } from "@/components/AppHeader";
+import { Loader2, Share, RotateCcw, Sparkles, Wand2, ArrowRight, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function ComicPage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [storyIdea, setStoryIdea] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<ComicStyle | null>(null);
   const [storyPlan, setStoryPlan] = useState<StoryPlan | null>(null);
@@ -48,8 +49,18 @@ export default function ComicPage() {
   if (!isChild) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <AppHeader />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="absolute top-4 left-4 z-10">
+          <Button
+            onClick={() => navigate('/')}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
           <Card className="w-full max-w-md">
             <CardContent className="p-6 text-center">
               <h1 className="text-2xl font-bold mb-4">Comic Strip Generator</h1>
@@ -235,7 +246,17 @@ export default function ComicPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-950 dark:via-blue-950 dark:to-pink-950">
-      <AppHeader />
+      <div className="absolute top-4 left-4 z-10">
+        <Button
+          onClick={() => navigate('/')}
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
       
       <div className="container mx-auto px-4 py-6">
         <div className="text-center mb-10 animate-fade-in">
