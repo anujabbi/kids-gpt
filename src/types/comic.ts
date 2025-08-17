@@ -1,5 +1,5 @@
 export type PanelType = 'establishing_shot' | 'close_up' | 'medium_shot';
-export type ComicStyle = 'cartoon' | 'ghibli' | 'superhero' | 'simple' | 'stick_figures';
+export type ComicStyle = 'cartoon' | 'ghibli' | 'superhero' | 'simple';
 
 export interface ComicCharacter {
   name: string;
