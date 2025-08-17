@@ -48,6 +48,10 @@ export function generateProfessionalImagePrompt(
   characterDescriptions?: string,
   dialogue?: string
 ): string {
+  console.log('generateProfessionalImagePrompt called with:');
+  console.log('- imagePrompt:', imagePrompt);
+  console.log('- characterDescriptions:', characterDescriptions);
+  
   const styleConfig = COMIC_STYLES[style];
   const panelTypeInstr = getPanelTypeInstructions(panelType);
   
@@ -63,7 +67,7 @@ Scene: ${imagePrompt}`;
     basePrompt += `
 
 CHARACTER CONSISTENCY REQUIREMENTS:
-${characterDescriptions.substring(0, 800)}
+${characterDescriptions.substring(0, 1200)}
 Ensure these characters appear EXACTLY as described with identical visual features, clothing, and proportions.`;
   }
   
@@ -81,8 +85,10 @@ CRITICAL: Maintain complete visual consistency with previous panels - same chara
 
   const finalPrompt = basePrompt;
   
+  console.log('Final generated prompt:', finalPrompt);
+  
   // Ensure we stay under the limit while preserving important details
-  return finalPrompt.length > 3800 ? finalPrompt.substring(0, 3800) + '...' : finalPrompt;
+  return finalPrompt.length > 4000 ? finalPrompt.substring(0, 4000) + '...' : finalPrompt;
 }
 
 function getPanelTypeInstructions(panelType: string): string {

@@ -40,6 +40,8 @@ export const useComicPanelGeneration = () => {
         .map(char => `${char.name}: ${char.visualDescription}`)
         .join('; ');
 
+      console.log('Character descriptions:', characterDescriptions);
+
       const enhancedPrompt = generateProfessionalImagePrompt(
         panel.prompt,
         panel.panelType,
@@ -48,6 +50,8 @@ export const useComicPanelGeneration = () => {
         characterDescriptions,
         panel.dialogue
       );
+
+      console.log('Enhanced prompt:', enhancedPrompt);
 
       // Generate image with references
       const result = await imageGenerationService.generateImage(
