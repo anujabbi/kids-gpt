@@ -48,16 +48,16 @@ export class ImageGenerationService {
     
     try {
       const requestBody: any = {
-        model: "gpt-image-1",
+        model: "dall-e-3",
         prompt: enhancedPrompt,
         n: 1,
-        size: params.size || 'auto',
-        quality: params.quality || 'auto',
-        output_format: params.outputFormat || 'png',
-        background: params.background || 'auto',
+        size: params.size === 'auto' ? '1024x1024' : (params.size || '1024x1024'),
+        quality: params.quality === 'auto' ? 'standard' : (params.quality === 'high' ? 'hd' : 'standard'),
+        style: params.style || 'vivid',
+        response_format: 'url'
       };
 
-      // gpt-image-1 returns base64 encoded images and has better quality control
+      console.log('Generating image with DALL-E 3:', requestBody);
 
       const response = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
@@ -85,19 +85,15 @@ export class ImageGenerationService {
         throw new Error("No image data received from OpenAI");
       }
 
-      // gpt-image-1 returns base64 encoded images
-      const base64Data = imageData.b64_json;
+      // DALL-E 3 returns URL-based images
+      const imageUrl = imageData.url;
       
-      if (!base64Data) {
-        throw new Error("No image data received from OpenAI");
+      if (!imageUrl) {
+        throw new Error("No image URL received from OpenAI");
       }
-
-      // Convert base64 to data URL for immediate display
-      const imageUrl = `data:image/${params.outputFormat || 'png'};base64,${base64Data}`;
 
       return {
         url: imageUrl,
-        base64: base64Data,
         prompt: enhancedPrompt,
         timestamp: new Date(),
         generationId: `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
