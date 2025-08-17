@@ -14,16 +14,16 @@ export const ComicStyleCard = ({ style, selected, onSelect }: ComicStyleCardProp
 
   return (
     <Card 
-      className={`cursor-pointer transition-all duration-200 w-16 ${
+      className={`cursor-pointer transition-all duration-200 min-w-fit ${
         selected 
           ? 'ring-2 ring-primary bg-primary/5' 
           : 'hover:bg-muted/50'
       }`}
       onClick={() => onSelect(style)}
     >
-      <CardContent className="p-1.5 text-center">
-        <div className="text-lg mb-0.5">{config.emoji}</div>
-        <h3 className="font-medium text-[10px] leading-tight">{config.name}</h3>
+      <CardContent className="p-3 flex items-center gap-2">
+        <div className="text-lg">{config.emoji}</div>
+        <h3 className="font-medium text-sm whitespace-nowrap">{config.name}</h3>
       </CardContent>
     </Card>
   );

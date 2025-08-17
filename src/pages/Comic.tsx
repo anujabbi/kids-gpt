@@ -260,7 +260,7 @@ export default function ComicPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-row gap-4 justify-center flex-wrap">
+                <div className="flex flex-row gap-6 justify-center max-w-4xl mx-auto">
                   {(['cartoon', 'ghibli', 'superhero', 'simple'] as ComicStyle[]).map(style => <div key={style} className="hover-scale">
                       <ComicStyleCard style={style} selected={selectedStyle === style} onSelect={setSelectedStyle} />
                     </div>)}
