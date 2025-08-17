@@ -67,6 +67,8 @@ Make it hilarious for kids with physical comedy and silly situations.`;
         return 'Style: Beautiful, soft illustration in Studio Ghibli animation style. Use gentle colors, dreamy atmosphere, detailed backgrounds with magical, whimsical feeling.';
       case 'superhero':
         return 'Style: Bold, dynamic comic book style with dramatic poses, strong contrasts, and heroic proportions. Use vibrant colors and action-oriented composition.';
+      case 'stick_figures':
+        return 'Style: Hand-drawn black and white stick figure illustration. Use simple line art with basic stick figure characters - circles for heads, straight lines for bodies and limbs. Keep it minimal, clean, and charming like a child\'s doodle in black ink on white paper.';
       default:
         return 'Style: Professional comic book illustration style.';
     }

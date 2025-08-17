@@ -32,6 +32,12 @@ export const COMIC_STYLES: Record<ComicStyle, ComicStyleConfig> = {
     description: 'Clean, minimalist line art style',
     emoji: '✏️',
     promptTemplate: 'Create a simple, clean hand-drawn illustration with minimal lines and basic shapes. The style should be like a child\'s drawing - simple, innocent, and charming with basic colors.'
+  },
+  stick_figures: {
+    name: 'Stick Figures',
+    description: 'Hand-drawn black and white stick figure style',
+    emoji: '🖊️',
+    promptTemplate: 'Create a hand-drawn black and white stick figure illustration. Use simple line art with basic stick figure characters - circles for heads, straight lines for bodies and limbs. Keep it minimal, clean, and charming like a child\'s doodle in black ink on white paper.'
   }
 };
 
