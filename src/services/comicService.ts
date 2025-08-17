@@ -66,7 +66,6 @@ export class ComicService {
           id: `panel_${i}_${Date.now()}`,
           imageUrl,
           prompt: enhancedPrompt,
-          caption: panelPlan.caption,
           panelType: panelPlan.panel_type,
           generationId: i === 0 ? mainGenerationId : undefined
         });
@@ -124,7 +123,6 @@ export class ComicService {
 
     const currentPanel = panels[request.panelIndex];
     const updatedPrompt = request.prompt || currentPanel.prompt;
-    const updatedCaption = request.caption || currentPanel.caption;
 
     // Get user profile for family_id
     const { data: profile } = await supabase
@@ -150,8 +148,7 @@ export class ComicService {
     const updatedPanel: ComicPanel = {
       ...currentPanel,
       imageUrl,
-      prompt: updatedPrompt,
-      caption: updatedCaption
+      prompt: updatedPrompt
     };
 
     // Update panels array

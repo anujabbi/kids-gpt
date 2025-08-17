@@ -125,10 +125,12 @@ export default function PublishedComic() {
                     />
                   </div>
 
-                  {/* Caption */}
-                  <div className="p-4 bg-background">
-                    <p className="text-sm text-center font-medium">{panel.caption}</p>
-                  </div>
+                  {/* Dialogue */}
+                  {panel.dialogue && (
+                    <div className="p-4 bg-background">
+                      <p className="text-sm text-center italic">{panel.dialogue}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

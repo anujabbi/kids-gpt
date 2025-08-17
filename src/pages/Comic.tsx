@@ -99,7 +99,6 @@ export default function ComicPage() {
         imageUrl: '',
         prompt: panelPlan.image_prompt,
         dialogue: panelPlan.dialogue,
-        caption: panelPlan.caption,
         panelType: panelPlan.panel_type
       }));
       setComicPanels(initialPanels);
@@ -142,7 +141,7 @@ export default function ComicPage() {
   const handleEditPanel = (panelIndex: number) => {
     setEditingPanel(panelIndex);
   };
-  const handleSavePanel = async (panelIndex: number, prompt: string, caption: string) => {
+  const handleSavePanel = async (panelIndex: number, prompt: string) => {
     if (!selectedStyle || characters.length === 0) return;
     try {
       // Get previous panel generation ID for reference
@@ -151,8 +150,7 @@ export default function ComicPage() {
       // Update panel data
       const updatedPanel = {
         ...comicPanels[panelIndex],
-        prompt,
-        caption
+        prompt
       };
 
       // Generate with references
@@ -162,6 +160,12 @@ export default function ComicPage() {
         updatedPanels[panelIndex] = generatedPanel;
         setComicPanels(updatedPanels);
         setEditingPanel(null);
+        
+        // Check if all panels are now generated
+        if (updatedPanels.every(panel => panel.imageUrl)) {
+          setGenerationPhase('complete');
+        }
+        
         toast({
           title: "Panel Regenerated!",
           description: `Panel ${panelIndex + 1} has been updated with character consistency!`
@@ -335,7 +339,7 @@ export default function ComicPage() {
                     
                     <div className="flex flex-col gap-8 max-w-2xl mx-auto">
                       {comicPanels.map((panel, index) => <div key={panel.id} className="transform hover:scale-105 transition-all duration-300">
-                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt, caption) => handleSavePanel(index, prompt, caption)} onCancel={handleCancelPanelEdit} isGenerating={isGeneratingPanels} />
+                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt) => handleSavePanel(index, prompt)} onCancel={handleCancelPanelEdit} isGenerating={isGeneratingPanels} />
                         </div>)}
                     </div>
                   </div>}

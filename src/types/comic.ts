@@ -14,7 +14,6 @@ export interface ComicPanel {
   imageUrl: string;
   prompt: string;
   dialogue?: string;
-  caption: string;
   panelType: PanelType;
   generationId?: string;
   referencedImageIds?: string[];
@@ -41,7 +40,6 @@ export interface StoryPlan {
     panel: number;
     image_prompt: string;
     dialogue?: string;
-    caption: string;
     panel_type: PanelType;
   }[];
 }
@@ -55,5 +53,4 @@ export interface PanelEditRequest {
   comicId: string;
   panelIndex: number;
   prompt?: string;
-  caption?: string;
 }
