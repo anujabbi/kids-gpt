@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ComicStyle, StoryPlan, ComicPanel as ComicPanelType, ComicCharacter } from "@/types/comic";
 import { storyPlanningService } from "@/services/storyPlanningService";
 import { useComicPanelGeneration } from "@/hooks/useComicPanelGeneration";
+import { useCharacterGeneration } from "@/hooks/useCharacterGeneration";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Share, RotateCcw, Sparkles, Wand2, ArrowRight, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ export default function ComicPage() {
   const [characters, setCharacters] = useState<ComicCharacter[]>([]);
   const [editingPanel, setEditingPanel] = useState<number | null>(null);
   const [generationPhase, setGenerationPhase] = useState<'story' | 'characters' | 'panels' | 'complete'>('story');
+  const { generateCharacterImage } = useCharacterGeneration();
   const {
     generatePanelWithReferences,
     generateAllPanels,
@@ -83,16 +85,26 @@ export default function ComicPage() {
       });
       return;
     }
+    
     console.log('Starting story plan generation...');
+    
+    // Immediately show the next screen
+    setGenerationPhase('characters');
     setIsGeneratingPlan(true);
+    
+    toast({
+      title: "Creating Your Comic!",
+      description: "Generating story plan and characters..."
+    });
+
     try {
       const plan = await storyPlanningService.generateStoryPlan(storyIdea.trim(), selectedStyle);
       if (!plan) {
         throw new Error('Failed to generate story plan');
       }
+      
       setStoryPlan(plan);
-      setCharacters(plan.characters);
-
+      
       // Initialize empty comic panels based on the story plan
       const initialPanels: ComicPanelType[] = plan.panels.map((panelPlan, index) => ({
         id: `panel_${index}`,
@@ -102,11 +114,23 @@ export default function ComicPage() {
         panelType: panelPlan.panel_type
       }));
       setComicPanels(initialPanels);
-      setGenerationPhase('characters');
+      
+      // Set characters without images first
+      const charactersWithoutImages = plan.characters.map(char => ({
+        ...char,
+        generatedImageUrl: undefined,
+        generationId: undefined
+      }));
+      setCharacters(charactersWithoutImages);
+      
       toast({
-        title: "Story Plan Created!",
-        description: "Now let's generate character images for consistency!"
+        title: "Story Plan Complete!",
+        description: `Created ${plan.characters.length} characters and ${plan.panels.length} panels!`
       });
+      
+      // Now start generating character images progressively
+      await generateCharactersProgressively(plan.characters);
+      
     } catch (error) {
       console.error('Failed to generate story plan:', error);
       toast({
@@ -114,8 +138,35 @@ export default function ComicPage() {
         description: error instanceof Error ? error.message : "Failed to generate story plan. Please try again.",
         variant: "destructive"
       });
+      // Reset to story phase if there's an error
+      setGenerationPhase('story');
     } finally {
       setIsGeneratingPlan(false);
+    }
+  };
+
+  const generateCharactersProgressively = async (planCharacters: ComicCharacter[]) => {
+    for (let i = 0; i < planCharacters.length; i++) {
+      try {
+        const character = planCharacters[i];
+        const generatedCharacter = await generateCharacterImage(character);
+        
+        if (generatedCharacter) {
+          setCharacters(prev => {
+            const updated = [...prev];
+            updated[i] = generatedCharacter;
+            return updated;
+          });
+          
+          toast({
+            title: `Character Generated!`,
+            description: `${generatedCharacter.name} is ready!`
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to generate character ${i + 1}:`, error);
+        // Continue with next character even if one fails
+      }
     }
   };
   const handleStartOver = () => {
@@ -375,7 +426,12 @@ export default function ComicPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CharacterGenerationSection characters={characters} onCharactersUpdate={handleCharactersUpdate} isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'} />
+                      <CharacterGenerationSection 
+                        characters={characters} 
+                        onCharactersUpdate={handleCharactersUpdate} 
+                        isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'}
+                        isLoadingStoryPlan={isGeneratingPlan}
+                      />
                     </CardContent>
                   </Card>
                 </div>
