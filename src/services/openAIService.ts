@@ -50,7 +50,7 @@ class OpenAIService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-5-mini-2025-08-07',
           messages: [
             { 
               role: 'system', 
@@ -61,13 +61,16 @@ class OpenAIService {
               content: prompt 
             }
           ],
-          max_tokens: 2000,
-          temperature: 0.3,
+          max_completion_tokens: 2000,
           response_format: { type: "json_object" }
         }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error(`OpenAI rate limit exceeded. Please wait a moment and try again.`);
+        }
         throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
 
@@ -143,14 +146,19 @@ class OpenAIService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-5-mini-2025-08-07',
           messages: openAIMessages,
-          max_tokens: 1000,
-          temperature: 0.7,
+          max_completion_tokens: 1000,
         }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error(`OpenAI rate limit exceeded. Please wait a moment and try again.`);
+        } else if (response.status === 401) {
+          throw new Error(`OpenAI API key is invalid. Please check your API key settings.`);
+        }
         throw new Error(`OpenAI API error: ${response.status}`);
       }
 
@@ -169,8 +177,9 @@ class OpenAIService {
       };
     } catch (error) {
       console.error('OpenAI API error:', error);
+      const errorMessage = error instanceof Error ? error.message : "I'm having trouble right now. Please try again in a moment.";
       return {
-        response: "I'm sorry, I'm having trouble right now. Please try again in a moment."
+        response: `I'm sorry, ${errorMessage}`
       };
     }
   }

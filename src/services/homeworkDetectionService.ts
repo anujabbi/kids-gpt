@@ -48,7 +48,7 @@ export const analyzeHomeworkMisuse = async (userQuestion: string, aiResponse: st
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini-2025-08-07",
         messages: [
           {
             role: "system",
@@ -59,8 +59,7 @@ export const analyzeHomeworkMisuse = async (userQuestion: string, aiResponse: st
             content: `User Question: "${userQuestion}"\n\nAI Response: "${aiResponse}"\n\nHomework Misuse Score:`
           }
         ],
-        max_tokens: 10,
-        temperature: 0.1,
+        max_completion_tokens: 10,
       }),
     });
 
