@@ -7,13 +7,14 @@ export class StoryPlanningService {
     
     const prompt = `Create a funny 3-panel comic about: ${storyIdea}
 
-${styleContext}
+Art Style: {{${styleContext}}}
 
 Requirements:
 - 3 panels with SAME characters and setting throughout
 - Panel 1: Setup, Panel 2: Development, Panel 3: Punchline  
 - Kid-friendly humor with dialogue in each panel
 - Characters must look identical in all panels
+- ALL visual descriptions must include the art style
 
 JSON format:
 {
@@ -22,29 +23,26 @@ JSON format:
     {
       "name": "Character name",
       "description": "Personality and role (2-3 sentences)",
-      "visualDescription": "Detailed physical appearance for consistency: body type, height, facial features, hair, clothing, distinctive features (4-5 sentences)"
+      "visualDescription": "{{${styleContext}}} Detailed physical appearance for consistency: body type, height, facial features, hair, clothing, distinctive features (4-5 sentences)"
     }
   ],
   "panels": [
     {
       "panel": 1,
-      "image_prompt": "Detailed scene with exact character descriptions in specific setting. Include positioning, expressions, and background details.",
+      "image_prompt": "{{${styleContext}}} Detailed scene with exact character descriptions in specific setting. Include positioning, expressions, and background details.",
       "dialogue": "Character name says: 'Dialogue here' (max 12 words)",
-      "caption": "Optional narration",
       "panel_type": "establishing_shot"
     },
     {
       "panel": 2,
-      "image_prompt": "Same scene continuing with same characters. Show development while maintaining visual consistency.",
+      "image_prompt": "{{${styleContext}}} Same scene continuing with same characters. Show development while maintaining visual consistency.",
       "dialogue": "Character name says: 'Response dialogue' (max 12 words)",
-      "caption": "Optional narration", 
       "panel_type": "medium_shot"
     },
     {
       "panel": 3,
-      "image_prompt": "Same scene conclusion with same characters. Visual punchline with exaggerated expressions.",
+      "image_prompt": "{{${styleContext}}} Same scene conclusion with same characters. Visual punchline with exaggerated expressions.",
       "dialogue": "Character name says: 'Punchline dialogue' (max 12 words)",
-      "caption": "Optional sound effects",
       "panel_type": "close_up"
     }
   ]

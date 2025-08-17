@@ -149,7 +149,7 @@ export default function ComicPage() {
     for (let i = 0; i < planCharacters.length; i++) {
       try {
         const character = planCharacters[i];
-        const generatedCharacter = await generateCharacterImage(character);
+        const generatedCharacter = await generateCharacterImage(character, selectedStyle!);
         
         if (generatedCharacter) {
           setCharacters(prev => {
@@ -431,6 +431,7 @@ export default function ComicPage() {
                         onCharactersUpdate={handleCharactersUpdate} 
                         isVisible={generationPhase === 'characters' || generationPhase === 'panels' || generationPhase === 'complete'}
                         isLoadingStoryPlan={isGeneratingPlan}
+                        comicStyle={selectedStyle!}
                       />
                     </CardContent>
                   </Card>

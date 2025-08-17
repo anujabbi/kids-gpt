@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { imageGenerationService } from '@/services/imageGenerationService';
-import { ComicCharacter } from '@/types/comic';
+import { ComicCharacter, ComicStyle } from '@/types/comic';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { COMIC_STYLES } from '@/utils/comicPrompts';
 
 export const useCharacterGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { profile } = useAuth();
 
-  const generateCharacterImage = async (character: ComicCharacter): Promise<ComicCharacter | null> => {
+  const generateCharacterImage = async (character: ComicCharacter, comicStyle: ComicStyle): Promise<ComicCharacter | null> => {
     setIsGenerating(true);
     
     try {
-      const prompt = `Character portrait: ${character.name} - ${character.visualDescription}. High quality character design, clear features, consistent style for comic book.`;
+      const styleConfig = COMIC_STYLES[comicStyle];
+      const prompt = `${styleConfig.promptTemplate} Character portrait: ${character.name} - ${character.visualDescription}. High quality character design, clear features, consistent style for comic book.`;
       
       const result = await imageGenerationService.generateImage(
         {
@@ -49,13 +51,13 @@ export const useCharacterGeneration = () => {
     }
   };
 
-  const generateAllCharacters = async (characters: ComicCharacter[]): Promise<ComicCharacter[]> => {
+  const generateAllCharacters = async (characters: ComicCharacter[], comicStyle: ComicStyle): Promise<ComicCharacter[]> => {
     setIsGenerating(true);
     const generatedCharacters: ComicCharacter[] = [];
     
     try {
       for (const character of characters) {
-        const generated = await generateCharacterImage(character);
+        const generated = await generateCharacterImage(character, comicStyle);
         if (generated) {
           generatedCharacters.push(generated);
         } else {

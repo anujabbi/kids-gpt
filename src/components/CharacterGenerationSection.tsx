@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, User, Wand2 } from 'lucide-react';
-import { ComicCharacter } from '@/types/comic';
+import { ComicCharacter, ComicStyle } from '@/types/comic';
 import { useCharacterGeneration } from '@/hooks/useCharacterGeneration';
 
 interface CharacterGenerationSectionProps {
@@ -13,13 +13,15 @@ interface CharacterGenerationSectionProps {
   onCharactersUpdate: (characters: ComicCharacter[]) => void;
   isVisible: boolean;
   isLoadingStoryPlan?: boolean;
+  comicStyle: ComicStyle;
 }
 
 export function CharacterGenerationSection({ 
   characters, 
   onCharactersUpdate, 
   isVisible,
-  isLoadingStoryPlan = false
+  isLoadingStoryPlan = false,
+  comicStyle
 }: CharacterGenerationSectionProps) {
   const { generateCharacterImage, generateAllCharacters, isGenerating } = useCharacterGeneration();
   const [editingCharacter, setEditingCharacter] = useState<number | null>(null);
@@ -49,7 +51,7 @@ export function CharacterGenerationSection({
 
   const handleGenerateCharacter = async (index: number) => {
     const character = characters[index];
-    const generated = await generateCharacterImage(character);
+    const generated = await generateCharacterImage(character, comicStyle);
     if (generated) {
       const updatedCharacters = [...characters];
       updatedCharacters[index] = generated;
@@ -58,7 +60,7 @@ export function CharacterGenerationSection({
   };
 
   const handleGenerateAllCharacters = async () => {
-    const generated = await generateAllCharacters(characters);
+    const generated = await generateAllCharacters(characters, comicStyle);
     onCharactersUpdate(generated);
   };
 
