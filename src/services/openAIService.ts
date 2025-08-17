@@ -33,7 +33,9 @@ class OpenAIService {
   }
 
   async extractStructuredData(prompt: string): Promise<any | null> {
+    console.log('extractStructuredData called with prompt length:', prompt.length);
     const apiKey = await this.getApiKey();
+    console.log('API key available:', !!apiKey);
     
     if (!apiKey) {
       console.error('No OpenAI API key available for structured data extraction');
@@ -69,11 +71,13 @@ class OpenAIService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 429) {
-          throw new Error(`OpenAI rate limit exceeded. Please wait a moment and try again.`);
+          throw new Error("I'm getting a lot of requests right now! Could you please wait a moment and try asking me again? Thanks for being patient! 😊");
+        } else if (response.status === 401) {
+          throw new Error("Oops! It looks like there might be an issue with our helper service. Could you please ask your parent or guardian to check the API key settings? They'll know what to do! 🔑");
         } else if (response.status === 402 || (errorData.error && errorData.error.code === 'insufficient_quota')) {
-          throw new Error(`OpenAI account needs funding. Please check your billing balance.`);
+          throw new Error("Oops! It looks like there might be an issue with our helper service. Could you please ask your parent or guardian to check if our account needs to be topped up? They'll know what to do! 💝");
         }
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        throw new Error("I'm having a little trouble connecting right now. Could you please try again in a moment! 🤖");
       }
 
       const data = await response.json();

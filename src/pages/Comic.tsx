@@ -67,7 +67,12 @@ export default function ComicPage() {
   }
 
   const handleGenerateStoryPlan = async () => {
+    console.log('handleGenerateStoryPlan called!');
+    console.log('storyIdea:', storyIdea);
+    console.log('selectedStyle:', selectedStyle);
+    
     if (!storyIdea.trim() || !selectedStyle) {
+      console.log('Missing story idea or style');
       toast({
         title: "Missing Information",
         description: "Please enter a story idea and select a comic style.",
@@ -76,6 +81,7 @@ export default function ComicPage() {
       return;
     }
 
+    console.log('Starting story plan generation...');
     setIsGeneratingPlan(true);
     
     try {
