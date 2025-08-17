@@ -18,7 +18,7 @@ export const useCharacterGeneration = () => {
         {
           prompt,
           size: '1024x1024',
-          quality: 'hd',
+          quality: 'high',
           style: 'vivid'
         },
         profile?.family_id || undefined

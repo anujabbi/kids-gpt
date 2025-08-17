@@ -53,7 +53,7 @@ export const useComicPanelGeneration = () => {
         {
           prompt: enhancedPrompt,
           size: '1024x1024',
-          quality: 'hd',
+          quality: 'high',
           style: 'vivid'
         },
         profile?.family_id || undefined

@@ -49,7 +49,7 @@ export class ComicService {
           {
             prompt: enhancedPrompt,
             size: '1024x1024',
-            quality: 'standard'
+            quality: 'auto'
           },
           profile.family_id
         );
@@ -138,7 +138,7 @@ export class ComicService {
       {
         prompt: updatedPrompt,
         size: '1024x1024',
-        quality: 'standard'
+        quality: 'auto'
       },
       profile?.family_id
     );

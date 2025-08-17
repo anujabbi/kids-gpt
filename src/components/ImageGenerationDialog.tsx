@@ -20,7 +20,7 @@ export function ImageGenerationDialog({ open, onOpenChange, onImageGenerated }: 
   const { currentTheme } = useTheme();
   const { generateImage, isGenerating } = useImageGeneration();
   const [prompt, setPrompt] = useState("");
-  const [size, setSize] = useState<"1024x1024" | "1792x1024" | "1024x1792">("1024x1024");
+  const [size, setSize] = useState<"1024x1024" | "1536x1024" | "1024x1536" | "auto">("1024x1024");
   const [style, setStyle] = useState<"vivid" | "natural">("vivid");
 
   const handleGenerate = async () => {
@@ -29,7 +29,7 @@ export function ImageGenerationDialog({ open, onOpenChange, onImageGenerated }: 
     const params: ImageGenerationParams = {
       prompt: prompt.trim(),
       size,
-      quality: 'standard',
+      quality: 'auto',
     };
 
     const result = await generateImage(params);
@@ -89,8 +89,9 @@ export function ImageGenerationDialog({ open, onOpenChange, onImageGenerated }: 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1024x1024">Square (1024×1024)</SelectItem>
-                  <SelectItem value="1792x1024">Wide (1792×1024)</SelectItem>
-                  <SelectItem value="1024x1792">Tall (1024×1792)</SelectItem>
+                  <SelectItem value="1536x1024">Wide (1536×1024)</SelectItem>
+                  <SelectItem value="1024x1536">Tall (1024×1536)</SelectItem>
+                  <SelectItem value="auto">Auto (Best fit)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
