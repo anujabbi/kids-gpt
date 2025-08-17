@@ -163,6 +163,7 @@ I'll ask you some fun questions to get to know the amazing person you are. After
       const allMessages = [...currentConv.messages, userMessage];
       const result = await generateResponse(allMessages, currentConv.type);
       
+      // Always create an assistant message since generateResponse now returns error messages instead of null
       if (result) {
         const assistantMessage = createAssistantMessage(result.response, result.homeworkScore);
         await addMessageToConversation(currentConv.id, assistantMessage);

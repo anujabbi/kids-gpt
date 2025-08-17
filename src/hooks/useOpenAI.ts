@@ -33,7 +33,11 @@ export const useOpenAI = () => {
       return result;
     } catch (error) {
       console.error('Failed to generate response:', error);
-      return null;
+      
+      // Return a child-friendly error message instead of null
+      return {
+        response: "I'm having a little trouble connecting right now. Could you please try again in a moment? If this keeps happening, ask your parent or guardian to check the settings! 🤖"
+      };
     } finally {
       setIsTyping(false);
     }

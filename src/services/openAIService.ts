@@ -70,6 +70,8 @@ class OpenAIService {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 429) {
           throw new Error(`OpenAI rate limit exceeded. Please wait a moment and try again.`);
+        } else if (response.status === 402 || (errorData.error && errorData.error.code === 'insufficient_quota')) {
+          throw new Error(`OpenAI account needs funding. Please check your billing balance.`);
         }
         throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
@@ -154,12 +156,24 @@ class OpenAIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
         if (response.status === 429) {
-          throw new Error(`OpenAI rate limit exceeded. Please wait a moment and try again.`);
+          return {
+            response: "I'm getting a lot of requests right now! Could you please wait a moment and try asking me again? Thanks for being patient! 😊"
+          };
         } else if (response.status === 401) {
-          throw new Error(`OpenAI API key is invalid. Please check your API key settings.`);
+          return {
+            response: "Oops! It looks like there might be an issue with our helper service. Could you please ask your parent or guardian to check the API key settings? They'll know what to do! 🔑"
+          };
+        } else if (response.status === 402 || (errorData.error && errorData.error.code === 'insufficient_quota')) {
+          return {
+            response: "Oops! It looks like there might be an issue with our helper service. Could you please ask your parent or guardian to check if our account needs to be topped up? They'll know what to do! 💝"
+          };
         }
-        throw new Error(`OpenAI API error: ${response.status}`);
+        
+        return {
+          response: "I'm having a little trouble connecting right now. Could you please try again in a moment? If this keeps happening, ask your parent or guardian to check the settings! 🤖"
+        };
       }
 
       const data = await response.json();
@@ -177,9 +191,26 @@ class OpenAIService {
       };
     } catch (error) {
       console.error('OpenAI API error:', error);
-      const errorMessage = error instanceof Error ? error.message : "I'm having trouble right now. Please try again in a moment.";
+      
+      // Handle specific error types with child-friendly messages
+      if (error instanceof Error) {
+        if (error.message.includes('rate limit exceeded')) {
+          return {
+            response: "I'm getting a lot of requests right now! Could you please wait a moment and try asking me again? Thanks for being patient! 😊"
+          };
+        } else if (error.message.includes('API key is invalid')) {
+          return {
+            response: "Oops! It looks like there might be an issue with our helper service. Could you please ask your parent or guardian to check the API key settings? They'll know what to do! 🔑"
+          };
+        } else if (error.message.includes('account needs funding') || error.message.includes('insufficient_quota')) {
+          return {
+            response: "Oops! It looks like there might be an issue with our helper service. Could you please ask your parent or guardian to check if our account needs to be topped up? They'll know what to do! 💝"
+          };
+        }
+      }
+      
       return {
-        response: `I'm sorry, ${errorMessage}`
+        response: "I'm having a little trouble connecting right now. Could you please try again in a moment? If this keeps happening, ask your parent or guardian to check the settings! 🤖"
       };
     }
   }
