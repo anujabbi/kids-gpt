@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ComicPanel as ComicPanelType } from "@/types/comic";
+import { ComicPanel as ComicPanelType, ComicStyle, ComicCharacter } from "@/types/comic";
+import { generateProfessionalImagePrompt } from "@/utils/comicPrompts";
 import { Edit, Loader2, Play } from "lucide-react";
 
 interface ComicPanelProps {
@@ -13,6 +14,9 @@ interface ComicPanelProps {
   onSave: (prompt: string, dialogue?: string) => Promise<void>;
   onCancel: () => void;
   isGenerating?: boolean;
+  comicStyle: ComicStyle;
+  characters: ComicCharacter[];
+  panelNumber: number;
 }
 
 export const ComicPanel = ({ 
@@ -22,17 +26,43 @@ export const ComicPanel = ({
   onEdit, 
   onSave, 
   onCancel,
-  isGenerating = false
+  isGenerating = false,
+  comicStyle,
+  characters,
+  panelNumber
 }: ComicPanelProps) => {
   const [editPrompt, setEditPrompt] = useState(panel.prompt);
   const [editDialogue, setEditDialogue] = useState(panel.dialogue || '');
   const [isRegenerating, setIsRegenerating] = useState(false);
 
+  // Generate full enhanced prompt for edit mode
+  const getEnhancedPrompt = () => {
+    const characterDescriptions = characters
+      .map(char => `${char.name}: ${char.description}`)
+      .join('\n');
+    
+    return generateProfessionalImagePrompt(
+      panel.prompt, // Use the raw panel prompt as base
+      panel.panelType || 'medium_shot',
+      comicStyle,
+      panelNumber,
+      characterDescriptions,
+      panel.dialogue || ''
+    );
+  };
+
   // Update local state when panel prop changes
   useEffect(() => {
-    setEditPrompt(panel.prompt);
+    if (isEditing) {
+      // When entering edit mode, show the enhanced prompt
+      const enhancedPrompt = getEnhancedPrompt();
+      setEditPrompt(enhancedPrompt);
+    } else {
+      // When not editing, use raw prompt
+      setEditPrompt(panel.prompt);
+    }
     setEditDialogue(panel.dialogue || '');
-  }, [panel.prompt, panel.dialogue]);
+  }, [panel.prompt, panel.dialogue, isEditing, comicStyle, characters, panelNumber]);
 
   const handleSave = async () => {
     setIsRegenerating(true);
@@ -111,17 +141,21 @@ export const ComicPanel = ({
           </>
         ) : (
           <div className="space-y-4">
-            {/* AI Prompt in Image Space */}
-            <div className="aspect-square bg-muted relative rounded p-4 flex flex-col">
+            {/* Enhanced AI Prompt */}
+            <div className="bg-muted relative rounded p-4 flex flex-col min-h-[400px]">
               <label className="text-sm font-medium mb-2 block">
-                Message to AI to generate image
+                Complete AI Prompt (exactly what gets sent to DALL-E)
               </label>
               <Textarea
                 value={editPrompt}
                 onChange={(e) => setEditPrompt(e.target.value)}
-                placeholder="Describe what you want the AI to generate for this panel..."
+                placeholder="The complete enhanced prompt will appear here..."
                 className="text-sm flex-1 resize-none bg-background"
+                rows={15}
               />
+              <div className="text-xs text-muted-foreground mt-1">
+                {editPrompt.length}/4000 characters
+              </div>
             </div>
 
             {/* Dialogue Section */}

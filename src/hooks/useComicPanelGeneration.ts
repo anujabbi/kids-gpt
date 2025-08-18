@@ -14,7 +14,8 @@ export const useComicPanelGeneration = () => {
     panelIndex: number,
     characters: ComicCharacter[],
     comicStyle: string,
-    previousPanelGenerationId?: string
+    previousPanelGenerationId?: string,
+    skipEnhancement?: boolean
   ): Promise<ComicPanel | null> => {
     console.log('generatePanelWithReferences called for panel', panelIndex);
     setIsGenerating(true);
@@ -35,21 +36,29 @@ export const useComicPanelGeneration = () => {
         referencedImageIds.push(previousPanelGenerationId);
       }
 
-      // Generate enhanced prompt
-      const characterDescriptions = characters
-        .map(char => `${char.name}: ${char.visualDescription}`)
-        .join('; ');
+      // Generate enhanced prompt or use existing
+      let enhancedPrompt;
+      
+      if (skipEnhancement) {
+        // Use the prompt directly (it's already enhanced)
+        enhancedPrompt = panel.prompt;
+      } else {
+        // Generate enhanced prompt
+        const characterDescriptions = characters
+          .map(char => `${char.name}: ${char.visualDescription}`)
+          .join('; ');
 
-      console.log('Character descriptions:', characterDescriptions);
+        console.log('Character descriptions:', characterDescriptions);
 
-      const enhancedPrompt = generateProfessionalImagePrompt(
-        panel.prompt,
-        panel.panelType,
-        comicStyle as any,
-        panelIndex + 1,
-        characterDescriptions,
-        panel.dialogue
-      );
+        enhancedPrompt = generateProfessionalImagePrompt(
+          panel.prompt,
+          panel.panelType,
+          comicStyle as any,
+          panelIndex + 1,
+          characterDescriptions,
+          panel.dialogue
+        );
+      }
 
       console.log('Enhanced prompt:', enhancedPrompt);
 

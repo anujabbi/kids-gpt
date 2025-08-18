@@ -198,15 +198,15 @@ export default function ComicPage() {
       // Get previous panel generation ID for reference
       const previousPanelGenerationId = panelIndex > 0 ? comicPanels[panelIndex - 1].generationId : undefined;
 
-      // Update panel data
+      // Update panel data - use the prompt directly as it's already enhanced
       const updatedPanel = {
         ...comicPanels[panelIndex],
         prompt,
         dialogue
       };
 
-      // Generate with references
-      const generatedPanel = await generatePanelWithReferences(updatedPanel, panelIndex, characters, selectedStyle, previousPanelGenerationId);
+      // Generate using the enhanced prompt directly (skip enhancement in hook)
+      const generatedPanel = await generatePanelWithReferences(updatedPanel, panelIndex, characters, selectedStyle, previousPanelGenerationId, true);
       if (generatedPanel) {
         const updatedPanels = [...comicPanels];
         updatedPanels[panelIndex] = generatedPanel;
@@ -391,7 +391,18 @@ export default function ComicPage() {
                     
                     <div className="flex flex-col gap-8 max-w-2xl mx-auto">
                       {comicPanels.map((panel, index) => <div key={panel.id} className="transform hover:scale-105 transition-all duration-300">
-                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt, dialogue) => handleSavePanel(index, prompt, dialogue)} onCancel={handleCancelPanelEdit} isGenerating={isGeneratingPanels} />
+                          <ComicPanel 
+                            panel={panel} 
+                            panelIndex={index} 
+                            isEditing={editingPanel === index} 
+                            onEdit={() => handleEditPanel(index)} 
+                            onSave={(prompt, dialogue) => handleSavePanel(index, prompt, dialogue)} 
+                            onCancel={handleCancelPanelEdit} 
+                            isGenerating={isGeneratingPanels}
+                            comicStyle={selectedStyle!}
+                            characters={characters}
+                            panelNumber={index + 1}
+                          />
                         </div>)}
                     </div>
                   </div>}
