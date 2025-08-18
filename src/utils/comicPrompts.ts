@@ -1,5 +1,6 @@
 // Comic Strip Generation Prompt Templates
-import { ComicStyle } from '@/types/comic';
+import { ComicStyle, PanelType } from '@/types/comic';
+import { buildPanelPrompt, getShotTypeInstructions } from '@/prompts/storylinePrompts';
 
 export interface ComicStyleConfig {
   name: string;
@@ -53,23 +54,18 @@ export function generateProfessionalImagePrompt(
   console.log('- characterDescriptions:', characterDescriptions);
   
   const styleConfig = COMIC_STYLES[style];
-  const panelTypeInstr = getPanelTypeInstructions(panelType);
+  const shotTypeInstr = getShotTypeInstructions(panelType as PanelType);
   
-  // Build comprehensive prompt with character and setting details
-  let basePrompt = `Comic panel ${panelNumber}/3: ${styleConfig.promptTemplate}
+  // Build comprehensive prompt using template system
+  let basePrompt = buildPanelPrompt({
+    style: styleConfig.promptTemplate,
+    shotType: shotTypeInstr,
+    sceneDescription: imagePrompt,
+    characterDescriptions: characterDescriptions?.substring(0, 1200)
+  });
   
-Panel Type: ${panelTypeInstr}
-  
-Scene: ${imagePrompt}`;
-  
-  // Add detailed character descriptions for consistency
-  if (characterDescriptions) {
-    basePrompt += `
-
-CHARACTER CONSISTENCY REQUIREMENTS:
-${characterDescriptions.substring(0, 1200)}
-Ensure these characters appear EXACTLY as described with identical visual features, clothing, and proportions.`;
-  }
+  // Add panel numbering
+  basePrompt = `Comic panel ${panelNumber}/3: ${basePrompt}`;
   
   // Add dialogue with proper formatting
   if (dialogue) {
@@ -78,11 +74,6 @@ Ensure these characters appear EXACTLY as described with identical visual featur
 DIALOGUE: Include speech bubble with text: "${dialogue}"`;
   }
   
-  // Add continuity instructions
-  basePrompt += `
-
-CRITICAL: Maintain complete visual consistency with previous panels - same characters, same setting, same lighting, same style. Only expressions and positioning should change to show story progression.`;
-
   const finalPrompt = basePrompt;
   
   console.log('Final generated prompt:', finalPrompt);
@@ -91,18 +82,6 @@ CRITICAL: Maintain complete visual consistency with previous panels - same chara
   return finalPrompt.length > 4000 ? finalPrompt.substring(0, 4000) + '...' : finalPrompt;
 }
 
-function getPanelTypeInstructions(panelType: string): string {
-  switch (panelType) {
-    case 'establishing_shot':
-      return 'Wide establishing shot showing the scene and environment, setting the context and mood.';
-    case 'close_up':
-      return 'Close-up shot focusing on character expressions, emotions, or important details.';
-    case 'medium_shot':
-      return 'Medium shot showing characters and their immediate surroundings, balancing character and environment.';
-    default:
-      return 'Well-composed shot with proper framing and clear storytelling purpose.';
-  }
-}
 
 export function enhancePromptWithCharacterConsistency(
   basePrompt: string, 

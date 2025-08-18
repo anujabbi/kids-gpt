@@ -4,6 +4,7 @@ import { ComicCharacter, ComicStyle } from '@/types/comic';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { COMIC_STYLES } from '@/utils/comicPrompts';
+import { buildCharacterPrompt } from '@/prompts/characterPrompts';
 
 export const useCharacterGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -14,7 +15,11 @@ export const useCharacterGeneration = () => {
     
     try {
       const styleConfig = COMIC_STYLES[comicStyle];
-      const prompt = `${styleConfig.promptTemplate} Character portrait: ${character.name} - ${character.visualDescription}. High quality character design, clear features, consistent style for comic book.`;
+      const prompt = buildCharacterPrompt({
+        style: styleConfig.promptTemplate,
+        characterName: character.name,
+        characterDescription: character.visualDescription
+      });
       
       const result = await imageGenerationService.generateImage(
         {
