@@ -192,7 +192,7 @@ export default function ComicPage() {
   const handleEditPanel = (panelIndex: number) => {
     setEditingPanel(panelIndex);
   };
-  const handleSavePanel = async (panelIndex: number, prompt: string) => {
+  const handleSavePanel = async (panelIndex: number, prompt: string, dialogue?: string) => {
     if (!selectedStyle || characters.length === 0) return;
     try {
       // Get previous panel generation ID for reference
@@ -201,7 +201,8 @@ export default function ComicPage() {
       // Update panel data
       const updatedPanel = {
         ...comicPanels[panelIndex],
-        prompt
+        prompt,
+        dialogue
       };
 
       // Generate with references
@@ -390,7 +391,7 @@ export default function ComicPage() {
                     
                     <div className="flex flex-col gap-8 max-w-2xl mx-auto">
                       {comicPanels.map((panel, index) => <div key={panel.id} className="transform hover:scale-105 transition-all duration-300">
-                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt) => handleSavePanel(index, prompt)} onCancel={handleCancelPanelEdit} isGenerating={isGeneratingPanels} />
+                          <ComicPanel panel={panel} panelIndex={index} isEditing={editingPanel === index} onEdit={() => handleEditPanel(index)} onSave={(prompt, dialogue) => handleSavePanel(index, prompt, dialogue)} onCancel={handleCancelPanelEdit} isGenerating={isGeneratingPanels} />
                         </div>)}
                     </div>
                   </div>}

@@ -10,7 +10,7 @@ interface ComicPanelProps {
   panelIndex: number;
   isEditing: boolean;
   onEdit: () => void;
-  onSave: (prompt: string) => Promise<void>;
+  onSave: (prompt: string, dialogue?: string) => Promise<void>;
   onCancel: () => void;
   isGenerating?: boolean;
 }
@@ -25,17 +25,19 @@ export const ComicPanel = ({
   isGenerating = false
 }: ComicPanelProps) => {
   const [editPrompt, setEditPrompt] = useState(panel.prompt);
+  const [editDialogue, setEditDialogue] = useState(panel.dialogue || '');
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Update local state when panel prop changes
   useEffect(() => {
     setEditPrompt(panel.prompt);
-  }, [panel.prompt]);
+    setEditDialogue(panel.dialogue || '');
+  }, [panel.prompt, panel.dialogue]);
 
   const handleSave = async () => {
     setIsRegenerating(true);
     try {
-      await onSave(editPrompt);
+      await onSave(editPrompt, editDialogue);
     } finally {
       setIsRegenerating(false);
     }
@@ -120,6 +122,23 @@ export const ComicPanel = ({
                 placeholder="Describe what you want the AI to generate for this panel..."
                 className="text-sm flex-1 resize-none bg-background"
               />
+            </div>
+
+            {/* Dialogue Section */}
+            <div className="bg-muted/30 rounded-lg p-3 border-l-4 border-primary">
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                Panel Dialogue (optional):
+              </label>
+              <Textarea
+                value={editDialogue}
+                onChange={(e) => setEditDialogue(e.target.value)}
+                placeholder="What do the characters say in this panel?"
+                className="text-sm bg-background border-0 shadow-none resize-none min-h-[60px]"
+                maxLength={100}
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {editDialogue.length}/100 characters
+              </div>
             </div>
 
             {/* Action Buttons */}
