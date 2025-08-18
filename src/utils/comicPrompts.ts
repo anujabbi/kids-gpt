@@ -67,12 +67,7 @@ export function generateProfessionalImagePrompt(
   // Add panel numbering
   basePrompt = `Comic panel ${panelNumber}/3: ${basePrompt}`;
   
-  // Add dialogue with proper formatting
-  if (dialogue) {
-    basePrompt += `
-
-DIALOGUE: Include speech bubble with text: "${dialogue}"`;
-  }
+  // Dialogue is handled separately, no speech bubbles in images
   
   const finalPrompt = basePrompt;
   
