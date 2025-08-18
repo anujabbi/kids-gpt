@@ -43,10 +43,17 @@ export const useComicPanelGeneration = () => {
         // Use the prompt directly (it's already enhanced)
         enhancedPrompt = panel.prompt;
       } else {
-        // Generate enhanced prompt
+        // Generate enhanced prompt with detailed character descriptions
         const characterDescriptions = characters
-          .map(char => `${char.name}: ${char.visualDescription}`)
-          .join('; ');
+          .map(char => {
+            const details = [
+              `NAME: ${char.name}`,
+              `APPEARANCE: ${char.visualDescription}`,
+              `PERSONALITY: ${char.description || 'Main character'}`
+            ];
+            return details.join(' | ');
+          })
+          .join('\n');
 
         console.log('Character descriptions:', characterDescriptions);
 

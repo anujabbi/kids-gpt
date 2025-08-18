@@ -64,9 +64,15 @@ Panel Type: {{shotType}}
 Scene: {{sceneDescription}}
 
 {{#if characterDescriptions}}
-CHARACTER CONSISTENCY REQUIREMENTS:
+CHARACTER CONSISTENCY REQUIREMENTS - MAINTAIN EXACT VISUAL IDENTITY:
 {{characterDescriptions}}
-Ensure these characters appear EXACTLY as described with identical visual features, clothing, and proportions.
+
+CRITICAL: Each character must maintain IDENTICAL distinguishing features across all panels:
+- Exact facial structure, eye color, hair style and color
+- Same body proportions, height, build
+- Identical clothing, accessories, and distinctive markings
+- Consistent pose style and expression patterns
+- Same lighting and art style as established
 {{/if}}
 
 CRITICAL: Maintain complete visual consistency with previous panels - same characters, same setting, same lighting, same style. Only expressions and positioning should change to show story progression.`;
