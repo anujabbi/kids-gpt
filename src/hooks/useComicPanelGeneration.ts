@@ -69,6 +69,7 @@ export const useComicPanelGeneration = () => {
         imageUrl: result.url,
         generationId: result.generationId,
         referencedImageIds: referencedImageIds.length > 0 ? referencedImageIds : undefined,
+        dialogue: panel.dialogue, // Explicitly preserve dialogue
       };
 
       toast({
