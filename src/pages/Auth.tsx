@@ -198,7 +198,7 @@ const Auth = () => {
                     disabled={isSubmitting}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full bg-[#8b5cf6] hover:bg-[#8b5cf6]/90" disabled={isSubmitting}>
                   {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
@@ -282,7 +282,7 @@ const Auth = () => {
                     disabled={isSubmitting}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full bg-[#8b5cf6] hover:bg-[#8b5cf6]/90" disabled={isSubmitting}>
                   {isSubmitting ? 'Creating account...' : 'Sign Up'}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
