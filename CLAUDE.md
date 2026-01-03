@@ -16,6 +16,16 @@ npm run lint       # Run ESLint
 npm run preview    # Preview production build
 ```
 
+## Git Workflow
+
+When making changes, always follow this workflow:
+1. Create a new feature branch (`git checkout -b feature/your-feature-name`)
+2. Make changes and commit on that branch
+3. Push the branch to remote
+4. Create a Pull Request to merge into `main`
+
+Never commit directly to `main`.
+
 ## Architecture
 
 ### Tech Stack
