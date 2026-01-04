@@ -9,6 +9,37 @@ export interface ComicCharacter {
   generationId?: string;
 }
 
+/**
+ * Character from the shared library (stored in Supabase)
+ */
+export interface LibraryCharacter {
+  id: string;
+  name: string;
+  description: string;
+  visualDescription: string;
+  imageUrl: string;
+  artStyle: ComicStyle;
+  createdBy: string | null;
+  isPublic: boolean;
+  isFeatured: boolean;
+  useCount: number;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Input for creating a new library character
+ */
+export interface CreateCharacterInput {
+  name: string;
+  description: string;
+  visualDescription: string;
+  artStyle: ComicStyle;
+  tags?: string[];
+  isPublic?: boolean;
+}
+
 export interface ComicPanel {
   id: string;
   imageUrl: string;
