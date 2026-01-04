@@ -37,7 +37,7 @@ const STYLE_PROMPTS: Record<ComicStyle, string> = {
 
 class GeminiImageService {
   private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
-  private readonly model = 'gemini-2.0-flash-exp'; // Using experimental model with image generation
+  private readonly model = 'gemini-2.0-flash-exp-image-generation'; // Image generation model
 
   /**
    * Get the Gemini API key from family settings or localStorage
@@ -139,8 +139,7 @@ Requirements:
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            responseModalities: ['image', 'text'],
-            responseMimeType: 'image/png'
+            responseModalities: ['TEXT', 'IMAGE']
           }
         })
       }
@@ -153,6 +152,7 @@ Requirements:
     }
 
     const data: GeminiResponse = await response.json();
+    console.log('Gemini response:', JSON.stringify(data, null, 2));
     const imageDataUrl = this.extractImageFromResponse(data);
 
     if (!imageDataUrl) {
@@ -233,8 +233,7 @@ The reference images of the characters are provided below. Make sure the charact
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: {
-            responseModalities: ['image', 'text'],
-            responseMimeType: 'image/png'
+            responseModalities: ['TEXT', 'IMAGE']
           }
         })
       }
@@ -247,6 +246,7 @@ The reference images of the characters are provided below. Make sure the charact
     }
 
     const data: GeminiResponse = await response.json();
+    console.log('Gemini panel response:', JSON.stringify(data, null, 2));
     const imageDataUrl = this.extractImageFromResponse(data);
 
     if (!imageDataUrl) {
@@ -312,8 +312,7 @@ IMPORTANT:
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: {
-            responseModalities: ['image', 'text'],
-            responseMimeType: 'image/png'
+            responseModalities: ['TEXT', 'IMAGE']
           }
         })
       }
